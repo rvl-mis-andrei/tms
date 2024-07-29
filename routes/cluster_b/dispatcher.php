@@ -13,19 +13,22 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix'=>'tms/cco-b/dispatcher'], function() {
 
-    Route::middleware('prevent.verified.user')->controller(AccessController::class)->group(function () {
-        Route::get('/', 'form')->name('cco-b.dispatcher.form');
-        Route::post('/login', 'login')->name('cco-b.dispatcher.login');
-        Route::post('/logout', 'logout')->name('cco-b.dispatcher.logout');
-    });
-
     Route::middleware('auth')->group(function () {
 
         Route::controller(PageController::class)->group(function () {
+
+            Route::post('/setup-page', 'setup_page');
+
             $routes = (new SystemRoute())->getDispatcherRoutes();
             if ($routes) {
                 foreach ($routes as $row) {
-                    Route::get('/'.$row->href,'setup_page');
+                    if (!$row->file_layer->isEmpty()) {
+                        foreach ($row->file_layer as $layer) {
+                            Route::get('/'.$layer->href,'system_file');
+                        }
+                    }else{
+                        Route::get('/'.$row->href,'system_file');
+                    }
                 }
             }
         });

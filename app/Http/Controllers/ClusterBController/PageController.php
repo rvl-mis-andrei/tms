@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\ClusterBController;
 
 use App\Http\Controllers\Controller;
+use App\Models\SystemFile;
 use App\Models\TmsRoleAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PageController extends Controller
 {
-    public function setup_page(Request $rq)
+    public function system_file(Request $rq)
     {
         $user_role = Auth::user()->user_roles;
         if(!$user_role->is_active)
@@ -45,5 +46,30 @@ class PageController extends Controller
         }
         return view('cluster_b.'.strtolower($user_role->role->name).'.layout.app', compact('result'));
 
+    }
+
+    public function setup_page(Request $rq)
+    {
+        // $page = new PageClass;
+        $rq->session()->put("dispatcher_page",$rq->page);
+        $view = $rq->session()->get("dispatcher_page", "dashboard");
+
+        $row = SystemFile::with(["file_layer" => function($q) use($view) {
+            $q->where([["status", 1], ["href", $view]]);
+        }])
+        ->where(function($query) use($view) {
+            $query->where([["status", 1], ["href", $view]])
+            ->orWhereHas("file_layer", function ($q) use($view) {
+                $q->where([["status", 1], ["href", $view]]);
+            });
+        })
+        ->first();
+
+        if (!$row) { return view("cluster_b.dispatcher.not_found"); }
+
+        $folders = !$row->file_layer->isEmpty()? $row->folder.'.'.$row->file_layer[0]->folder :$row->folder;
+        $file   = $row->file_layer[0]->href??$row->href;
+
+        return response([ 'page' => view("cluster_b.dispatcher.$folders.$file")->render() ],200);
     }
 }

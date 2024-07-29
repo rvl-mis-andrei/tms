@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->integer('cluster_id')->comment('ref tbl: clusters');
             $table->integer('emp_id')->comment('ref tbl: emp');
+            $table->tinyInteger('is_active');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamp('created_at')->useCurrent();

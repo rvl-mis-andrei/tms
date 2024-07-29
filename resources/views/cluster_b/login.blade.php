@@ -1,10 +1,10 @@
 @extends('login.app')
 @section('title', "Trip Monitoring | Login")
 @section('login-form')
-<form class="form w-100" id="form-login" novalidate="novalidate" id="kt_sign_in_form" action="{{ route('cco-b.dispatcher.login') }}">
+<form class="form w-100" id="form-login" novalidate="novalidate" id="kt_sign_in_form" action="{{ route('cco-b.login') }}">
     <div class="text-center mb-15">
         <h1 class="text-dark fw-bolder mb-3">
-            Sign In Dispatcher's Account
+            Sign In your Account
         </h1>
         <div class="text-gray-500 fw-semibold fs-6">
             CCO - Cluster B

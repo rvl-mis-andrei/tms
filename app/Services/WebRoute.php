@@ -11,7 +11,7 @@ class WebRoute
     {
         try {
             return Cache::rememberForever('dispatcher_routes', function () {
-                return SystemFile::where('status',1)->get();
+                return SystemFile::with('file_layer')->where('status',1)->get();
             });
         } catch (\Exception $e) {
             Log::error('Error retrieving dispatcher routes: ' . $e->getMessage());

@@ -17,33 +17,26 @@ class AccessController extends Controller
 
     public function login(LoginRequest $rq)
     {
-        try{
-
-            if(!Auth::attempt($rq->only('username','password')))
-            {
-                $this->_response('Incorrect username and password',401,'error',csrf_token());
-            }
-
-            $user = Auth::user() ?? false;
-            $user_role = $user->user_roles;
-            if(!$user->employee->is_active || !$user->is_active || !$user_role->is_active)
-            {
-                Auth::logout();
-                $this->_response('Account is Deactivated',401,'error',csrf_token());
-            }
-
-            if(!$user_role->emp_cluster->cluster_id != 2)
-            {
-                Auth::logout();
-                $this->_response('This Login is for Cluster B only',401,'error',csrf_token());
-            }
-
-            $this->_response('Login Success',200,'success','/tms/cco-b/'.$user_role->role->name.'/dashboard');
-
-        } catch(Exception $e){
-            return response()->json([ 'status' => 400,  'message' =>  'Something went wrong. Try again later' ]);
+        if(!Auth::attempt($rq->only('username','password')))
+        {
+            $this->_response('Incorrect username and password',401,'error',csrf_token());
         }
 
+        $user = Auth::user() ?? false;
+        $user_role =$user->user_roles;
+        if(!$user->employee->is_active || !$user->is_active || !$user_role->is_active)
+        {
+            Auth::logout();
+            $this->_response('Account is Deactivated',401,'error',csrf_token());
+        }
+
+        if($user->emp_cluster->cluster_id != 2)
+        {
+            Auth::logout();
+            $this->_response('This Login is for Cluster B only',401,'error',csrf_token());
+        }
+
+        $this->_response('Login Success',200,'success','/tms/cco-b/'.strtolower($user_role->role->name).'/dashboard');
     }
 
     public function logout(Request $rq)
@@ -51,7 +44,7 @@ class AccessController extends Controller
         if(Auth::check())
         {
             Auth::logout();
-            return redirect()->route('cco-b.dispatcher.login');
+            return redirect()->route('cco-b.form');
         }
     }
 }

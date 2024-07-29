@@ -1,21 +1,24 @@
 <?php
 
+use App\Http\Controllers\ClusterBController\AccessController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DispatcherController\Login\Auth as DispatcherLoginController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+//CCO-B ACCESS ROUTES
+Route::group(['prefix'=>'tms/cco-b'], function() {
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+    Route::controller(AccessController::class)->group(function () {
+
+        Route::middleware('prevent.verified.user')->group(function () {
+
+            Route::get('/', 'form')->name('cco-b.form');
+            Route::post('/login', 'login')->name('cco-b.login');
+            
+        });
+
+        Route::post('/logout', 'logout')->name('cco-b.logout');
+
+    });
 
 
+});

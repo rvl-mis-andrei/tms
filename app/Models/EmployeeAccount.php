@@ -31,7 +31,7 @@ class EmployeeAccount extends Authenticatable
     }
 
     public function employee(){
-        return $this->hasOne(Employee ::class,'emp_id','emp_id');
+        return $this->hasOne(Employee::class,'id','emp_id');
     }
 
     public function employee_details(){
@@ -39,7 +39,7 @@ class EmployeeAccount extends Authenticatable
     }
 
     public function emp_cluster(){
-        return $this->hasOne(TmsClusterPersonnel::class,',emp_id');
+        return $this->hasOne(TmsClusterPersonnel::class,'emp_id','emp_id');
     }
 
 }
