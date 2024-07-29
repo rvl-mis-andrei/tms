@@ -9,7 +9,6 @@ export class RequestHandler {
                 throw error;
             });
     }
-
     post(url, data, multipart = false) {
         data.append("_token", this.getToken());
         let config = false;

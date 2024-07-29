@@ -50,6 +50,7 @@ class PageController extends Controller
 
     public function setup_page(Request $rq)
     {
+
         // $page = new PageClass;
         $rq->session()->put("dispatcher_page",$rq->page);
         $view = $rq->session()->get("dispatcher_page", "dashboard");

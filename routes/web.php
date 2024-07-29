@@ -13,7 +13,7 @@ Route::group(['prefix'=>'tms/cco-b'], function() {
 
             Route::get('/', 'form')->name('cco-b.form');
             Route::post('/login', 'login')->name('cco-b.login');
-            
+
         });
 
         Route::post('/logout', 'logout')->name('cco-b.logout');
@@ -22,3 +22,6 @@ Route::group(['prefix'=>'tms/cco-b'], function() {
 
 
 });
+
+
+

@@ -1,4 +1,4 @@
-import {toast} from '../global.js';
+import { Alert } from '../global/alert.js';
 "use strict";
 
 var fvLogin = (function () {
@@ -47,10 +47,7 @@ var fvLogin = (function () {
                             password: form.querySelector('[name="password"]').value,
                         },
                     }).then((res) => {
-                        toast().fire({
-                            icon: res.status,
-                            title: res.message
-                        });
+                        Alert.toast( res.status, res.message );
                         if(res.payload == 'throttle'){
                             submit.attr("data-kt-indicator", "on").attr('disabled', true);
                         }

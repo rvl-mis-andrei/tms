@@ -2,6 +2,8 @@
 
 import { page_content } from './pg_content.js';
 import { DashboardController } from './fn_controller/0001.js';
+import { ClientListController } from './fn_controller/0004.js';
+
 
 async function init_page() {
     let pathname = window.location.pathname;
@@ -11,18 +13,21 @@ async function init_page() {
     if(url.split('/')[5] !== null && typeof url.split('/')[5] !== 'undefined'){
         param =  pathname.split("/")[5];
     }
-    load_page(page, param).then( page_script(page,param) );
+    load_page(page, param).then(
+        page_handler(page,param),
+    )
 }
 
-export async function load_page(page, param){
+export async function load_page(page, param=null){
     page_content(page,param).finally(() => {
-        page_script(page,param).then(
-             KTComponents.init()
-        );
-    });
+        page_handler(page,param).then(
+             KTComponents.init(),
+             $('.form-select').select2()
+        )
+    })
 }
 
-export async function page_script(page,param){
+export async function page_handler(page,param=null){
     switch (page) {
 
         case 'dashboard':
@@ -37,6 +42,7 @@ export async function page_script(page,param){
         break;
 
         case 'client_list':
+            ClientListController(page,param);
         break;
 
         case 'tractor_trailer_list':
@@ -61,28 +67,27 @@ export async function page_script(page,param){
         break;
 
         default:
-            console.log("No script found for this page");
+            console.log("No handler found for this page");
         break;
     }
 }
 
-$(document).ready(function(){
+document.addEventListener('DOMContentLoaded', function () {
 
-    if(document.readyState== 'complete'){
+    init_page()
 
-        init_page()
+    $(".navbar").on("click", function (e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
 
-        $(".navbar").on("click", function (e) {
-            e.preventDefault();
-            e.stopImmediatePropagation();
+        let page = $(this).data('page');
+        let link = $(this).data('link');
+        let title = $(this).find('.menu-title').text();
+        // let breadecrumbs_menu = [{'link': link,'page': page,'title':title}]
+        // sessionStorage.setItem("breadecrumbs", JSON.stringify(breadecrumbs_menu));
+        load_page(page).then(
+            page_handler(page),
+        );
+    })
 
-            let page = $(this).data('page');
-            let link = $(this).data('link');
-            let title = $(this).find('.menu-title').text();
-            // let breadecrumbs_menu = [{'link': link,'page': page,'title':title}]
-            // sessionStorage.setItem("breadecrumbs", JSON.stringify(breadecrumbs_menu));
-            load_page(page, null).then(page_script(page,null));
-        });
-    }
-
-});
+})

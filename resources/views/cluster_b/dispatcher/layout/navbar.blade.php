@@ -1,5 +1,6 @@
 <div id="kt_app_header" class="app-header " data-kt-sticky="true" data-kt-sticky-activate="{default: false, lg: true}" data-kt-sticky-name="app-header-sticky" data-kt-sticky-offset="{default: false, lg: '300px'}">
-<div class="app-container  container-fluid d-flex align-items-stretch justify-content-between border border-bottom-1"
+
+    <div class="app-container  container-fluid d-flex align-items-stretch justify-content-between border border-bottom-1"
     id="kt_app_header_container">
     <div class="app-header-logo d-flex align-items-center me-lg-9">
         <div class="btn btn-icon btn-color-gray-500 btn-active-color-primary w-35px h-35px ms-n2 me-2 d-flex d-lg-none"

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta content="{{ csrf_token() }}" name="csrf-token" id="csrf-token">
     {{-- <link rel="shortcut icon" href="assets/media/logos/favicon.ico" /> --}}
-    {{-- <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" /> --}}
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
     <link href="{{ asset('assets/plugins/custom/fullcalendar/fullcalendar.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
@@ -57,7 +57,7 @@
                         <div class="d-flex flex-column flex-column-fluid">
 
                             <!--begin::Toolbar-->
-                            <div id="kt_app_toolbar" class="app-toolbar  pt-7 pt-lg-10 ">
+                            <div id="kt_app_toolbar" class="app-toolbar pt-7 pt-lg-10 ">
 
                                 <!--begin::Toolbar wrapper-->
                                 <div class="app-toolbar-wrapper d-flex flex-stack flex-wrap gap-4 w-100">
@@ -102,14 +102,13 @@
                                         <!--end::Breadcrumb-->
 
                                         <!--begin::Title-->
-                                        <h1
-                                            class="page-heading d-flex flex-column justify-content-center text-dark fw-bolder fs-3 m-0">
+                                        <h1 class="page-heading d-flex flex-column justify-content-center text-dark fw-bolder fs-3 m-0">
                                             eCommerce Dashboard
                                         </h1>
                                         <!--end::Title-->
                                     </div>
                                     <!--end::Page title-->
-                                    <!--begin::Actions-->
+                                    {{-- <!--begin::Actions-->
                                     <div class="d-flex align-items-center gap-2 gap-lg-3">
                                         <a href="#"
                                             class="btn btn-flex btn-color-gray-700 btn-active-color-primary bg-light h-40px fs-7 fw-bold"
@@ -122,7 +121,7 @@
                                             <i class="ki-outline ki-plus-square fs-3"></i> Invite
                                         </a>
                                     </div>
-                                    <!--end::Actions-->
+                                    <!--end::Actions--> --}}
                                 </div>
                                 <!--end::Toolbar wrapper-->
                             </div>
@@ -130,7 +129,7 @@
 
                             <!--begin::Content-->
                             <div id="kt_app_content" class="app-content  flex-column-fluid">
-                                <div class="row g-5 g-xl-10 mb-5 mb-xl-10" id="Page"> </div>
+                                    <div class="row g-5 g-xl-10 mb-5 mb-xl-10 px-5" id="Page"></div>
                             </div>
                             <!--end::Content wrapper-->
 
@@ -147,6 +146,7 @@
         <script> var hostUrl = "assets/index.html"; </script>
         <script src="{{ asset('assets/plugins/global/plugins.bundle.js') }}"></script>
         <script src="{{ asset('assets/js/scripts.bundle.js') }}"></script>
+        <script src="{{ asset('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
 
         <script type="text/javascript">
             var asset_url = "{{ asset('') }}";
