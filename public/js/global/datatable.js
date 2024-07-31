@@ -1,12 +1,12 @@
 'use strict';
 
-import {page_state,construct_url} from "../global.js";
+import {page_state,construct_url,draw_table,data_bs_components} from "../global.js";
 
 export class DataTableHelper {
 
-    constructor() {
-        this.tableId = 'client_list_table';
-        this.wrapper = 'client_list_wrapper';
+    constructor(id,wrapper) {
+        this.tableId = id;
+        this.wrapper = wrapper;
         this.table = null;
     }
 
@@ -16,7 +16,7 @@ export class DataTableHelper {
         });
         $.fn.dataTable.ext.errMode = 'throw';
         let container = $(`#${this.wrapper}`);
-        // drawTable(`${this.wrapper}`, container);
+        draw_table(this.tableId,container);
         this.table = $(`#${this.tableId}`).DataTable({
             responsive: true,
             responsiveMode: 'collapsed',
@@ -29,7 +29,6 @@ export class DataTableHelper {
                 data: function (d) {
                     if (parameters != null) {
                         let keys = Object.keys(parameters);
-
                         for (let i = 0; i < keys.length; i++) {
                             let key = keys[i];
                             let value = parameters[key];
@@ -61,6 +60,7 @@ export class DataTableHelper {
                 }
                 var ths = $(this.api().table().header()).find("th");
                 ths.addClass(  "text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0" );
+                data_bs_components()
             },
         });
         this.table.on('draw', function () {
@@ -74,5 +74,9 @@ export class DataTableHelper {
 
     search(term) {
         this.table.search(term).draw();
+    }
+
+    draw(){
+        this.table.draw();
     }
 }

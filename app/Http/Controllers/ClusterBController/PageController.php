@@ -44,16 +44,16 @@ class PageController extends Controller
                 'file_layer'=>$file_layer,
             ];
         }
-        return view('cluster_b.'.strtolower($user_role->role->name).'.layout.app', compact('result'));
+        return view('layout.'.strtolower($user_role->role->name).'.app',compact('result'));
 
     }
 
     public function setup_page(Request $rq)
     {
-
         // $page = new PageClass;
-        $rq->session()->put("dispatcher_page",$rq->page);
-        $view = $rq->session()->get("dispatcher_page", "dashboard");
+        $rq->session()->put("clusterb_page",$rq->page);
+        $view = $rq->session()->get("clusterb_page", "dashboard");
+        $role    = Auth::user()->user_roles->role->name;
 
         $row = SystemFile::with(["file_layer" => function($q) use($view) {
             $q->where([["status", 1], ["href", $view]]);
@@ -66,11 +66,10 @@ class PageController extends Controller
         })
         ->first();
 
-        if (!$row) { return view("cluster_b.dispatcher.not_found"); }
+        if (!$row) { return view("cluster_b.not_found"); }
 
         $folders = !$row->file_layer->isEmpty()? $row->folder.'.'.$row->file_layer[0]->folder :$row->folder;
-        $file   = $row->file_layer[0]->href??$row->href;
-
-        return response([ 'page' => view("cluster_b.dispatcher.$folders.$file")->render() ],200);
+        $file    = $row->file_layer[0]->href??$row->href;
+        return response([ 'page' => view("cluster_b.$role.$folders.$file")->render() ],200);
     }
 }

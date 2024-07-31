@@ -2,9 +2,10 @@
 <html lang="en">
 <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
 <head>
-    <title>Trip Monitoring System | Dashboard</title>
+    <title>Trip Monitoring | </title>
     <meta charset="utf-8" />
     <meta content="{{ csrf_token() }}" name="csrf-token" id="csrf-token">
+    <meta content="{{ url('assets') }}" name="asset-url">
     {{-- <link rel="shortcut icon" href="assets/media/logos/favicon.ico" /> --}}
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
     <link href="{{ asset('assets/plugins/custom/fullcalendar/fullcalendar.bundle.css') }}" rel="stylesheet" type="text/css" />
@@ -44,7 +45,7 @@
         <div class="app-page  flex-column flex-column-fluid " id="kt_app_page">
 
             <!--begin::Header-->
-           @include('cluster_b.dispatcher.layout.navbar')
+           @include('layout.dispatcher.navbar')
             <!--end::Header-->
 
             <!--begin::Wrapper-->
@@ -134,7 +135,7 @@
                             <!--end::Content wrapper-->
 
                             <!--begin::Footer-->
-                            @include('cluster_b.dispatcher.layout.footer')
+                            @include('layout.dispatcher.footer')
                             <!--end::Footer-->
 
                         </div>
@@ -149,7 +150,7 @@
         <script src="{{ asset('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
 
         <script type="text/javascript">
-            var asset_url = "{{ asset('') }}";
+            var asset_url = $('meta[name="asset-url"]').attr("content");
             var csrf_token = $('meta[name="csrf-token"]').attr("content");
             var app = $("#Page");
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }});

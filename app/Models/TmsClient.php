@@ -12,6 +12,8 @@ class TmsClient extends Model
     protected $fillable=[
         'name',
         'is_active',
+        'is_deleted',
+        'deleted_by',
         'created_by',
         'updated_by',
     ];

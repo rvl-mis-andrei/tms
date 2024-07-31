@@ -14,69 +14,88 @@ class DTServerSide
     public $recordsTotal;
     public $recordsFiltered;
 
-    public function __construct(Request $request, Collection $data) {
+    public function __construct($request, $data) {
         $this->request = $request;
         $this->data = $data;
     }
 
-    public function renderTable(): void
+    public function renderTable()
     {
-        $this->draw = $this->request->input('draw');
-        $start = $this->request->input('start');
-        $length = $this->request->input('length');
-        $search = $this->request->input('search.value');
-        $order_column_index = $this->request->input('order.0.column');
-        $order_dir = $this->request->input('order.0.dir');
-        $columns = $this->request->input('columns');
+        $draw = $this->request->get('draw');
+        $start = $this->request->get('start');
+        $length = $this->request->get('length');
+        $search = $this->request->get('search')['value'];
+        $order_column = $this->request->get('order')[0]['column'];
+        $order_dir = $this->request->get('order')[0]['dir'];
+        $columns = $this->request->get('columns');
 
         $results = $this->data;
-
         // Apply search filter
         if ($search) {
             $results = $results->filter(function ($row) use ($search, $columns) {
-                foreach ($columns as $column) {
-                    if ($column['searchable'] === 'true' && stripos($row->{$column['name']}, $search) !== false) {
+                $searchable_columns = array_filter($columns, function($column) {
+                    return $column['searchable'] == 'true';
+                });
+
+                foreach ($searchable_columns as $column) {
+                    $column_name = $column['name'];
+                    if (stripos($row->$column_name, $search) !== false) {
                         return true;
                     }
                 }
+
                 return false;
             });
         }
 
         // Apply order by
-        $order_column_name = $columns[$order_column_index]['data'] ?? null;
-        if ($order_column_name) {
-            $results = $results->sortBy($order_column_name, SORT_NATURAL, $order_dir !== 'asc');
-        }
+        $order_column_name = $this->request->get('columns')[$order_column]['data'];
+        $results = $results->sortBy($order_column_name, SORT_NATURAL, $order_dir === 'asc');
 
-        $this->recordsTotal = $this->data->count();
-        $this->recordsFiltered = $results->count();
+        $filtered_count = $results->count();
 
-        $this->rows = $results->slice($start, $length)->values()->map(function ($row) use ($columns) {
+        $paginated_data = $results->skip($start)->take($length)->values();
+        // Create an empty array to hold the data
+        $data = [];
+
+        // Iterate over the paginated data and add the columns to the data array
+        foreach ($paginated_data as $row) {
             $data_row = [];
+
             foreach ($columns as $column) {
-                $data_row[$column['name']] = $row->{$column['name']};
+                // Get the name of the column
+                $column_name = $column['name'];
+
+                // Add the column data to the row
+                $data_row[$column_name] = $row->$column_name;
             }
-            return $data_row;
-        })->all();
+
+            // Add the row to the data array
+            $data[] = $data_row;
+        }
+        // Set the class properties to the updated values
+        $this->rows = $data;
+        $this->draw = $draw;
+        $this->recordsTotal = $filtered_count;
+        $this->recordsFiltered = $filtered_count;
     }
 
-    public function getRows(): array
+    public function getRows()
     {
         return $this->rows;
     }
 
-    public function getDraw(): int
+    public function getDraw()
     {
         return $this->draw;
     }
 
-    public function getRecordsTotal(): int
+    public function getRecordsTotal()
     {
         return $this->recordsTotal;
     }
 
-    public function getRecordsFiltered(): int
+    public function getRecordsFiltered()
     {
         return $this->recordsFiltered;
     }

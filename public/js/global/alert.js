@@ -29,10 +29,10 @@ export class Alert {
         });
     }
 
-    static confirm(message, option) {
+    static confirm(icon,message, option) {
         Swal.fire({
             html: message,
-            icon: "info",
+            icon: icon,
             buttonsStyling: false,
             showCancelButton: true,
             confirmButtonText: "Confirm",

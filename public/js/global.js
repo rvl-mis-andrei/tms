@@ -16,7 +16,7 @@ export function page_state(container, status,val=false){
 
                 </div>
                 <div class="text-center pb-15 px-5">
-                    <img src="../assets/media/illustrations/sketchy-1/16.png" alt="" class="mw-100 h-200px h-sm-325px">
+                    <img src="${asset_url+'/media/illustrations/sketchy-1/16.png'}" alt="" class="mw-100 h-200px h-sm-325px">
                 </div>
             </div>`;
             container.html(html)
@@ -32,7 +32,7 @@ export function page_state(container, status,val=false){
 
                         </div>
                         <div class="text-center pb-15 px-5">
-                            <img src="../assets/media/illustrations/sketchy-1/5.png" alt="" class="mw-100 h-200px h-sm-325px">
+                            <img src="${asset_url+'/media/illustrations/sketchy-1/5.png'}" alt="" class="mw-100 h-200px h-sm-325px">
                         </div>
                     </div>`;
             container.html(html)
@@ -48,7 +48,7 @@ export function page_state(container, status,val=false){
 
                         </div>
                         <div class="text-center pb-15 px-5">
-                            <img src="../assets/media/illustrations/sketchy-1/5.png" alt="" class="mw-100 h-200px h-sm-325px">
+                            <img src="${asset_url+'/media/illustrations/sketchy-1/5.png'}" alt="" class="mw-100 h-200px h-sm-325px">
                         </div>
                     </div>`;
             container.html(html);
@@ -81,7 +81,42 @@ export function page_state(container, status,val=false){
     }
 }
 
+export function modal_state(modal_id,action='hide'){
+
+    let modal = bootstrap.Modal.getOrCreateInstance(document.querySelector(modal_id));
+
+    if(action == 'show'){
+        modal.show();
+    }else if(action == 'hide'){
+        modal.hide();
+        $('.modal-backdrop').remove()
+    }
+}
+
+export function draw_table(id, container){
+    var table = `<div class="table-responsive" id="table_wrapper">
+                    <table class="table table-striped align-middle table-row-dashed fs-6 gy-5 dataTable no-footer" id="${id}"></table>
+                </div>`;
+    container.html(table);
+}
+
 export function construct_url(url) {
     var root = window.location.protocol + "//" + window.location.host;
     return root + "/" + url;
+}
+
+export function data_bs_components()
+{
+    let formSelect = $('.form-select');
+    if (formSelect.length > 0) {
+        formSelect.select2();
+    }
+    let tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    if (tooltipTriggerList.length > 0) {
+        [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    }
+    let popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+    if (popoverTriggerList.length > 0) {
+        [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
+    }
 }

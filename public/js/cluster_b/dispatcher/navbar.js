@@ -2,7 +2,7 @@
 
 import { page_content } from './pg_content.js';
 import { DashboardController } from './fn_controller/0001.js';
-import { ClientListController } from './fn_controller/0004.js';
+import { ClientListController,ClientInfoController } from './fn_controller/0004.js';
 
 
 async function init_page() {
@@ -13,17 +13,20 @@ async function init_page() {
     if(url.split('/')[5] !== null && typeof url.split('/')[5] !== 'undefined'){
         param =  pathname.split("/")[5];
     }
-    load_page(page, param).then(
-        page_handler(page,param),
-    )
+    load_page(page, param).then((res) => {
+        if (res) {
+            //validation
+        }
+    })
 }
 
 export async function load_page(page, param=null){
-    page_content(page,param).finally(() => {
-        page_handler(page,param).then(
-             KTComponents.init(),
-             $('.form-select').select2()
-        )
+    return page_content(page,param).then((res) => {
+        if (res) {
+            page_handler(page,param).then(() => {
+                KTComponents.init()
+            })
+        }
     })
 }
 
@@ -43,6 +46,10 @@ export async function page_handler(page,param=null){
 
         case 'client_list':
             ClientListController(page,param);
+        break;
+
+        case 'client_info':
+            ClientInfoController(page,param);
         break;
 
         case 'tractor_trailer_list':
@@ -72,7 +79,7 @@ export async function page_handler(page,param=null){
     }
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+$(document).ready(function(e){
 
     init_page()
 
@@ -83,11 +90,9 @@ document.addEventListener('DOMContentLoaded', function () {
         let page = $(this).data('page');
         let link = $(this).data('link');
         let title = $(this).find('.menu-title').text();
+        load_page(page);
         // let breadecrumbs_menu = [{'link': link,'page': page,'title':title}]
         // sessionStorage.setItem("breadecrumbs", JSON.stringify(breadecrumbs_menu));
-        load_page(page).then(
-            page_handler(page),
-        );
     })
 
 })

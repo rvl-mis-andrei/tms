@@ -8,7 +8,7 @@ use App\Http\Controllers\ClusterBController\Dispatcher\Dashboard;
 use App\Http\Controllers\ClusterBController\Dispatcher\DriverListing;
 use App\Http\Controllers\ClusterBController\Dispatcher\TractorTrailerDriverListing;
 use App\Http\Controllers\ClusterBController\PageController;
-
+use App\Services\Dispatcher\ClientList;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix'=>'tms/cco-b/dispatcher'], function() {
@@ -18,6 +18,9 @@ Route::group(['prefix'=>'tms/cco-b/dispatcher'], function() {
         Route::controller(PageController::class)->group(function () {
 
             Route::post('/setup-page', 'setup_page');
+
+            Route::get('/client_info/{id}','system_file');
+            Route::get('/tractor_trailer/{id}','system_file');
 
             $routes = (new SystemRoute())->getDispatcherRoutes();
             if ($routes) {
@@ -33,29 +36,7 @@ Route::group(['prefix'=>'tms/cco-b/dispatcher'], function() {
             }
         });
 
-        // Route::controller(ClientListing::class)->group(function () {
-        //     Route::get('/dashboard', 'index');
-        //     Route::get('/show', 'show');
-        //     Route::get('/upsert', 'upsert');
-        //     Route::get('/delete', 'delete');
-        // });
-
-        // Route::controller(DriverListing::class)->group(function () {
-        //     Route::get('/dashboard', 'index');
-        //     Route::get('/show', 'show');
-        //     Route::get('/upsert', 'upsert');
-        //     Route::get('/delete', 'delete');
-        // });
-
-        // Route::controller(TractorTrailerDriverListing::class)->group(function () {
-        //     Route::get('/dashboard', 'index');
-        //     Route::get('/show', 'show');
-        //     Route::get('/upsert', 'upsert');
-        //     Route::get('/delete', 'delete');
-        // });
-
     });
-
 });
 
 
