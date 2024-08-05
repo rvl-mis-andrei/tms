@@ -2,25 +2,21 @@
 
 namespace App\Services\Dispatcher;
 
-use App\Models\TmsClusterClient;
-use App\Models\TmsClusterTractorTrailer;
+use App\Models\TractorTrailerDriver;
 use App\Services\DTServerSide;
-use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
-class ClusterTractorTrailerList
+class TractorTrailerList
 {
     public function datatable(Request $rq)
     {
         $status = $rq->status;
         $cluster_id = Auth::user()->emp_cluster->cluster_id;
-        $data = TmsClusterTractorTrailer::with('tractor_trailer')
-        ->when($status!="all", function ($q) use ($status) {
+        $data = TractorTrailerDriver::when($status!="all", function ($q) use ($status) {
             return $q->where('status',$status);
         })->where(function ($query) {
             $query->where('is_deleted','!=',1)->orWhereNull('is_deleted');
@@ -28,12 +24,15 @@ class ClusterTractorTrailerList
         $data->transform(function ($item,$key){
             $item->count = $key+1;
             $item->status = config('value.status.'.$item->status);
-            $item->tractor = $item->tractor_trailer->tractor->name;
-            $item->tractor_plate_no = $item->tractor_trailer->tractor->plate_no;
-            $item->tractor_status = config('value.is_active.'.$item->tractor_trailer->tractor->status);
-            $item->trailer = $item->tractor_trailer->trailer->name;
-            $item->trailer_status = config('value.is_active.'.$item->tractor_trailer->trailer->status);
-            $item->trailer_type = $item->tractor_trailer->trailer->trailer_type->name ?? 'No Record';
+            $item->tractor_plate_no = $item->tractor->plate_no;
+            $item->tractor_status = config('value.tractor_status.'.$item->tractor->status);
+            $item->trailer_status = config('value.trailer_status.'.$item->trailer->status);
+            $item->trailer_type = $item->trailer->trailer_type->name;
+            $item->sdriver_emp = $item->sdriver_emp->fullname();
+            $item->pdriver_emp = $item->pdriver_emp->fullname();
+            $item->tractor = $item->tractor->name;
+            $item->trailer = $item->trailer->name;
+            $item->remarks = $item->remarks ?? '--';
             $item->encrypt_id = Crypt::encrypt($item->id);
             return $item;
         });
@@ -104,14 +103,15 @@ class ClusterTractorTrailerList
         try{
             DB::beginTransaction();
             $cluster_id = Auth::user()->emp_cluster->cluster_id;
-            TmsClusterClient::create([
-                'name' => $rq->name,
+            TractorTrailerDriver::create([
                 'cluster_id' => $cluster_id,
+                'tractor_id' => $rq->tractor,
+                'trailer_id' => $rq->trailer,
                 'remarks' => $rq->remarks,
                 'is_active' => $rq->is_active,
                 'created_by' => Auth::user()->emp_id,
             ]);
-            //CREATE A TRIGGER
+
             DB::commit();
             return ['status'=>'success','message' =>'Client added successfully'];
         }catch(Exception $e){

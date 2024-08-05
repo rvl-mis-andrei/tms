@@ -22,9 +22,27 @@ export async function TractorTrailerListDT() {
                 title: "No.",
                 responsivePriority: -3,
             },
-            { data: "trailer", name: "trailer", title: "Tractor" },
-            { data: "trailer", name: "trailer", title: "Trailer" },
-            { data: "trailer_type", name: "trailer_type", title: "Trailer Type" },
+            { data: "tractor", name: "tractor", title: "Tractor" },
+            {
+                data: "trailer", name: "trailer", title: "Trailer",
+                render: function(data,type,row){
+                    return `<div class="d-flex flex-column">
+                        <a href="javascript:;" class="text-gray-800 text-hover-primary mb-1">${data}</a>
+                        <span>${row.trailer_type}</span>
+                    </div>`;
+                }
+            },
+            { data: "trailer_type", name: "trailer_type", title: "Trailer Type",visible:false },
+            { data: "sdriver_emp", name: "sdriver_emp", title: "Driver 1" },
+            { data: "pdriver_emp", name: "pdriver_emp", title: "Driver 2" },
+            {
+                data: "remarks", name: "remarks", title: "Remarks" ,
+                render: function(data,type,row){
+                    return `<div class="d-flex flex-column">
+                            <a href="javascript:;" class="text-muted text-hover-primary mb-1">${data}</a>
+                        </div>`;
+                }
+            },
             {
                 data: "status",
                 name: "status",

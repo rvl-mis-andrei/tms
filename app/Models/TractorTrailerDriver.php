@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TractorTrailer extends Model
+class TractorTrailerDriver extends Model
 {
     use HasFactory;
 
@@ -15,5 +15,15 @@ class TractorTrailer extends Model
 
     public function tractor(){
         return $this->belongsTo(Tractor::class,'tractor_id');
+    }
+
+    public function sdriver_emp()
+    {
+        return $this->belongsTo(Employee::class,'sdriver');
+    }
+
+    public function pdriver_emp()
+    {
+        return $this->belongsTo(Employee::class,'pdriver');
     }
 }

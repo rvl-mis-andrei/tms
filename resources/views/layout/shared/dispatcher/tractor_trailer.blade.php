@@ -12,39 +12,61 @@
             </div>
             <div class="modal-body px-5">
                 <form id="form" modal-id="#modal_add_tractor_trailer" class="form fv-plugins-bootstrap5 fv-plugins-framework" action="/services/tractor_trailer/create">
-                    <div class="d-flex flex-column px-5 px-lg-10" id="kt_modal_add_user_scroll" style="max-height: 670px;">
-                        <div class="fv-row mb-5 fv-plugins-icon-container">
-                            <label class="required fs-6 fw-semibold form-label mb-2">Tractor:</label>
-                            <select name="tractor" data-control="select2" data-placeholder="Select a tractor" class="form-select form-select-solid fw-bold select2-hidden-accessible">
-                                <option></option>
-                            </select>
-                            <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+                    <div class="d-flex flex-column scroll-y px-5 px-lg-10" style="max-height: 670px;">
+                        <div class="row">
+                            <div class="d-flex flex-column col-6" id="kt_modal_add_user_scroll" style="max-height: 670px;">
+                                <div class="fv-row mb-5 fv-plugins-icon-container">
+                                    <label class="required fs-6 fw-semibold form-label mb-2">Tractor:</label>
+                                    <select name="tractor" data-control="select2" data-placeholder="Select a tractor" class="form-select form-select-solid fw-bold select2-hidden-accessible">
+                                        <option></option>
+                                    </select>
+                                    <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column col-6" id="kt_modal_add_user_scroll" style="max-height: 670px;">
+                                <div class="fv-row mb-5 fv-plugins-icon-container">
+                                    <label class="required fs-6 fw-semibold form-label mb-2">Trailer:</label>
+                                    <select name="trailer" data-control="select2" data-placeholder="Select a trailer" class="form-select form-select-solid fw-bold select2-hidden-accessible">
+                                        <option></option>
+                                    </select>
+                                    <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="d-flex flex-column px-5 px-lg-10" id="kt_modal_add_user_scroll" style="max-height: 670px;">
-                        <div class="fv-row mb-5 fv-plugins-icon-container">
-                            <label class="required fs-6 fw-semibold form-label mb-2">Trailer:</label>
-                            <select name="trailer" data-control="select2" data-placeholder="Select a trailer" class="form-select form-select-solid fw-bold select2-hidden-accessible">
-                                <option></option>
-                            </select>
-                            <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+                        <div class="d-flex flex-column" id="kt_modal_add_user_scroll" style="max-height: 670px;">
+                            <div class="fv-row mb-5 fv-plugins-icon-container">
+                                <label class="required fs-6 fw-semibold form-label mb-2">Driver 1:</label>
+                                <select name="pdriver" data-control="select2" data-placeholder="Select a driver" class="form-select form-select-solid fw-bold select2-hidden-accessible cluster_drivers">
+                                    <option></option>
+                                </select>
+                                <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="d-flex flex-column px-5 px-lg-10 mb-8">
-                        <label class="fs-6 fw-semibold mb-2">Remarks</label>
-                        <textarea class="form-control form-control-solid" rows="3" name="remarks" placeholder="Remarks"></textarea>
-                    </div>
+                        <div class="d-flex flex-column" id="kt_modal_add_user_scroll" style="max-height: 670px;">
+                            <div class="fv-row mb-5 fv-plugins-icon-container">
+                                <label class="required fs-6 fw-semibold form-label mb-2">Driver 2:</label>
+                                <select name="sdriver" data-control="select2" data-placeholder="Select a driver" class="form-select form-select-solid fw-bold select2-hidden-accessible cluster_drivers">
+                                    <option></option>
+                                </select>
+                                <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-column mb-8">
+                            <label class="fs-6 fw-semibold mb-2">Remarks</label>
+                            <textarea class="form-control form-control-solid" rows="3" name="remarks" placeholder="Remarks"></textarea>
+                        </div>
 
-                    <div class="d-flex flex-column px-5 px-lg-10" id="kt_modal_add_user_scroll" data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_modal_add_user_header" data-kt-scroll-wrappers="#kt_modal_add_user_scroll" data-kt-scroll-offset="300px" style="max-height: 670px;">
-                        <div class="fv-row mb-5 fv-plugins-icon-container">
-                            <label class="required fs-6 fw-semibold form-label mb-2">Status:</label>
-                            <select name="is_active" data-control="select2" data-placeholder="Select a status" data-hide-search="false" data-minimum-results-for-search="Infinity" class="form-select form-select-solid fw-bold select2-hidden-accessible"
-                            data-select2-id="select2-data-15-mta8" tabindex="-1" aria-hidden="true" data-kt-initialized="1">
-                                <option></option>
-                                <option value="1" selected>Active</option>
-                                <option value="0">Inactive</option>
-                            </select>
-                            <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+                        <div class="d-flex flex-column" id="kt_modal_add_user_scroll" data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_modal_add_user_header" data-kt-scroll-wrappers="#kt_modal_add_user_scroll" data-kt-scroll-offset="300px" style="max-height: 670px;">
+                            <div class="fv-row mb-5 fv-plugins-icon-container">
+                                <label class="required fs-6 fw-semibold form-label mb-2">Status:</label>
+                                <select name="is_active" data-control="select2" data-placeholder="Select a status" data-hide-search="false" data-minimum-results-for-search="Infinity" class="form-select form-select-solid fw-bold select2-hidden-accessible"
+                                data-select2-id="select2-data-15-mta8" tabindex="-1" aria-hidden="true" data-kt-initialized="1">
+                                    <option></option>
+                                    <option value="1" selected>Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
+                                <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+                            </div>
                         </div>
                     </div>
                 </form>

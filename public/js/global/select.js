@@ -77,3 +77,26 @@ export async function trailer(param='') {
     });
 }
 
+export async function cluster_driver(param='') {
+    return new Promise((resolve, reject) => {
+        let element = $(`select.cluster_drivers`);
+        element.attr('disabled', true);
+
+        let formData = new FormData();
+        formData.append('id', param);
+        formData.append('type', 'options');
+
+        (new RequestHandler).post("/services/select/cluster_drivers", formData)
+            .then((res) => {
+                element.empty().append(res);
+                resolve(true);
+            })
+            .catch((error) => {
+                console.error(error);
+                resolve(false);
+            })
+            .finally(() => {
+                element.attr('disabled', false);
+            });
+    });
+}

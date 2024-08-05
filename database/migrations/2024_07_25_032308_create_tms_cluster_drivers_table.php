@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->integer('emp_id');
             $table->integer('cluster_id');
+            $table->longText('remarks')->nullable();
             $table->tinyInteger('is_active')->nullable();
             $table->tinyInteger('is_deleted')->nullable();
             $table->tinyInteger('deleted_by')->nullable();

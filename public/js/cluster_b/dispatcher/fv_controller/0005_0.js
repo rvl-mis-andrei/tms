@@ -12,19 +12,92 @@ export function fvNewTractorTrailer(){
             let modal_id = form.getAttribute('modal-id');
             let fvNewTractorTrailer = FormValidation.formValidation(form, {
                 fields: {
-                    tractor: {validators: { notEmpty: { message: 'This field is required' } }},
-                    trailer: {validators: { notEmpty: { message: 'This field is required' } }},
+                    tractor: {
+                        validators: {
+                            // notEmpty: {
+                            //     message: 'This field is required'
+                            // } ,
+                            callback: {
+                                message: 'Select at least a tractor or trailer',
+                                callback: function(){
+                                    let isEmpty = true;
+                                    const tractor = fvNewTractorTrailer.getElements('trailer');
+                                    const trailer = fvNewTractorTrailer.getElements('tractor');
+                                    if (tractor[0].value !== '' || trailer[0].value !== '') {
+                                        isEmpty = false;
+
+                                    }
+                                    if (!isEmpty) {
+                                        fvNewTractorTrailer.updateFieldStatus('tractor', 'Valid', 'callback');
+                                        fvNewTractorTrailer.updateFieldStatus('trailer', 'Valid', 'callback');
+                                        return true;
+                                    }
+                                    return false;
+                                }
+                            },
+                        }
+                    },
+                    trailer: {
+                        validators: {
+                            // notEmpty: {
+                            //     message: 'This field is required'
+                            // },
+                            callback: {
+                                message: 'Select at least a tractor or trailer',
+                                callback: function(){
+                                    let isEmpty = true;
+                                    const tractor = fvNewTractorTrailer.getElements('trailer');
+                                    const trailer = fvNewTractorTrailer.getElements('tractor');
+                                    if (tractor[0].value !== '' || trailer[0].value !== '') {
+                                        isEmpty = false;
+                                    }
+                                    if (!isEmpty) {
+                                        fvNewTractorTrailer.updateFieldStatus('tractor', 'Valid', 'callback');
+                                        fvNewTractorTrailer.updateFieldStatus('trailer', 'Valid', 'callback');
+                                        return true;
+                                    }
+                                    return false;
+                                }
+                            },
+                        }
+                    },
+                    pdriver: {
+                        validators: {
+                            notEmpty: { message: 'This field is required' },
+                            different: {
+                                compare: function () {
+                                    return form.querySelector('[name="sdriver"]').value;
+                                },
+                                message: 'The Driver 1 and Driver 2 cannot be the same',
+                            },
+                        },
+                    },
+                    sdriver: {
+                        validators: {
+                            notEmpty: { message: 'This field is required' },
+                            different: {
+                                compare: function () {
+                                    return form.querySelector('[name="pdriver"]').value;
+                                },
+                                message: 'The Driver 2 and Driver 1 cannot be the same',
+                            },
+                        },
+                    },
                     is_active: {validators: { notEmpty: { message: 'This field is required' } }},
                 },
                 plugins: {
-                trigger: new FormValidation.plugins.Trigger(),
-                bootstrap: new FormValidation.plugins.Bootstrap5({
-                    rowSelector: ".fv-row",
-                    eleInvalidClass: "",
-                    eleValidClass: "",
-                }),
+                    trigger: new FormValidation.plugins.Trigger(),
+                    bootstrap: new FormValidation.plugins.Bootstrap5({
+                        rowSelector: ".fv-row",
+                        eleInvalidClass: "",
+                        eleValidClass: "",
+                    }),
                 },
             })
+
+            // app.on('change','select[name="sdriver"]',function(e){
+            //     fvNewTractorTrailer.revalidateField('pdriver');
+            // });
 
             app.on('click','#cancel',function(e){
                 e.preventDefault()

@@ -11,5 +11,15 @@ return [
         2=> 'Inactive',
         null=>'Inactive'
     ],
+    'tractor_status'=>[
+        0 => 'Maintenance',
+        1 => 'Active',
+        null=>'Maintenance'
+    ],
+    'trailer_status'=>[
+        0 => 'Maintenance',
+        1 => 'Active',
+        null=>'Maintenance'
+    ],
 
 ];
