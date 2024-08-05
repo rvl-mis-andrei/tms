@@ -17,7 +17,10 @@ return new class extends Migration
             $table->string('plate_no')->nullable();
             $table->string('description')->nullable();
             $table->integer('trailer_type_id');
-            $table->tinyInteger('status');
+            $table->tinyInteger('status')->nullable();
+            $table->tinyInteger('is_deleted')->nullable();
+            $table->tinyInteger('deleted_by')->nullable();
+            $table->tinyInteger('deleted_at')->nullable();
             $table->string('remarks')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();

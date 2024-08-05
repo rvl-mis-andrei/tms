@@ -5,6 +5,7 @@ namespace App\Http\Controllers\ClusterBController;
 use App\Http\Controllers\Controller;
 use App\Models\SystemFile;
 use App\Models\TmsRoleAccess;
+use App\Services\Dispatcher\DispatcherPage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -50,26 +51,32 @@ class PageController extends Controller
 
     public function setup_page(Request $rq)
     {
-        // $page = new PageClass;
+        $page = new DispatcherPage;
         $rq->session()->put("clusterb_page",$rq->page);
         $view = $rq->session()->get("clusterb_page", "dashboard");
         $role    = Auth::user()->user_roles->role->name;
+        switch($view){
 
-        $row = SystemFile::with(["file_layer" => function($q) use($view) {
-            $q->where([["status", 1], ["href", $view]]);
-        }])
-        ->where(function($query) use($view) {
-            $query->where([["status", 1], ["href", $view]])
-            ->orWhereHas("file_layer", function ($q) use($view) {
-                $q->where([["status", 1], ["href", $view]]);
-            });
-        })
-        ->first();
+            case 'client_info':
+                return response([ 'page' => $page->client_info($rq)], 200);
+            break;
 
-        if (!$row) { return view("cluster_b.not_found"); }
-
-        $folders = !$row->file_layer->isEmpty()? $row->folder.'.'.$row->file_layer[0]->folder :$row->folder;
-        $file    = $row->file_layer[0]->href??$row->href;
-        return response([ 'page' => view("cluster_b.$role.$folders.$file")->render() ],200);
+            default :
+                $row = SystemFile::with(["file_layer" => function($q) use($view) {
+                    $q->where([["status", 1], ["href", $view]]);
+                }])
+                ->where(function($query) use($view) {
+                    $query->where([["status", 1], ["href", $view]])
+                    ->orWhereHas("file_layer", function ($q) use($view) {
+                        $q->where([["status", 1], ["href", $view]]);
+                    });
+                })
+                ->first();
+                if (!$row) { return view("cluster_b.not_found"); }
+                $folders = !$row->file_layer->isEmpty()? $row->folder.'.'.$row->file_layer[0]->folder :$row->folder;
+                $file    = $row->file_layer[0]->href??$row->href;
+                return response([ 'page' => view("cluster_b.$role.$folders.$file")->render() ],200);
+            break;
+        };
     }
 }

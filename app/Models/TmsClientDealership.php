@@ -9,11 +9,21 @@ class TmsClientDealership extends Model
 {
     use HasFactory;
     protected $fillable=[
-        'dealer',
+        'name',
+        'code',
         'location_id',
         'client_id',
         'is_active',
+        'is_deleted',
+        'deleted_by',
+        'deleted_at',
+        'pv_lead_time',
         'created_by',
         'updated_by',
     ];
+
+    public function location()
+    {
+        return $this->belongsTo(TmsLocation::class,'location_id');
+    }
 }

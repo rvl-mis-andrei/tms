@@ -17,7 +17,10 @@ return new class extends Migration
             $table->string('username');
             $table->string('password');
             $table->string('bypass_key')->nullable();
-            $table->boolean('is_active',2);
+            $table->tinyInteger('is_active')->nullable();
+            $table->tinyInteger('is_deleted')->nullable();
+            $table->tinyInteger('deleted_by')->nullable();
+            $table->tinyInteger('deleted_at')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamp('created_at')->useCurrent();

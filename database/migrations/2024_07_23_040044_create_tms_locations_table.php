@@ -14,7 +14,10 @@ return new class extends Migration
         Schema::create('tms_locations', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->tinyInteger('is_active');
+            $table->tinyInteger('is_active')->nullable();
+            $table->tinyInteger('is_deleted')->nullable();
+            $table->tinyInteger('deleted_by')->nullable();
+            $table->tinyInteger('deleted_at')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamp('created_at')->useCurrent();

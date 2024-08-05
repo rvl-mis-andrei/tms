@@ -17,7 +17,10 @@ return new class extends Migration
             $table->integer('tractor_id');
             $table->integer('pdriver');
             $table->integer('sdriver');
-            $table->tinyInteger('status');
+            $table->tinyInteger('status')->nullable();
+            $table->tinyInteger('is_deleted')->nullable();
+            $table->tinyInteger('deleted_by')->nullable();
+            $table->tinyInteger('deleted_at')->nullable();
             $table->string('remarks')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();

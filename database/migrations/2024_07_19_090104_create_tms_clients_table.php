@@ -11,10 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tms_clients', function (Blueprint $table) {
+        Schema::create('tms_cluster_clients', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->tinyInteger('is_active');
+            $table->longText('description');
+            $table->tinyInteger('cluster_id');
+            $table->tinyInteger('is_active')->nullable();
+            $table->tinyInteger('is_deleted')->nullable();
+            $table->tinyInteger('deleted_by')->nullable();
+            $table->tinyInteger('deleted_at')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamp('created_at')->useCurrent();

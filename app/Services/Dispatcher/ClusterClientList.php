@@ -2,8 +2,9 @@
 
 namespace App\Services\Dispatcher;
 
-use App\Models\TmsClient;
+use App\Models\TmsClusterClient;
 use App\Services\DTServerSide;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -11,20 +12,22 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
-class ClientList
+class ClusterClientList
 {
     public function datatable(Request $rq)
     {
-        $status = $rq->status;
-        $data = TmsClient::when($status!="all", function ($q) use ($status) {
-            return $q->where('is_active',$status);
+        $is_active = $rq->status;
+        $cluster_id = Auth::user()->emp_cluster->cluster_id;
+        $data = TmsClusterClient::when($is_active!="all", function ($q) use ($is_active) {
+            return $q->where('is_active',$is_active);
         })->where(function ($query) {
             $query->where('is_deleted','!=',1)->orWhereNull('is_deleted');
-        })->get();
+        })->where('cluster_id',$cluster_id)->get();
         $data->transform(function ($item,$key){
             $item->count = $key+1;
             $item->is_active = config('value.is_active.'.$item->is_active);
             $item->name = $item->name;
+            $item->description = $item->description ?? 'No description';
             $item->encrypt_id = Crypt::encrypt($item->id);
             return $item;
         });
@@ -41,7 +44,7 @@ class ClientList
     public function validate(Request $rq)
     {
         $id = isset($rq->id) ? Crypt::decrypt($rq->id) : false;
-        $query = TmsClient::where('name',$rq->name)
+        $query = TmsClusterClient::where('name',$rq->name)
         ->when($id, function ($q) use ($id) {
             return $q->where('id','!=',$id);
         })->first();
@@ -52,20 +55,40 @@ class ClientList
     {
         try{
             $id = Crypt::decrypt($rq->id);
-            $query = TmsClient::findorFail($id);
+            $query = TmsClusterClient::with('client_dealership')->findorFail($id);
+            $dealership=[];
+            $active_dealership = 0;
+            $inactive_dealership = 0;
+            foreach($query->client_dealership as $data)
+            {
+                $receiving_personnel = json_decode($data->receiving_personnel,true);
+                $data->is_active ? $active_dealership++ :$inactive_dealership++;
+                $dealership[]=[
+                    'encrypted_id' => Crypt::encrypt($data->id),
+                    'name' =>$data->name,
+                    'code' =>$data->code,
+                    'location' =>$data->location->name,
+                    'is_active'=>config('value.is_active.'.$data->is_active),
+                    'pv_lead_time'=>$data->pv_lead_time,
+                    'receiving_personnel'=>$receiving_personnel,
+                ];
+            }
             $payload = base64_encode(json_encode([
                 'name' =>$query->name,
+                'dealership' =>$dealership,
+                'active_dealership' =>$active_dealership,
+                'inactive_dealership' =>$inactive_dealership,
+                'description' =>$query->description ?? 'No Description',
                 'is_active' =>$query->is_active,
+                'created_by'=>$query->employee->fullname ?? 'No record found',
+                'created_at'=>Carbon::parse($query->created_at)->format('F j, Y'),
             ]));
-            return [
-                'status'=>'success',
-                'message' =>'success',
-                'payload' => $payload
-            ];
+            return ['status'=>'success','message' =>'success', 'payload' => $payload];
         }catch(Exception $e) {
             return response()->json([
                 'status' => 400,
-                'message' =>  'Something went wrong. try again later',
+                // 'message' =>  'Something went wrong. try again later'
+                'message' =>  $e->getMessage()
             ]);
         }
     }
@@ -74,11 +97,15 @@ class ClientList
     {
         try{
             DB::beginTransaction();
-            TmsClient::create([
+            $cluster_id = Auth::user()->emp_cluster->cluster_id;
+            TmsClusterClient::create([
                 'name' => $rq->name,
+                'cluster_id' => $cluster_id,
+                'description' => $rq->description,
                 'is_active' => $rq->is_active,
                 'created_by' => Auth::user()->emp_id,
             ]);
+            //CREATE A TRIGGER
             DB::commit();
             return ['status'=>'success','message' =>'Client added successfully'];
         }catch(Exception $e){
@@ -86,19 +113,19 @@ class ClientList
         }
     }
 
-
     public function update(Request $rq)
     {
         try{
             DB::beginTransaction();
             $id = Crypt::decrypt($rq->id);
-            TmsClient::where('id', $id)->update([
-                'name' => $rq->name,
-                'is_active' => $rq->is_active,
-                'updated_by' => Auth::user()->emp_id,
-            ]);
+            $query = TmsClusterClient::find($id);
+            $query->name = $rq->name;
+            $query->description = $rq->description;
+            $query->is_active = $rq->is_active;
+            $query->updated_by   = Auth::user()->emp_id;
+            $query->save();
             DB::commit();
-            return ['status'=>'success','message' =>'Details is updated'];
+            return ['status'=>'success','message' =>'Client details is updated'];
         }catch(Exception $e){
             return response()->json([ 'status' => 400,  'message' =>  $e->getMessage() ]);
         }
@@ -109,7 +136,7 @@ class ClientList
         try{
             DB::beginTransaction();
             $id = Crypt::decrypt($rq->id);
-            TmsClient::where('id', $id)->update([
+            TmsClusterClient::where('id', $id)->update([
                 'is_active' => $rq->is_active,
                 'is_deleted' => $rq->is_deleted,
                 'deleted_by' => Auth::user()->emp_id,

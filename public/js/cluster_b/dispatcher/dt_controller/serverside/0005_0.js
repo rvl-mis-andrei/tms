@@ -1,17 +1,17 @@
 "use strict";
 
-import { DataTableHelper } from "./../../../../global/datatable.js";
+import { DataTableHelper } from "../../../../global/datatable.js";
 import {Alert} from "../../../../global/alert.js"
 import {RequestHandler} from "../../../../global/request.js"
 import {modal_state} from "../../../../global.js"
 
 
 
-export async function ClientListDT() {
+export async function TractorTrailerListDT() {
 
-    const dataTableHelper = new DataTableHelper("client_list_table","client_list_wrapper");
+    const dataTableHelper = new DataTableHelper("tractor_trailer_table","tractor_trailer_wrapper");
     dataTableHelper.initTable(
-        `services/client/datatable`,
+        `services/tractor_trailer/datatable`,
         {
             status:$('.status').val(),
         },
@@ -22,10 +22,12 @@ export async function ClientListDT() {
                 title: "No.",
                 responsivePriority: -3,
             },
-            { data: "name", name: "name", title: "Name" },
+            { data: "trailer", name: "trailer", title: "Tractor" },
+            { data: "trailer", name: "trailer", title: "Trailer" },
+            { data: "trailer_type", name: "trailer_type", title: "Trailer Type" },
             {
-                data: "is_active",
-                name: "is_active",
+                data: "status",
+                name: "status",
                 title: "Status",
                 render: function (data, type, row) {
                     var status = {
@@ -83,7 +85,6 @@ export async function ClientListDT() {
 
     $("#search").on("keydown", function (e) {
         if (e.key === 'Enter' || e.keyCode === 13) {
-            console.log($(this).val().length)
             const searchTerm = $(this).val();
             dataTableHelper.search(searchTerm)
         }
@@ -92,7 +93,7 @@ export async function ClientListDT() {
     $('#status').on('change',function(e){
         e.preventDefault()
         e.stopImmediatePropagation()
-        ClientListDT()
+        TractorTrailerListDT()
     })
 
     app.on('click','#delete',function(e){
@@ -136,6 +137,7 @@ export async function ClientListDT() {
         (new RequestHandler).post(url,formData).then((res) => {
             let data = JSON.parse(window.atob(res.payload));
             $('input[name="name"]').val(data.name);
+            $('textarea[name="description"]').val(data.description);
             $('select[name="is_active"]').val(data.is_active).trigger('change');
             $('.modal_title').text('Edit Client Details');
             $('#form').attr('action','/services/client/update');
@@ -150,81 +152,4 @@ export async function ClientListDT() {
         });
     })
 
-}
-
-export function ClientDealershipDT() {
-
-    // const dataTableHelper = new DataTableHelper();
-    // dataTableHelper.initTable(
-    //     `services/client_dealership/datatable`,
-    //     {
-    //         status: status,
-    //     },
-    //     [
-    //         // {
-    //         //     data: "",
-    //         //     name: "",
-    //         //     title: "",
-    //         //     responsivePriority: -1,
-    //         //     className: "pl-0",
-    //         // },
-    //         {
-    //             data: "count",
-    //             name: "count",
-    //             title: "No.",
-    //             responsivePriority: -3,
-    //         },
-    //         { data: "name", name: "name", title: "Name" },
-    //         { data: "code", name: "code", title: "Code" },
-    //         {
-    //             data: "is_active",
-    //             name: "is_active",
-    //             title: "Status",
-    //             render: function (data, type, row) {
-    //                 var status = {
-    //                     Active: "success",
-    //                     Inactive: "danger",
-    //                 };
-    //                 return `<span class="badge badge-${status[data]}">${data}</span>`;
-    //             },
-    //         },
-    //         {
-    //             data: "encrypt_id",
-    //             name: "encrypt_id",
-    //             title: "Action",
-    //             className: "text-center",
-    //             responsivePriority: -1,
-    //             render: function (data, type, row) {
-    //                 let checked = "";
-    //                 if (row.is_active == "Active") {
-    //                     checked = "checked";
-    //                 }
-
-    //                 return `<div class="d-flex justify-content-center flex-shrink-0">
-    //                             <a class="btn btn-icon btn-light-success  btn-sm me-1 hover-elevate-up" href="/tms/cco-b/dispatcher/client_info/${data}" data-bs-toggle="tooltip" data-bs-placement="top" title="View Info">
-    //                                     <i class="bi bi-pencil fs-2"></i>
-    //                             </a>
-    //                             <button class="btn btn-icon btn-light-primary btn-sm me-1 hover-elevate-up" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-    //                                     <i class="la la-gear fs-1"></i>
-    //                             </button>
-    //                             <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-125px py-4" data-kt-menu="true">
-    //                                 <div class="menu-item px-3">
-    //                                     <label class="form-check form-switch form-check-custom form-check-solid">
-    //                                         <span class="form-check-label fw-bold text-muted me-2">Status</span>
-    //                                         <input class="form-check-input change_status" type="checkbox" data-id="${data}" ${checked}>
-    //                                     </label>
-    //                                 </div>
-    //                             </div>
-    //                         </div>`;
-    //             },
-    //         },
-    //     ],
-    //     null,
-    //     1
-    // );
-
-    // $("#search").on("input", function () {
-    //     const searchTerm = $(this).val();
-    //     dataTableHelper.search(searchTerm)
-    // });
 }

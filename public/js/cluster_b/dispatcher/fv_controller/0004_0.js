@@ -8,10 +8,8 @@ export function fvNewClient(){
     var init_fvNewClient = (function () {
 
         var _handleFvNewClient = function(){
-
             let form = document.querySelector("#form");
             let modal_id = form.getAttribute('modal-id');
-
             let fvNewClient = FormValidation.formValidation(form, {
                 fields: {
                     name: {
@@ -63,7 +61,7 @@ export function fvNewClient(){
                 e.preventDefault()
                 e.stopImmediatePropagation()
                 let btn_submit = $(this);
-
+                let form_url = form.getAttribute('action');
                 fvNewClient && fvNewClient.validate().then(function (v) {
                     if(v == "Valid"){
                         Alert.confirm("question","Submit this form?", {
@@ -73,13 +71,12 @@ export function fvNewClient(){
                                 if(btn_submit.attr('data-id').trim() !== '') {
                                     formData.append('id',btn_submit.attr('data-id'))
                                 }
-                                let form_url = form.getAttribute('action');
                                 (new RequestHandler).post(form_url,formData).then((res) => {
                                     Alert.toast(res.status,res.message);
-                                    if(res.status == 'success'){
-                                        fvNewClient.resetForm();
+                                    if(res.status == 'success' && form_url!='/services/client/update'){
                                         form.reset();
                                     }
+                                    fvNewClient.resetForm();
                                 })
                                 .catch((error) => {
                                     console.log(error)
@@ -93,7 +90,6 @@ export function fvNewClient(){
                         });
                     }
                 })
-
             })
         }
 
@@ -107,10 +103,6 @@ export function fvNewClient(){
 
     KTUtil.onDOMContentLoaded(function () {
         init_fvNewClient.init();
-
-    let tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    console.log(tooltipTriggerList)
-        let tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     });
 
 }

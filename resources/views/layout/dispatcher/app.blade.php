@@ -41,14 +41,8 @@
     data-kt-app-sidebar-fixed="false" data-kt-app-sidebar-push-header="true" data-kt-app-sidebar-push-toolbar="true"
     data-kt-app-sidebar-push-footer="true" data-kt-app-toolbar-enabled="true" class="app-default">
     <div class="d-flex flex-column flex-root app-root" id="kt_app_root">
-        <!--begin::Page-->
         <div class="app-page  flex-column flex-column-fluid " id="kt_app_page">
-
-            <!--begin::Header-->
            @include('layout.dispatcher.navbar')
-            <!--end::Header-->
-
-            <!--begin::Wrapper-->
             <div class="app-wrapper d-flex " id="kt_app_wrapper">
                 <!--begin::Wrapper container-->
                 <div class="app-container  container-fluid d-flex ">
@@ -96,66 +90,32 @@
                                             <!--begin::Item-->
                                             <li class="breadcrumb-item text-gray-500 mx-n1">
                                                 Overview </li>
-                                            <!--end::Item-->
-
-
                                         </ul>
-                                        <!--end::Breadcrumb-->
-
-                                        <!--begin::Title-->
                                         <h1 class="page-heading d-flex flex-column justify-content-center text-dark fw-bolder fs-3 m-0">
                                             eCommerce Dashboard
                                         </h1>
-                                        <!--end::Title-->
                                     </div>
-                                    <!--end::Page title-->
-                                    {{-- <!--begin::Actions-->
-                                    <div class="d-flex align-items-center gap-2 gap-lg-3">
-                                        <a href="#"
-                                            class="btn btn-flex btn-color-gray-700 btn-active-color-primary bg-light h-40px fs-7 fw-bold"
-                                            data-bs-toggle="modal" data-bs-target="#kt_modal_view_users">
-                                            History
-                                        </a>
-
-                                        <a href="#" class="btn btn-sm btn-flex btn-secondary align-self-center px-3"
-                                            data-bs-toggle="modal" data-bs-target="#kt_modal_invite_friends">
-                                            <i class="ki-outline ki-plus-square fs-3"></i> Invite
-                                        </a>
-                                    </div>
-                                    <!--end::Actions--> --}}
                                 </div>
-                                <!--end::Toolbar wrapper-->
                             </div>
-                            <!--end::Toolbar-->
-
-                            <!--begin::Content-->
                             <div id="kt_app_content" class="app-content  flex-column-fluid">
-                                    <div class="row g-5 g-xl-10 mb-5 mb-xl-10 px-5" id="Page"></div>
+                                    <div id="Page"></div>
                             </div>
-                            <!--end::Content wrapper-->
-
-                            <!--begin::Footer-->
                             @include('layout.dispatcher.footer')
-                            <!--end::Footer-->
-
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
         <script> var hostUrl = "assets/index.html"; </script>
         <script src="{{ asset('assets/plugins/global/plugins.bundle.js') }}"></script>
         <script src="{{ asset('assets/js/scripts.bundle.js') }}"></script>
         <script src="{{ asset('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
-
         <script type="text/javascript">
             var asset_url = $('meta[name="asset-url"]').attr("content");
             var csrf_token = $('meta[name="csrf-token"]').attr("content");
             var app = $("#Page");
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }});
-        </script>
-
+        </script><script src="{{ asset('assets/plugins/custom/formrepeater/formrepeater.bundle.js') }}"></script>
         <script src="{{ asset('js/cluster_b/dispatcher/navbar.js') }}" type="module"></script>
 </body>
 </html>

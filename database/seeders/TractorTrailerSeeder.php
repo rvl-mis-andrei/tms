@@ -133,15 +133,51 @@ class TractorTrailerSeeder extends Seeder
         ];
 
         // Insert tractor-trailer links with drivers
-        DB::table('tractor_trailers')->insert($tractorTrailersData);
+        // DB::table('tractor_trailers')->insert($tractorTrailersData);
+        foreach ($tractorTrailersData as $data) {
+            // Insert primary driver
 
-        DB::table('trailer_types')->insert([
-            ['name' => 'Japan', 'is_active' => 1],
-            ['name' => 'Bangpoo', 'is_active' => 1],
-            ['name' => '8MDL', 'is_active' => 1],
-            ['name' => 'Panda 2', 'is_active' => 1],
-            ['name' => 'Panda 4', 'is_active' => 1],
-        ]);
+            $pdriverName = explode(', ', $data['pdriver']);
+            $sdriverName = explode(', ', $data['sdriver']);
+            $pdriverId = DB::table('employees')->insertGetId([
+                'fname' => $pdriverName[1],
+                'lname' => $pdriverName[0],
+                'is_active' => 1,
+                'created_by' => 1,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            // Insert secondary driver
+            $sdriverId = DB::table('employees')->insertGetId([
+                'fname' => $sdriverName[1],
+                'lname' => $sdriverName[0],
+                'is_active' => 1,
+                'created_by' => 1,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            // Insert tractor-trailer data with employee IDs
+            DB::table('tractor_trailers')->insert([
+                'tractor_id' => $data['tractor_id'],
+                'trailer_id' => $data['trailer_id'],
+                'pdriver' => $pdriverId,
+                'sdriver' => $sdriverId,
+                'status' => 1,
+                'created_by' => 1,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
+
+        // DB::table('trailer_types')->insert([
+        //     ['name' => 'Japan', 'status' => 1],
+        //     ['name' => 'Bangpoo', 'status' => 1],
+        //     ['name' => '8MDL', 'status' => 1],
+        //     ['name' => 'Panda 2', 'status' => 1],
+        //     ['name' => 'Panda 4', 'status' => 1],
+        // ]);
 
     }
 }

@@ -120,3 +120,7 @@ export function data_bs_components()
         [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
     }
 }
+
+export function fv_validator(){
+    return {validators:{notEmpty:{message:'This field is required'}}};
+}

@@ -15,7 +15,10 @@ return new class extends Migration
             $table->id();
             $table->integer('car_model_id');
             $table->string('name');
-            $table->tinyInteger('is_active');
+            $table->tinyInteger('is_active')->nullable();
+            $table->tinyInteger('is_deleted')->nullable();
+            $table->tinyInteger('deleted_by')->nullable();
+            $table->tinyInteger('deleted_at')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate()->nullable();
         });

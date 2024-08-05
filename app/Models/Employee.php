@@ -20,4 +20,9 @@ class Employee extends Model
     public function emp_details(){
         return $this->hasOne(EmployeePosition::class);
     }
+
+    public function fullname()
+    {
+        return $this->fname.' '.$this->lname;
+    }
 }

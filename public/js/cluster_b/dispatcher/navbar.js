@@ -2,7 +2,12 @@
 
 import { page_content } from './pg_content.js';
 import { DashboardController } from './fn_controller/0001.js';
-import { ClientListController,ClientInfoController } from './fn_controller/0004.js';
+import { ClientListController } from './fn_controller/0004_0.js';
+import { ClientInfoController } from './fn_controller/0004_1.js';
+import { TractorTrailerController } from './fn_controller/0005_0.js';
+// import { TractorTrailerController } from './fn_controller/0005_0.js';
+
+
 
 
 async function init_page() {
@@ -45,14 +50,15 @@ export async function page_handler(page,param=null){
         break;
 
         case 'client_list':
-            ClientListController(page,param);
+            ClientListController(page,param)
         break;
 
         case 'client_info':
-            ClientInfoController(page,param);
+            ClientInfoController(page,param)
         break;
 
         case 'tractor_trailer_list':
+            TractorTrailerController(page,param)
         break;
 
         case 'driver_list':

@@ -8,8 +8,8 @@ return [
     'status'=>[
         0=> 'Deactivated',
         1 => 'Active',
-        2=>'Inactive',
+        2=> 'Inactive',
         null=>'Inactive'
     ],
-    
+
 ];
