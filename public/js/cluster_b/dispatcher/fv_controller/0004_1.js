@@ -6,6 +6,8 @@ import {modal_state,fv_validator} from "../../../global.js"
 export function fvNewDealership(param){
     var fvNewDealership = (function () {
         var fvNewDealership;
+        let page = $('.client_info');
+
         var _fvNewDealership = function(){
             let form = document.querySelector("#form");
             let modal_id = form.getAttribute('modal-id');
@@ -52,7 +54,7 @@ export function fvNewDealership(param){
                 }),
                 },
             })
-            app.on('click','#cancel',function(e){
+            page.on('click','#cancel',function(e){
                 e.preventDefault()
                 e.stopImmediatePropagation()
                 Alert.confirm('question',"Close this form ?",{
@@ -66,11 +68,15 @@ export function fvNewDealership(param){
                     }
                 })
             })
-            app.on('click','#submit',function(e){
+            page.on('click','#submit',function(e){
                 e.preventDefault()
                 e.stopImmediatePropagation()
                 let btn_submit = $(this);
                 let form_url = form.getAttribute('action');
+
+                btn_submit.attr("data-kt-indicator","on");
+                btn_submit.attr("disabled",true);
+                
                 fvNewDealership && fvNewDealership.validate().then(function (v) {
                     if(v == "Valid"){
                         Alert.confirm("question","Submit this form?", {
@@ -97,8 +103,15 @@ export function fvNewDealership(param){
                                     btn_submit.attr("data-kt-indicator","off");
                                     $("#client_list_table").DataTable().ajax.reload(null, false);
                                 });
+                            },
+                            onCancel: () => {
+                                btn_submit.attr("data-kt-indicator","off");
+                                btn_submit.attr("disabled",false);
                             }
                         });
+                    }else{
+                        btn_submit.attr("data-kt-indicator","off");
+                        btn_submit.attr("disabled",false);
                     }
                 })
             })

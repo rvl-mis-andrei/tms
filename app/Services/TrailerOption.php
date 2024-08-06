@@ -12,7 +12,7 @@ class TrailerOption
 {
     public function list(Request $rq)
     {
-        $query = Trailer::where('status',1);
+        $query = Trailer::whereNotIn('status', [2, 3, 4]);
         return match($rq->type){
             'options' => $this->options($rq,$query),
         };

@@ -3,13 +3,20 @@
 namespace App\Services\Dispatcher;
 
 use App\Models\TmsClusterClient;
+use App\Models\Trailer;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
 
-class Tractor
+class TrailerList
 {
+
+    public function validate(Request $rq)
+    {
+
+    }
+
     public function create(Request $rq)
     {
     }

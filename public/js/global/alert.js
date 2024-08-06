@@ -41,9 +41,13 @@ export class Alert {
                 confirmButton: "btn btn-primary",
                 cancelButton: "btn btn-danger",
             },
+            allowOutsideClick: false,
+            allowEscapeKey: false,
         }).then((result) => {
             if (result.isConfirmed && typeof option.onConfirm === "function") {
                 option.onConfirm();
+            } else if (result.isDismissed && typeof option.onCancel === "function") {
+                option.onCancel();
             } else {
                 Swal.close();
             }

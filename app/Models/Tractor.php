@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Tractor extends Model
 {
     use HasFactory;
+
+    public function tractor_trailer()
+    {
+        return $this->hasOne(TractorTrailerDriver::class,'tractor_id')->latestOfMany();
+    }
 }

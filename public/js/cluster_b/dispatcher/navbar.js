@@ -5,7 +5,7 @@ import { DashboardController } from './fn_controller/0001.js';
 import { ClientListController } from './fn_controller/0004_0.js';
 import { ClientInfoController } from './fn_controller/0004_1.js';
 import { TractorTrailerController } from './fn_controller/0005_0.js';
-// import { TractorTrailerController } from './fn_controller/0005_0.js';
+import { TractorTrailerInfoController } from './fn_controller/0005_1.js';
 
 
 
@@ -59,6 +59,10 @@ export async function page_handler(page,param=null){
 
         case 'tractor_trailer_list':
             TractorTrailerController(page,param)
+        break;
+
+        case 'tractor_trailer_info':
+            TractorTrailerInfoController(page,param)
         break;
 
         case 'driver_list':

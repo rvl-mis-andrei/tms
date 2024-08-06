@@ -10,7 +10,7 @@ class TractorOption
 {
     public function list(Request $rq)
     {
-        $query = Tractor::where('status',1);
+        $query = Tractor::whereNotIn('status', [2, 3, 4]);
         return match($rq->type){
             'options' => $this->options($rq,$query),
         };

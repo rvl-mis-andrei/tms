@@ -107,9 +107,15 @@ export function construct_url(url) {
 
 export function data_bs_components()
 {
-    let formSelect = $('.form-select');
+    let formSelect = $('.form-select').not('.modal-select');
     if (formSelect.length > 0) {
         formSelect.select2();
+    }
+    let select2Modal = $('.modal-select[data-control="select2"]');
+    if (select2Modal.length > 0) {
+        select2Modal.select2({
+            dropdownParent: $('.modal')
+        });
     }
     let tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     if (tooltipTriggerList.length > 0) {

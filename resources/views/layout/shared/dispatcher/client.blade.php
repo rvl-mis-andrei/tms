@@ -37,12 +37,12 @@
                 </form>
             </div>
             <div class="modal-footer flex-center">
-                <button type="button" modal-id="#modal_add_client" data-id="" id="submit" class="btn btn-primary me-4">
+                <button type="button" modal-id="#modal_add_client" data-id="" id="" class="btn btn-primary me-4 submit">
                     <span class="indicator-label">Submit</span>
                     <span class="indicator-progress">Please wait...
                         <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
                 </button>
-                <button type="button" modal-id="#modal_add_client" id="cancel" class="btn btn-light me-3">Cancel</button>
+                <button type="button" modal-id="#modal_add_client" id="" class="btn btn-light me-3 cancel">Cancel</button>
             </div>
         </div>
     </div>

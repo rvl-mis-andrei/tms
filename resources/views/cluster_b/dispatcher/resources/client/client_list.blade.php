@@ -1,3 +1,4 @@
+<div class="client_listing">
 <div class="row g-5 g-xl-10 mb-5 mb-xl-10 px-5">
     <div class="card">
         <div class="card-header border-1 py-3">
@@ -6,7 +7,7 @@
                     <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5">
                         <span class="path1"></span><span class="path2"></span>
                     </i>
-                    <input type="text" data-kt-user-table-filter="search" id="search" class="form-control form-control-solid w-250px ps-13" placeholder="Search Client">
+                    <input type="text" id="" class="form-control form-control-solid w-250px ps-13 search" placeholder="Search Client">
                 </div>
             </div>
             <div class="card-toolbar">
@@ -59,4 +60,5 @@
     </div>
 </div>
 @include('layout.shared.dispatcher.client')
+</div>
 

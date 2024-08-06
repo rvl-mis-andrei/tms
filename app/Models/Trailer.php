@@ -11,6 +11,11 @@ class Trailer extends Model
 
     public function trailer_type()
     {
-        return $this->belongsTo(TrailerType::class,'trailer_type_id');
+        return $this->belongsTo(TrailerType::class,'trailer_type_id')->withDefault();
+    }
+
+    public function tractor_trailer()
+    {
+        return $this->hasOne(TractorTrailerDriver::class,'trailer_id')->latestOfMany();
     }
 }

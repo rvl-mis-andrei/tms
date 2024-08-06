@@ -10,7 +10,7 @@ class ClusterDriverOption
 {
     public function list(Request $rq)
     {
-        $query = TmsClusterDriver::where('is_active',1);
+        $query = TmsClusterDriver::whereNotIn('status', [2, 3, 4]);
         return match($rq->type){
             'options' => $this->options($rq,$query),
         };

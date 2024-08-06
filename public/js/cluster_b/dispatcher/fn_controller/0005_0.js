@@ -11,9 +11,6 @@ export function TractorTrailerController(page,param){
             trailer().then(() => {
                 cluster_driver().then(() => {
                     fvNewTractorTrailer(param)
-                    $('select[data-control="select2"]').select2({
-                        dropdownParent: $('.modal')
-                    });
                 });
             });
         });

@@ -4,6 +4,7 @@ namespace App\Services\Dispatcher;
 
 use App\Models\TractorTrailerDriver;
 use App\Services\DTServerSide;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,13 +24,16 @@ class TractorTrailerList
         })->where('cluster_id',$cluster_id)->get();
         $data->transform(function ($item,$key){
             $item->count = $key+1;
-            $item->status = config('value.status.'.$item->status);
+            $item->status = config('value.is_active.'.$item->status);
+
             $item->tractor_plate_no = $item->tractor->plate_no;
             $item->tractor_status = config('value.tractor_status.'.$item->tractor->status);
-            $item->trailer_status = config('value.trailer_status.'.$item->trailer->status);
+
             $item->trailer_type = $item->trailer->trailer_type->name;
-            $item->sdriver_emp = $item->sdriver_emp->fullname();
-            $item->pdriver_emp = $item->pdriver_emp->fullname();
+            $item->trailer_status = config('value.trailer_status.'.$item->trailer->status);
+
+            $item->sdriver_emp = $item->sdriver ? $item->sdriver_emp->fullname():null;
+            $item->pdriver_emp = $item->pdriver ?$item->pdriver_emp->fullname():null;
             $item->tractor = $item->tractor->name;
             $item->trailer = $item->trailer->name;
             $item->remarks = $item->remarks ?? '--';
@@ -46,112 +50,71 @@ class TractorTrailerList
         ]);
     }
 
-    // public function validate(Request $rq)
-    // {
-    //     $id = isset($rq->id) ? Crypt::decrypt($rq->id) : false;
-    //     $query = TmsClusterClient::where('name',$rq->name)
-    //     ->when($id, function ($q) use ($id) {
-    //         return $q->where('id','!=',$id);
-    //     })->first();
-    //     return json_encode(array( 'valid' => $query === null ?? false ));
-    // }
+    public function info(Request $rq)
+    {
+        try{
+            $id = Crypt::decrypt($rq->id);
+            $query = TractorTrailerDriver::findorFail($id);
+            $payload = base64_encode(json_encode([
+                'trailer' =>$query->trailer->name,
+                'tractor' =>$query->tracto->name,
+                'pdriver' =>$query->pdriver?$query->pdriver_emp->fullname():null,
+                'sdriver' =>$query->sdriver_emp?$query->sdriver_emp->fullname():null,
+                'status' =>$query->status,
+                'remarks' =>$query->remarks,
+            ]));
+            return ['status'=>'success','message' =>'success', 'payload' => $payload];
+        }catch(Exception $e){
+            return response()->json([
+                'status' => 400,
+                // 'message' =>  'Something went wrong. try again later'
+                'message' =>  $e->getMessage()
+            ]);
+        }
+    }
 
-    // public function info(Request $rq)
-    // {
-    //     try{
-    //         $id = Crypt::decrypt($rq->id);
-    //         $query = TmsClusterClient::with('client_dealership')->findorFail($id);
-    //         $dealership=[];
-    //         $active_dealership = 0;
-    //         $inactive_dealership = 0;
-    //         foreach($query->client_dealership as $data)
-    //         {
-    //             $receiving_personnel = json_decode($data->receiving_personnel,true);
-    //             $data->is_active ? $active_dealership++ :$inactive_dealership++;
-    //             $dealership[]=[
-    //                 'encrypted_id' => Crypt::encrypt($data->id),
-    //                 'name' =>$data->name,
-    //                 'code' =>$data->code,
-    //                 'location' =>$data->location->name,
-    //                 'is_active'=>config('value.is_active.'.$data->is_active),
-    //                 'pv_lead_time'=>$data->pv_lead_time,
-    //                 'receiving_personnel'=>$receiving_personnel,
-    //             ];
-    //         }
-    //         $payload = base64_encode(json_encode([
-    //             'name' =>$query->name,
-    //             'dealership' =>$dealership,
-    //             'active_dealership' =>$active_dealership,
-    //             'inactive_dealership' =>$inactive_dealership,
-    //             'description' =>$query->description ?? 'No Description',
-    //             'is_active' =>$query->is_active,
-    //             'created_by'=>$query->employee->fullname ?? 'No record found',
-    //             'created_at'=>Carbon::parse($query->created_at)->format('F j, Y'),
-    //         ]));
-    //         return ['status'=>'success','message' =>'success', 'payload' => $payload];
-    //     }catch(Exception $e) {
-    //         return response()->json([
-    //             'status' => 400,
-    //             // 'message' =>  'Something went wrong. try again later'
-    //             'message' =>  $e->getMessage()
-    //         ]);
-    //     }
-    // }
-
-    public function create(Request $rq)
+    public function upsert(Request $rq)
     {
         try{
             DB::beginTransaction();
             $cluster_id = Auth::user()->emp_cluster->cluster_id;
-            TractorTrailerDriver::create([
-                'cluster_id' => $cluster_id,
-                'tractor_id' => $rq->tractor,
-                'trailer_id' => $rq->trailer,
-                'remarks' => $rq->remarks,
-                'is_active' => $rq->is_active,
-                'created_by' => Auth::user()->emp_id,
-            ]);
+            $attr =  ['id'=>isset($rq->id) ?Crypt::decrypt($rq->id):null];
+            if(!isset($rq->is_deleted)){
+                $values =[
+                    'cluster_id' => $cluster_id,
+                    'tractor_id' => isset($rq->tractor)?Crypt::decrypt($rq->tractor):null,
+                    'trailer_id' => isset($rq->trailer)?Crypt::decrypt($rq->trailer):null,
+                    'pdriver' => isset($rq->pdriver)?Crypt::decrypt($rq->pdriver):null,
+                    'sdriver' => isset($rq->sdriver)?Crypt::decrypt($rq->sdriver):null,
+                    'remarks' => $rq->remarks,
+                    'status' => $rq->is_active,
+                    'created_by' => Auth::user()->emp_id,
+                ];
+                $message = "Tractor Trailer added successfully";
+            }else{
+                $values=[
+                    'status' => $rq->is_active,
+                    'is_deleted' => $rq->is_deleted,
+                    'deleted_by' => Auth::user()->emp_id,
+                    'deleted_at' => Carbon::now(),
+                ];
+                $message = "Tractor Trailer is deleted";
 
+            }
+
+            $query = TractorTrailerDriver::updateOrCreate($attr,$values);
+            if (!$query->wasRecentlyCreated && !isset($rq->is_deleted)) {
+                $query->updated_by = Auth::user()->emp_id;
+                $query->save();
+                $message = "Tractor Trailer details is updated";
+                // WILL NOT UPDATE IF THERE IS A DELETE
+            }
             DB::commit();
-            return ['status'=>'success','message' =>'Client added successfully'];
+            return ['status'=>'success','message' =>$message];
         }catch(Exception $e){
-            return response()->json([ 'status' => 400,  'message' =>  $e->getMessage() ]);
+            DB::rollBack();
+            return response()->json([ 'status' => 400,  'message' =>  $e->getMessage() ], 500);
         }
     }
-
-    // public function update(Request $rq)
-    // {
-    //     try{
-    //         DB::beginTransaction();
-    //         $id = Crypt::decrypt($rq->id);
-    //         $query = TmsClusterClient::find($id);
-    //         $query->name = $rq->name;
-    //         $query->description = $rq->description;
-    //         $query->is_active = $rq->is_active;
-    //         $query->updated_by   = Auth::user()->emp_id;
-    //         $query->save();
-    //         DB::commit();
-    //         return ['status'=>'success','message' =>'Client details is updated'];
-    //     }catch(Exception $e){
-    //         return response()->json([ 'status' => 400,  'message' =>  $e->getMessage() ]);
-    //     }
-    // }
-
-    // public function delete(Request $rq)
-    // {
-    //     try{
-    //         DB::beginTransaction();
-    //         $id = Crypt::decrypt($rq->id);
-    //         TmsClusterClient::where('id', $id)->update([
-    //             'is_active' => $rq->is_active,
-    //             'is_deleted' => $rq->is_deleted,
-    //             'deleted_by' => Auth::user()->emp_id,
-    //         ]);
-    //         DB::commit();
-    //         return ['status'=>'success','message' =>'Client is removed'];
-    //     }catch(Exception $e){
-    //         return response()->json([ 'status' => 400,  'message' =>  $e->getMessage() ]);
-    //     }
-    // }
 
 }

@@ -55,10 +55,15 @@ class PageController extends Controller
         $rq->session()->put("clusterb_page",$rq->page);
         $view = $rq->session()->get("clusterb_page", "dashboard");
         $role    = Auth::user()->user_roles->role->name;
+
         switch($view){
 
             case 'client_info':
                 return response([ 'page' => $page->client_info($rq)], 200);
+            break;
+
+            case 'tractor_trailer_info':
+                return response([ 'page' => $page->tractor_trailer_info($rq)], 200);
             break;
 
             default :

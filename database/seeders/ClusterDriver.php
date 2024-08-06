@@ -13,11 +13,11 @@ class ClusterDriver extends Seeder
      */
     public function run(): void
     {
-        for($x=1;$x<=30;$x++){
+        for($x=31;$x<=116;$x++){
         DB::table('tms_cluster_drivers')->insert([
             'emp_id' => $x,
             'cluster_id' => 2,
-            'is_active' => 1,
+            'status' => 1,
             'created_by' => 1,
         ]);
         }

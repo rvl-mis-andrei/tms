@@ -20,7 +20,7 @@ Route::group(['prefix'=>'tms/cco-b/dispatcher'], function() {
             Route::post('/setup-page', 'setup_page');
 
             Route::get('/client_info/{id}','system_file');
-            Route::get('/tractor_trailer/{id}','system_file');
+            Route::get('/tractor_trailer_info/{id}','system_file');
 
             $routes = (new SystemRoute())->getDispatcherRoutes();
             if ($routes) {

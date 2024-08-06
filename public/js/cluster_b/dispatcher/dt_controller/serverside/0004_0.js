@@ -9,7 +9,9 @@ import {modal_state} from "../../../../global.js"
 
 export async function ClientListDT() {
 
-    const dataTableHelper = new DataTableHelper("client_list_table","client_list_wrapper");
+    let dataTableHelper = new DataTableHelper("client_list_table","client_list_wrapper");
+    let page = $('.client_listing');
+
     dataTableHelper.initTable(
         `services/client/datatable`,
         {
@@ -65,11 +67,11 @@ export async function ClientListDT() {
                                         <a href="/tms/cco-b/dispatcher/client_info/${data}" class="menu-link px-3">View</a>
                                     </div>
                                     <div class="menu-item px-3">
-                                        <a href="javascript:;" class="menu-link px-3" id="edit" data-id="${data}" url="/services/client/info" modal-id="#modal_add_client">Edit Details</a>
+                                        <a href="javascript:;" class="menu-link px-3 edit" id="" data-id="${data}" url="/services/client/info" modal-id="#modal_add_client">Edit Details</a>
                                     </div>
                                 </div>
-                                <a class="btn btn-icon btn-icon btn-light-danger btn-sm me-1 hover-elevate-up" data-id="${data}" url="/services/client/delete"
-                                id="delete" data-bs-toggle="tooltip" title="Delete this record">
+                                <a class="btn btn-icon btn-icon btn-light-danger btn-sm me-1 hover-elevate-up delete" data-id="${data}" url="/services/client/delete"
+                                id="" data-bs-toggle="tooltip" title="Delete this record">
                                     <i class="ki-duotone ki-trash fs-2x">
                                         <span class="path1"></span>
                                         <span class="path2"></span>
@@ -85,21 +87,22 @@ export async function ClientListDT() {
         1
     );
 
-    $("#search").on("keydown", function (e) {
+
+    page.on('keydown','.search',function(e){
+        e.stopImmediatePropagation()
         if (e.key === 'Enter' || e.keyCode === 13) {
-            console.log($(this).val().length)
             const searchTerm = $(this).val();
             dataTableHelper.search(searchTerm)
         }
     });
 
-    $('#status').on('change',function(e){
+    page.on('change','.status',function(e){
         e.preventDefault()
         e.stopImmediatePropagation()
         ClientListDT()
     })
 
-    app.on('click','#delete',function(e){
+    page.on('click','.delete',function(e){
         e.preventDefault()
         e.stopImmediatePropagation()
         let btn_delete = $(this);
@@ -126,17 +129,15 @@ export async function ClientListDT() {
 
     })
 
-    app.on('click','#edit',function(e){
+    page.on('click','.edit',function(e){
         e.preventDefault()
         e.stopImmediatePropagation()
         let btn_edit = $(this);
         let formData = new FormData();
-
         let btn_data = btn_edit.attr('data-id');
         let modal_id = $(this).attr('modal-id');
         let url = btn_edit.attr('url');
         formData.append('id',btn_data);
-
         (new RequestHandler).post(url,formData).then((res) => {
             let data = JSON.parse(window.atob(res.payload));
             $('input[name="name"]').val(data.name);
@@ -144,7 +145,7 @@ export async function ClientListDT() {
             $('select[name="is_active"]').val(data.is_active).trigger('change');
             $('.modal_title').text('Edit Client Details');
             $('#form').attr('action','/services/client/update');
-            $('#submit').attr('data-id',btn_data);
+            $('.submit').attr('data-id',btn_data);
         })
         .catch((error) => {
             console.log(error)

@@ -4,12 +4,15 @@ import { DataTableHelper } from "../../../../global/datatable.js";
 import {Alert} from "../../../../global/alert.js"
 import {RequestHandler} from "../../../../global/request.js"
 import {modal_state} from "../../../../global.js"
+import {trigger_select} from "../../../../global/select.js"
 
 
 
 export async function TractorTrailerListDT() {
 
-    const dataTableHelper = new DataTableHelper("tractor_trailer_table","tractor_trailer_wrapper");
+    let dataTableHelper = new DataTableHelper("tractor_trailer_table","tractor_trailer_wrapper");
+    let page = $('.tractor_trailer_listing');
+
     dataTableHelper.initTable(
         `services/tractor_trailer/datatable`,
         {
@@ -22,19 +25,43 @@ export async function TractorTrailerListDT() {
                 title: "No.",
                 responsivePriority: -3,
             },
-            { data: "tractor", name: "tractor", title: "Tractor" },
+            { data: "tractor", name: "tractor", title: "Tractor",
+                render: function(data,type,row){
+                    if(data !=null){
+                        return `<div class="d-flex flex-column">
+                            <a href="javascript:;" class="text-gray-800 text-hover-primary mb-1">${data}</a>
+                            <span>${row.tractor_plate_no}</span>
+                        </div>`;
+                    }
+                    return 'No Tractor';
+                }
+            },
+            { data: "tractor_plate_no", name: "tractor_plate_no", title: "Tractor Plate No",visible:false },
             {
                 data: "trailer", name: "trailer", title: "Trailer",
                 render: function(data,type,row){
-                    return `<div class="d-flex flex-column">
-                        <a href="javascript:;" class="text-gray-800 text-hover-primary mb-1">${data}</a>
-                        <span>${row.trailer_type}</span>
-                    </div>`;
+                    if(data !=null){
+                        return `<div class="d-flex flex-column">
+                            <a href="javascript:;" class="text-gray-800 text-hover-primary mb-1">${data}</a>
+                            <span>${row.trailer_type}</span>
+                        </div>`;
+                    }
+                     return 'No Trailer';
                 }
             },
             { data: "trailer_type", name: "trailer_type", title: "Trailer Type",visible:false },
-            { data: "sdriver_emp", name: "sdriver_emp", title: "Driver 1" },
-            { data: "pdriver_emp", name: "pdriver_emp", title: "Driver 2" },
+            { data: "pdriver_emp", name: "pdriver_emp", title: "Driver 1",
+                render: function(data,type,row){
+                    if(data !=null){ return data; }
+                    return '--';
+                }
+            },
+            { data: "sdriver_emp", name: "sdriver_emp", title: "Driver 2",
+                render: function(data,type,row){
+                    if(data !=null){ return data; }
+                    return '--';
+                }
+            },
             {
                 data: "remarks", name: "remarks", title: "Remarks" ,
                 render: function(data,type,row){
@@ -66,34 +93,26 @@ export async function TractorTrailerListDT() {
                     if (row.is_active == "Active") {
                         checked = "checked";
                     }
-
                     return `<div class="d-flex justify-content-center flex-shrink-0">
-                                <a href="#" class="btn btn-icon btn-light-primary btn-sm me-1 hover-elevate-up" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-                                    <i class="ki-duotone ki-pencil fs-2x">
-                                        <span class="path1"></span>
-                                        <span class="path2"></span>
-                                        <span class="path3"></span>
-                                        <span class="path4"></span>
-                                    </i>
-                                </a>
-                                <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-125px py-4" data-kt-menu="true">
-                                    <div class="menu-item px-3">
-                                        <a href="/tms/cco-b/dispatcher/client_info/${data}" class="menu-link px-3">View</a>
-                                    </div>
-                                    <div class="menu-item px-3">
-                                        <a href="javascript:;" class="menu-link px-3" id="edit" data-id="${data}" url="/services/client/info" modal-id="#modal_add_client">Edit Details</a>
-                                    </div>
-                                </div>
-                                <a class="btn btn-icon btn-icon btn-light-danger btn-sm me-1 hover-elevate-up" data-id="${data}" url="/services/client/delete"
-                                id="delete" data-bs-toggle="tooltip" title="Delete this record">
-                                    <i class="ki-duotone ki-trash fs-2x">
-                                        <span class="path1"></span>
-                                        <span class="path2"></span>
-                                        <span class="path3"></span>
-                                        <span class="path4"></span>
-                                    </i>
-                                </a>
-                            </div>`;
+                            <a class="btn btn-icon btn-icon btn-light-primary btn-sm me-1 hover-elevate-up"
+                            href="/tms/cco-b/dispatcher/tractor_trailer_info/${data}" data-bs-toggle="tooltip" title="View Truck Trailer Details">
+                                <i class="ki-duotone ki-pencil fs-2x">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                    <span class="path3"></span>
+                                    <span class="path4"></span>
+                                </i>
+                            </a>
+                            <a class="btn btn-icon btn-icon btn-light-danger btn-sm me-1 hover-elevate-up delete" data-id="${data}" url="/services/tractor_trailer/upsert"
+                            id="" data-bs-toggle="tooltip" title="Delete this record">
+                                <i class="ki-duotone ki-trash fs-2x">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                    <span class="path3"></span>
+                                    <span class="path4"></span>
+                                </i>
+                            </a>
+                        </div>`;
                 },
             },
         ],
@@ -101,20 +120,21 @@ export async function TractorTrailerListDT() {
         1
     );
 
-    $("#search").on("keydown", function (e) {
+    page.on('keydown','.search', function (e) {
+        e.stopImmediatePropagation()
         if (e.key === 'Enter' || e.keyCode === 13) {
             const searchTerm = $(this).val();
             dataTableHelper.search(searchTerm)
         }
     });
 
-    $('#status').on('change',function(e){
+    page.on('change','.status',function(e){
         e.preventDefault()
         e.stopImmediatePropagation()
         TractorTrailerListDT()
     })
 
-    app.on('click','#delete',function(e){
+    page.on('click','.delete',function(e){
         e.preventDefault()
         e.stopImmediatePropagation()
         let btn_delete = $(this);
@@ -134,40 +154,45 @@ export async function TractorTrailerListDT() {
                     Alert.alert('error',"Something went wrong. Try again later", false);
                 })
                 .finally(() => {
-                    $("#client_list_table").DataTable().ajax.reload(null, false);
+                    $("#tractor_trailer_table").DataTable().ajax.reload(null, false);
                 });
             }
         });
 
     })
 
-    app.on('click','#edit',function(e){
-        e.preventDefault()
-        e.stopImmediatePropagation()
-        let btn_edit = $(this);
-        let formData = new FormData();
+    // page.on('click','.edit',function(e){
+    //     e.preventDefault()
+    //     e.stopImmediatePropagation()
+    //     let btn_edit = $(this);
+    //     let formData = new FormData();
 
-        let btn_data = btn_edit.attr('data-id');
-        let modal_id = $(this).attr('modal-id');
-        let url = btn_edit.attr('url');
-        formData.append('id',btn_data);
+    //     let btn_data = btn_edit.attr('data-id');
+    //     let modal_id = $(this).attr('modal-id');
+    //     let url = btn_edit.attr('url');
+    //     formData.append('id',btn_data);
 
-        (new RequestHandler).post(url,formData).then((res) => {
-            let data = JSON.parse(window.atob(res.payload));
-            $('input[name="name"]').val(data.name);
-            $('textarea[name="description"]').val(data.description);
-            $('select[name="is_active"]').val(data.is_active).trigger('change');
-            $('.modal_title').text('Edit Client Details');
-            $('#form').attr('action','/services/client/update');
-            $('#submit').attr('data-id',btn_data);
-        })
-        .catch((error) => {
-            console.log(error)
-            Alert.alert('error',"Something went wrong. Try again later", false);
-        })
-        .finally(() => {
-            modal_state(modal_id,'show');
-        });
-    })
+    //     (new RequestHandler).post(url,formData).then((res) => {
+    //         let data = JSON.parse(window.atob(res.payload));
+    //         trigger_select({
+    //             'select[name="tractor"]': data.tractor,
+    //             'select[name="trailer"]': data.trailer,
+    //             'select[name="pdriver"]': data.pdriver,
+    //             'select[name="sdriver"]': data.sdriver,
+    //         })
+    //         $('textarea[name="remarks"]').val(data.remarks);
+    //         $('select[name="is_active"]').val(data.status).trigger('change');
+    //         $('.modal_title').text('Edit Tractor Trailer Details');
+    //         // $('#form').attr('action','/services/client/upsert');
+    //         $('.submit').attr('data-id',btn_data);
+    //     })
+    //     .catch((error) => {
+    //         console.log(error)
+    //         Alert.alert('error',"Something went wrong. Try again later", false);
+    //     })
+    //     .finally(() => {
+    //         modal_state(modal_id,'show');
+    //     });
+    // })
 
 }

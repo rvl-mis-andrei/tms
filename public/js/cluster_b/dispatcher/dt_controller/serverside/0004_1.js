@@ -9,7 +9,8 @@ import {modal_state} from "../../../../global.js"
 
 export async function DealershipListDT(param) {
 
-    const dataTableHelper = new DataTableHelper("dealership_list_table","dealership_list_wrapper");
+    let dataTableHelper = new DataTableHelper("dealership_list_table","dealership_list_wrapper");
+    let page = $('.client_info');
     dataTableHelper.initTable(
         `services/client_dealership/datatable`,
         {
@@ -90,7 +91,7 @@ export async function DealershipListDT(param) {
         1
     );
 
-    $("#search").on("keydown", function (e) {
+    page.on("keydown","#search", function (e) {
         if (e.key === 'Enter' || e.keyCode === 13) {
             console.log($(this).val().length)
             const searchTerm = $(this).val();
@@ -98,13 +99,13 @@ export async function DealershipListDT(param) {
         }
     });
 
-    $('#status').on('change',function(e){
+    page.on('change','#status',function(e){
         e.preventDefault()
         e.stopImmediatePropagation()
-        DealershipListDT()
+        DealershipListDT(param)
     })
 
-    app.on('click','#delete',function(e){
+    page.on('click','#delete',function(e){
         e.preventDefault()
         e.stopImmediatePropagation()
         let btn_delete = $(this);
