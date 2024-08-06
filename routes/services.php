@@ -38,8 +38,6 @@ Route::group(['prefix'=>'services'], function() {
     Route::controller(TractorTrailerList::class)->prefix('tractor_trailer')->group(function() {
         Route::post('/datatable', 'datatable');
         Route::post('/upsert', 'upsert');
-        // Route::post('/update', 'update');
-        // Route::post('/delete','delete');
         Route::post('/validate','validate');
 
         // Route::post('/info','info');
@@ -48,8 +46,6 @@ Route::group(['prefix'=>'services'], function() {
     Route::controller(TractorList::class)->prefix('tractor')->group(function() {
         Route::post('/datatable', 'datatable');
         Route::post('/upsert', 'upsert');
-        // Route::post('/update', 'update');
-        // Route::post('/delete','delete');
         Route::post('/validate','validate');
 
         Route::post('/info','info');
@@ -58,8 +54,6 @@ Route::group(['prefix'=>'services'], function() {
     Route::controller(TrailerList::class)->prefix('trailer')->group(function() {
         Route::post('/datatable', 'datatable');
         Route::post('/upsert', 'upsert');
-        // Route::post('/update', 'update');
-        // Route::post('/delete','delete');
         Route::post('/validate','validate');
 
         Route::post('/info','info');
@@ -68,8 +62,6 @@ Route::group(['prefix'=>'services'], function() {
     Route::controller(ClusterDriverList::class)->prefix('cluster_driver')->group(function() {
         Route::post('/datatable', 'datatable');
         Route::post('/upsert', 'upsert');
-        // Route::post('/update', 'update');
-        // Route::post('/delete','delete');
         Route::post('/validate','validate');
 
         Route::post('/info','info');
