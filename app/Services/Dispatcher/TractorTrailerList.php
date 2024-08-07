@@ -56,16 +56,16 @@ class TractorTrailerList
             $id = Crypt::decrypt($rq->id);
             $query = TractorTrailerDriver::findorFail($id);
             $payload = base64_encode(json_encode([
-                'trailer' =>$query->trailer->name,
-                'trailer_plate_no' =>$query->trailer->plate_no,
-                'trailer_type' =>$query->trailer->trailer_type->name,
+                'trailer' =>$query->trailer->name ?? null,
+                'trailer_plate_no' =>$query->trailer->plate_no ?? null,
+                'trailer_type' =>$query->trailer->trailer_type->name ?? null,
                 'trailer_status' =>config('value.tractor_status.'.$query->trailer->status),
-                'trailer_remarks' =>$query->trailer->remarks,
-                'tractor' =>$query->tractor->name,
-                'tractor_body_no' =>$query->tractor->body_no,
-                'tractor_plate_no' =>$query->tractor->plate_no,
+                'trailer_remarks' =>$query->trailer->remarks ?? null,
+                'tractor' =>$query->tractor->name ?? '--',
+                'tractor_body_no' =>$query->tractor->body_no ?? '--',
+                'tractor_plate_no' =>$query->tractor->plate_no ?? '--',
                 'tractor_status' =>config('value.tractor_status.'.$query->tractor->status),
-                'tractor_remarks' =>$query->tractor->remarks,
+                'tractor_remarks' =>$query->tractor->remarks ?? '--',
                 'pdriver' =>$query->pdriver?$query->pdriver_emp->fullname():null,
                 'sdriver' =>$query->sdriver?$query->sdriver_emp->fullname():null,
                 'status' =>$query->status,
@@ -99,7 +99,7 @@ class TractorTrailerList
                     'created_by' => Auth::user()->emp_id,
                 ];
                 $message = "Tractor Trailer added successfully";
-            }else{
+            }elseif(isset($rq->is_deleted)){
                 $values=[
                     'status' => $rq->is_active,
                     'is_deleted' => $rq->is_deleted,
@@ -107,7 +107,6 @@ class TractorTrailerList
                     'deleted_at' => Carbon::now(),
                 ];
                 $message = "Tractor Trailer is deleted";
-
             }
 
             $query = TractorTrailerDriver::updateOrCreate($attr,$values);
@@ -119,6 +118,27 @@ class TractorTrailerList
             }
             DB::commit();
             return ['status'=>'success','message' =>$message];
+        }catch(Exception $e){
+            DB::rollBack();
+            return response()->json([ 'status' => 400,  'message' =>  $e->getMessage() ], 500);
+        }
+    }
+
+    public function decouple(Request $rq)
+    {
+        try{
+            DB::beginTransaction();
+
+            $id = Crypt::decrypt($rq->id);
+            $column = $rq->column;
+
+            $query = TractorTrailerDriver::find($id);
+            $query->$column = null;
+            $query->updated_by = Auth::user()->emp_id;
+            $query->save();
+
+            DB::commit();
+            return ['status'=>'success','message' =>'Decouple success'];
         }catch(Exception $e){
             DB::rollBack();
             return response()->json([ 'status' => 400,  'message' =>  $e->getMessage() ], 500);

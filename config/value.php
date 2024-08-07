@@ -16,12 +16,14 @@ return [
         2 => ['Issued','primary'],
         3 => ['Disposed','danger'],
         4 => ['Under Maintenance','info'],
+        null=>['','secondary']
     ],
     'trailer_status'=>[
         1 => ['Active','success'],
         2 => ['Issued','primary'],
         3 => ['Disposed','danger'],
         4 => ['Under Maintenance','info'],
+        null=>['','secondary']
     ],
     'tractor_trailer_status'=>[
         1 => ['Active','success'],              //

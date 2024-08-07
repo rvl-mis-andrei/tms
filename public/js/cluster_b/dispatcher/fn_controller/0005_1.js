@@ -1,8 +1,10 @@
 'use strict';
-import {TractorTrailerListDT} from '../dt_controller/serverside/0005_0.js';
-import {fvNewTractorTrailer} from '../fv_controller/0005_0.js';
-import {tractor,trailer,cluster_driver} from "../../../global/select.js"
-
+// import {TractorTrailerListDT} from '../dt_controller/serverside/0005_0.js';
+// import {fvNewTractorTrailer} from '../fv_controller/0005_0.js';
+// import {tractor,trailer,cluster_driver} from "../../../global/select.js"
+import {Alert} from "../../../global/alert.js"
+import {RequestHandler} from "../../../global/request.js"
+import {data_bs_components} from "../../../global.js";
 
 export function TractorTrailerInfoController(page,param)
 {
@@ -12,7 +14,9 @@ export function TractorTrailerInfoController(page,param)
     function loadLastTab(){
         let tab = localStorage.getItem('tractor_trailer_tab') || 'tab-content-1';
         $(`a[data-tab='${tab}']`).addClass('active')
-        loadTab(tab).then((res)=>{ })
+        loadTab(tab).then((res)=>{
+            data_bs_components()
+        })
     }
 
     function loadTab(tab)
@@ -75,6 +79,38 @@ export function TractorTrailerInfoController(page,param)
                 })
 
 
+            })
+
+            app.on('click','.delete',function(e){
+                e.preventDefault()
+                e.stopImmediatePropagation()
+
+                let action = $(this).attr('data-action');
+                let column = $(this).attr('data-column');
+                let url = $(this).attr('data-url');
+
+                let formData = new FormData();
+                formData.append('id',param)
+                formData.append('column',column+'_id')
+                formData.append('action',action)
+
+                Alert.confirm('question',"Decouple "+column+" ?",{
+                    onConfirm: () => {
+                        (new RequestHandler).post(url,formData).then((res) => {
+                            Alert.toast(res.status,res.message);
+                            if(res.status == 'success'){
+                                //refresh page
+                            }
+                        })
+                        .catch((error) => {
+                            console.log(error)
+                            Alert.alert('error',"Something went wrong. Try again later", false);
+                        })
+                        .finally(() => {
+                            // code here
+                        });
+                    }
+                })
             })
 
         }

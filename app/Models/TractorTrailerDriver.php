@@ -21,6 +21,7 @@ class TractorTrailerDriver extends Model
         'deleted_by',
         'created_by',
         'cluster_id',
+        'updated_by',
     ];
 
     public function trailer(){
