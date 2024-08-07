@@ -57,11 +57,15 @@ class TractorTrailerList
             $query = TractorTrailerDriver::findorFail($id);
             $payload = base64_encode(json_encode([
                 'trailer' =>$query->trailer->name,
+                'trailer_plate_no' =>$query->trailer->plate_no,
                 'trailer_type' =>$query->trailer->trailer_type->name,
-                'trailer_status' =>$query->trailer->status,
+                'trailer_status' =>config('value.tractor_status.'.$query->trailer->status),
+                'trailer_remarks' =>$query->trailer->remarks,
                 'tractor' =>$query->tractor->name,
+                'tractor_body_no' =>$query->tractor->body_no,
                 'tractor_plate_no' =>$query->tractor->plate_no,
-                'tractor_status' =>$query->tractor->status,
+                'tractor_status' =>config('value.tractor_status.'.$query->tractor->status),
+                'tractor_remarks' =>$query->tractor->remarks,
                 'pdriver' =>$query->pdriver?$query->pdriver_emp->fullname():null,
                 'sdriver' =>$query->sdriver?$query->sdriver_emp->fullname():null,
                 'status' =>$query->status,
