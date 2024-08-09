@@ -24,7 +24,7 @@ class AccessController extends Controller
 
         $user = Auth::user() ?? false;
         $user_role =$user->user_roles;
-        if(!$user->employee->is_active || !$user->is_active || !$user_role->is_active)
+        if(!$user->employee->status || !$user->is_active || !$user_role->is_active)
         {
             Auth::logout();
             $this->_response('Account is Deactivated',401,'error',csrf_token());

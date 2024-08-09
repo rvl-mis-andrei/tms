@@ -21,7 +21,7 @@ class Controller extends BaseController
         ],$code)->throwResponse();
     }
 
-    public function timestamp_format($date,$format="F j, Y'")
+    public function timestamp_format($date,$format="F j, Y")
     {
         return Carbon::parse($date)->format($format);
     }

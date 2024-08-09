@@ -38,7 +38,8 @@ Route::group(['prefix'=>'services'], function() {
     Route::controller(TractorTrailerList::class)->prefix('tractor_trailer')->group(function() {
         Route::post('/datatable', 'datatable');
         Route::post('/upsert', 'upsert');
-        Route::post('/decouple', 'decouple');
+        Route::post('/remove', 'remove');
+        Route::post('/update_column', 'update_column');
         Route::post('/validate','validate');
 
         // Route::post('/info','info');

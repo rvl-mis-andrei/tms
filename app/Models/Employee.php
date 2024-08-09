@@ -15,6 +15,13 @@ class Employee extends Model
         'mname',
         'ext',
         'title',
+        'mobile_no',
+        'license_no',
+        'created_by',
+        'updated_by',
+        'is_deleted',
+        'deleted_by',
+        'deleted_at',
     ];
 
     public function emp_details(){

@@ -12,27 +12,26 @@ return [
         null=>'Inactive'
     ],
     'tractor_status'=>[
-        1 => ['Active','success'],
+        1 => ['Available','success'],
         2 => ['Issued','primary'],
         3 => ['Disposed','danger'],
         4 => ['Under Maintenance','info'],
         null=>['','secondary']
     ],
     'trailer_status'=>[
-        1 => ['Active','success'],
+        1 => ['Available','success'],
         2 => ['Issued','primary'],
         3 => ['Disposed','danger'],
         4 => ['Under Maintenance','info'],
         null=>['','secondary']
     ],
     'tractor_trailer_status'=>[
-        1 => ['Active','success'],              //
-        2 => ['Inactive','secondary'],            //
-        3 => ['Under Maintenance','warning'],   //
+        1 => ['Active','success'],
+        2 => ['Inactive','secondary'],
     ],
     'cluster_driver_status'=>[
-        1 => 'Available',
-        2 => 'Assigned',
-        3 => 'Inactive',
+        1 => ['Available','info'],
+        2 => ['Assigned','success'],
+        3 => ['Inactive','secondary'],
     ],
 ];

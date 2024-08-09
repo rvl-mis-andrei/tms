@@ -13,6 +13,7 @@ class TractorOption
         $query = Tractor::whereNotIn('status', [2, 3, 4]);
         return match($rq->type){
             'options' => $this->options($rq,$query),
+            'search_modal' => $this->search_modal($rq,$query),
         };
     }
 
@@ -32,6 +33,28 @@ class TractorOption
         } else {
             return '<option disabled>No Available Location</option>';
         }
+    }
+
+
+    public function search_modal($rq,$query)
+    {
+        $array = [];
+        if(isset($rq->search)){
+            $data = $query->where('body_no', 'LIKE', '%'.$rq->search.'%')->orWhere('plate_no', 'LIKE', '%'.$rq->search.'%')->get();
+            if($data)
+            {
+                foreach($data as $row)
+                {
+                    $array[]=[
+                        'description' => $row->description,
+                        'plate_no' => $row->plate_no,
+                        'status' =>config('value.tractor_status.'. $row->status),
+                        'id' => Crypt::encrypt($row->id),
+                    ];
+                }
+            }
+        }
+        return $array;
     }
 
 

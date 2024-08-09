@@ -4,8 +4,7 @@
             <div class="card mb-5 mb-xl-8">
                 <div class="card-body">
                     <div class="d-flex flex-stack fs-4 mb-5">
-                        <div class="fw-bold rotate collapsible" data-bs-toggle="collapse" href="#kt_user_view_details"
-                            role="button" aria-expanded="false" aria-controls="kt_user_view_details">
+                        <div class="fw-bold rotate collapsible" data-bs-toggle="collapse" role="button" aria-expanded="false">
                             Summary
                             <span class="ms-2 rotate-180">
                                 <i class="ki-duotone ki-down fs-3"></i>
@@ -13,11 +12,33 @@
                         </div>
 
                         <span data-bs-toggle="tooltip" data-bs-trigger="hover"
-                            data-bs-original-title="Edit customer details" data-kt-initialized="1">
-                            <a href="#" class="btn btn-sm btn-light-primary" data-bs-toggle="modal"
-                                data-bs-target="#kt_modal_update_details">
-                                Edit Details
-                            </a>
+                            data-bs-original-title="Other Actions" data-kt-initialized="1">
+                            <a href="#" class="btn btn-light-primary btn-sm ps-7" data-kt-menu-trigger="click" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
+                        Actions
+                        <i class="ki-duotone ki-down fs-2 me-0"></i> </a>
+                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold py-4 w-200px fs-6"
+                            data-kt-menu="true">
+                            <div class="menu-item px-5">
+                                <div class="menu-content text-muted pb-2 px-5 fs-7 text-uppercase">
+                                    Actions
+                                </div>
+                            </div>
+                            <div class="menu-item px-5">
+                                <a href="#" class="menu-link px-5 remarks">
+                                    Remarks
+                                </a>
+                                <a href="#" class="menu-link px-5 delete text-danger">
+                                    Delete tractor trailer
+                                </a>
+                                <div class="separator my-2"></div>
+                                <label class="form-check form-switch form-check-custom form-check-solid">
+                                    <input class="form-check-input w-35px h-25px" type="checkbox" value="" name="notifications" checked="" id="kt_user_menu_notifications">
+                                    <span class="form-check-label text-muted fs-6 " for="kt_user_menu_notifications">
+                                    Tractor Trailer Status
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
                         </span>
                     </div>
 
@@ -27,34 +48,37 @@
                         <div class="pb-5 fs-6">
 
                             <div class="fw-bold mt-5">Tractor</div>
-                            <div class="text-gray-600">ID-45453423</div>
+                            <div class="text-gray-600">{{ isset($data['tractor'])? $data['tractor'].' ['.$data['tractor_plate_no'].']':'--' }}</div>
 
                             <div class="fw-bold mt-5">Trailer</div>
                             <div class="text-gray-600">
-                                <a href="#" class="text-gray-600 text-hover-primary">info@keenthemes.com</a>
+                                <a href="#" class="text-gray-600 text-hover-primary">{{ isset($data['trailer'])?  $data['trailer'].' ['.$data['trailer_type'].']' :'--'}}</a>
                             </div>
 
                             <div class="fw-bold mt-5">Driver #1</div>
                             <div class="text-gray-600">
-                                <a href="#" class="text-gray-600 text-hover-primary">info@keenthemes.com</a>
+                                <a href="#" class="text-gray-600 text-hover-primary">{{ isset($data['drivers'][0])? $data['drivers'][0]['name'] :'--' }}</a>
                             </div>
 
                             <div class="fw-bold mt-5">Driver #2</div>
                             <div class="text-gray-600">
-                                <a href="#" class="text-gray-600 text-hover-primary">info@keenthemes.com</a>
+                                <a href="#" class="text-gray-600 text-hover-primary">{{ isset($data['drivers'][1])? $data['drivers'][1]['name'] :'--' }}</a>
                             </div>
 
                             <div class="fw-bold mt-5">Status</div>
-                            <div class="text-gray-600">101 Collin Street, <br>Melbourne 3000 VIC<br>Australia</div>
+                            <div class="text-gray-600">
+                                <div class="badge badge-light-{{ $data['status'][1] }}">{{ $data['status'][0] }}</div>
+
+                            </div>
 
                             <div class="fw-bold mt-5">Remarks</div>
-                            <div class="text-gray-600">English</div>
+                            <div class="text-gray-600">{{ $data['remarks']??'--' }}</div>
 
                             <div class="fw-bold mt-5">Date Modified</div>
-                            <div class="text-gray-600">19 Aug 2023, 10:10 pm</div>
+                            <div class="text-gray-600">{{ $data['last_updated_at'] }}</div>
 
                             <div class="fw-bold mt-5">Modified By</div>
-                            <div class="text-gray-600">19 Aug 2023, 10:10 pm</div>
+                            <div class="text-gray-600">{{ $data['last_updated_by'] }}</div>
                         </div>
                     </div>
 
@@ -75,25 +99,6 @@
                     <a class="nav-link text-active-primary pb-3 lh-1" data-bs-toggle="tab" href="#tab-2"
                         aria-selected="false" role="tab" data-tab="tab-content-2" tabindex="-1">Events &amp; Logs</a>
                 </li>
-                <li class="nav-item ms-auto">
-                    <a href="#" class="btn btn-primary btn-sm ps-7" data-kt-menu-trigger="click"
-                        data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
-                        Export Logs
-                        <i class="ki-duotone ki-down fs-2 me-0"></i> </a>
-                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold py-4 w-200px fs-6"
-                        data-kt-menu="true">
-                        <div class="menu-item px-5">
-                            <div class="menu-content text-muted pb-2 px-5 fs-7 text-uppercase">
-                                Actions
-                            </div>
-                        </div>
-                        {{-- <div class="menu-item px-5">
-                            <a href="#" class="menu-link px-5">
-                                Tractor
-                            </a>
-                        </div>--}}
-                    </div>
-                </li>
             </ul>
 
             <div class="tab-content" id="myTabContent">
@@ -105,169 +110,187 @@
                                 <h2 class="fw-bold">Tractor &  Trailer Details</h2>
                             </div>
                             <div class="card-toolbar">
-                                <button class="btn btn-light-primary btn-sm" data-bs-toggle="modal"
-                                    data-bs-target="#kt_modal_new_card">
-                                    Add Tractor/Trailer
-                                </button>
+                                @if(!$data['tractor'])
+                                    <button class="btn btn-sm btn-flex btn-light-primary update_column" data-url="/services/tractor_trailer/update_column" data-column="tractor_id" data-search="tractor" modal-id="#modal_search">
+                                        <i class="ki-outline ki-plus fs-3"></i>
+                                        Add Tractor
+                                    </button>
+                                @elseif(!$data['trailer'])
+                                    <button class="btn btn-sm btn-flex btn-light-primary update_column" data-url="/services/tractor_trailer/update_column" data-column="trailer_id" data-search="trailer" modal-id="#modal_search">
+                                        <i class="ki-outline ki-plus fs-3"></i>
+                                        Add Trailer
+                                    </button>
+                                @endif
                             </div>
                         </div>
                         <div class="card-body pt-0">
 
-                            {{-- TRACTOR --}}
-                            <div class="py-1">
-                                <div class="py-2 d-flex flex-stack flex-wrap">
-                                    <div class="py-3 d-flex align-items-center collapsible toggle "
-                                        data-bs-toggle="collapse" data-bs-target="#collapse-content-1">
-                                        <div class="btn btn-sm btn-icon btn-active-color-primary ms-n3 me-2">
-                                            <i class="ki-duotone ki-minus-square toggle-on text-primary fs-2">
-                                                <span class="path1"></span>
-                                                <span class="path2"></span>
-                                            </i>
-                                            <i class="ki-duotone ki-plus-square toggle-off fs-2">
-                                                <span class="path1"></span>
-                                                <span class="path2"></span>
-                                                <span class="path3"></span>
-                                            </i>
-                                        </div>
-                                        <div class="me-3">
-                                            <div class="d-flex align-items-center fw-bold">{{ $data['tractor'] }}
+                            @if($data['tractor'] !=null)
+                                {{-- TRACTOR --}}
+                                <div class="py-1">
+                                    <div class="py-2 d-flex flex-stack flex-wrap">
+                                        <div class="py-3 d-flex align-items-center collapsible toggle "
+                                            data-bs-toggle="collapse" data-bs-target="#collapse-content-1">
+                                            <div class="btn btn-sm btn-icon btn-active-color-primary ms-n3 me-2">
+                                                <i class="ki-duotone ki-minus-square toggle-on text-primary fs-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                                <i class="ki-duotone ki-plus-square toggle-off fs-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                </i>
                                             </div>
-                                            <div class="text-muted">Tractor</div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex my-0 ms-9">
-                                        <a href="#" class="btn btn-icon btn-light-primary w-30px h-30px me-3" data-bs-toggle="modal"
-                                            data-bs-target="#kt_modal_new_card">
-                                            <span data-bs-toggle="tooltip" data-bs-trigger="hover" aria-label="Edit" data-bs-original-title="Edit Details"
-                                                data-kt-initialized="1">
-                                                <i class="ki-outline ki-pencil fs-3"></i> </span>
-                                        </a>
-                                        <a href="#" class="btn btn-icon btn-light-danger w-30px h-30px me-3 delete" data-url="/services/tractor_trailer/decouple"
-                                            data-action="decouple" data-column="tractor"  data-bs-toggle="tooltip"
-                                            data-bs-original-title="Decouple"
-                                            data-kt-initialized="1">
-                                            <i class="ki-outline ki-trash fs-3"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                                <div id="collapse-content-1" class="collapse show fs-6 ps-10">
-                                    <div class="d-flex flex-wrap py-3">
-                                        <div class="flex-equal me-5">
-                                            <table class="table table-flush fw-semibold gy-1">
-                                                <tr class="pb-3">
-                                                    <td class="text-muted min-w-125px w-125px">Body No</td>
-                                                    <td class="text-gray-800">{{ $data['tractor_body_no'] }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-muted min-w-125px w-125px">Plate No</td>
-                                                    <td class="text-gray-800">{{ $data['tractor_plate_no'] }}</td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                        <div class="flex-equal ">
-                                            <table class="table table-flush fw-semibold gy-1">
-                                                <tr class="pb-3">
-                                                    <td class="text-muted min-w-125px w-125px">Status</td>
-                                                    <td class="text-gray-800">
-                                                        <div class="badge badge-light-{{ $data['tractor_status'][1] }}">{{ $data['tractor_status'][0] }}</div>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-muted min-w-125px w-125px">Remarks</td>
-                                                    <td class="text-gray-800">{{ $data['tractor_remarks']??'--' }}</td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                            <div class="separator separator-dashed"></div>
-
-                            {{-- TRAILER --}}
-                            <div class="py-1">
-                                <div class="py-2 d-flex flex-stack flex-wrap">
-                                    <div class="d-flex align-items-center collapsible toggle active" data-bs-toggle="collapse" data-bs-target="#collapse-content-2">
-                                        <div class="btn btn-sm btn-icon btn-active-color-primary ms-n3 me-2">
-                                            <i class="ki-duotone ki-minus-square toggle-on text-primary fs-2">
-                                                <span class="path1"></span>
-                                                <span class="path2"></span>
-                                            </i>
-                                            <i class="ki-duotone ki-plus-square toggle-off fs-2">
-                                                <span class="path1"></span>
-                                                <span class="path2"></span>
-                                                <span class="path3"></span>
-                                            </i>
-                                        </div>
-                                        <div class="me-3">
-                                            <div class="d-flex align-items-center fw-bold">{{ $data['trailer_plate_no'] }}
+                                            <div class="me-3">
+                                                <div class="d-flex align-items-center fw-bold">{{ $data['tractor'] }}
+                                                </div>
+                                                <div class="text-muted">Tractor</div>
                                             </div>
-                                            <div class="text-muted">Trailer</div>
+                                        </div>
+                                        <div class="d-flex my-0 ms-9">
+                                            <a href="#" class="btn btn-icon btn-light-primary w-30px h-30px me-3" data-bs-toggle="modal"
+                                                data-bs-target="#kt_modal_new_card">
+                                                <span data-bs-toggle="tooltip" data-bs-trigger="hover" aria-label="Edit" data-bs-original-title="Edit Details"
+                                                    data-kt-initialized="1">
+                                                    <i class="ki-outline ki-pencil fs-3"></i> </span>
+                                            </a>
+                                            @if($data['trailer'])
+                                                <a href="#" class="btn btn-icon btn-light-danger w-30px h-30px me-3 remove" data-url="/services/tractor_trailer/remove"
+                                                    data-action="Disconnect this tractor to trailer?" data-column="tractor_id"  data-bs-toggle="tooltip"
+                                                    data-bs-original-title="Decouple"
+                                                    data-kt-initialized="1">
+                                                    <i class="ki-outline ki-trash fs-3"></i>
+                                                </a>
+                                            @endif
                                         </div>
                                     </div>
-                                    <div class="d-flex my-0 ms-9">
-                                        <a href="#" class="btn btn-icon btn-light-primary w-30px h-30px me-3 edit" data-bs-toggle="modal"
-                                            data-bs-target="#kt_modal_new_card">
-                                            <span data-bs-toggle="tooltip" data-bs-trigger="hover" aria-label="Edit Tractor" data-bs-original-title="Edit Details"
-                                                data-kt-initialized="1">
-                                                <i class="ki-outline ki-pencil fs-3"></i> </span>
-                                        </a>
-                                        <a href="#" class="btn btn-icon btn-light-danger w-30px h-30px me-3 delete" data-url="/services/tractor_trailer/decouple"
-                                            data-action="decouple" data-column="trailer" data-bs-toggle="tooltip"
-                                              data-bs-original-title="Decouple"
-                                            data-kt-initialized="1">
-                                            <i class="ki-outline ki-trash fs-3"></i>
-                                        </a>
+                                    <div id="collapse-content-1" class="collapse show fs-6 ps-10">
+                                        <div class="d-flex flex-wrap py-3">
+                                            <div class="flex-equal me-5">
+                                                <table class="table table-flush fw-semibold gy-1">
+                                                    <tr class="pb-3">
+                                                        <td class="text-muted min-w-125px w-125px">Body No</td>
+                                                        <td class="text-gray-800">{{ $data['tractor_body_no'] }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted min-w-125px w-125px">Plate No</td>
+                                                        <td class="text-gray-800">{{ $data['tractor_plate_no'] }}</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <div class="flex-equal ">
+                                                <table class="table table-flush fw-semibold gy-1">
+                                                    <tr class="pb-3">
+                                                        <td class="text-muted min-w-125px w-125px">Status</td>
+                                                        <td class="text-gray-800">
+                                                            <div class="badge badge-light-{{ $data['tractor_status'][1] }}">{{ $data['tractor_status'][0] }}</div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted min-w-125px w-125px">Remarks</td>
+                                                        <td class="text-gray-800">{{ $data['tractor_remarks']??'--' }}</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+
                                     </div>
                                 </div>
-                                <div id="collapse-content-2" class="collapse fs-6 ps-10 collapse show">
-                                    <div class="d-flex flex-wrap py-3">
+                                <div class="separator separator-dashed"></div>
+                            @endif
 
-                                        <div class="flex-equal">
-                                            <table class="table table-flush fw-semibold gy-1">
-                                                <tr class="pb-3">
-                                                    <td class="text-muted min-w-125px w-125px">Trailer Type</td>
-                                                    <td class="text-gray-800">{{ $data['trailer_type'] }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-muted min-w-125px w-125px">Plate No</td>
-                                                    <td class="text-gray-800">{{ $data['trailer_plate_no'] }}</td>
-                                                </tr>
-                                            </table>
+                            @if($data['trailer'])
+                                {{-- TRAILER --}}
+                                <div class="py-1">
+                                    <div class="py-2 d-flex flex-stack flex-wrap">
+                                        <div class="d-flex align-items-center collapsible toggle active" data-bs-toggle="collapse" data-bs-target="#collapse-content-2">
+                                            <div class="btn btn-sm btn-icon btn-active-color-primary ms-n3 me-2">
+                                                <i class="ki-duotone ki-minus-square toggle-on text-primary fs-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                                <i class="ki-duotone ki-plus-square toggle-off fs-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                </i>
+                                            </div>
+                                            <div class="me-3">
+                                                <div class="d-flex align-items-center fw-bold">{{ $data['trailer_plate_no'] }}
+                                                </div>
+                                                <div class="text-muted">Trailer</div>
+                                            </div>
                                         </div>
-
-                                        <div class="flex-equal">
-                                            <table class="table table-flush fw-semibold gy-1">
-                                                <tr class="pb-3">
-                                                    <td class="text-muted min-w-125px w-125px">Status</td>
-                                                    <td class="text-gray-800">
-                                                        <div class="badge badge-light-{{ $data['trailer_status'][1] }}">{{ $data['trailer_status'][0] }}</div>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-muted min-w-125px w-125px">Remarks</td>
-                                                    <td class="text-gray-800">{{ $data['trailer_remarks'] ??'--' }}</td>
-                                                </tr>
-                                            </table>
+                                        <div class="d-flex my-0 ms-9">
+                                            <a href="#" class="btn btn-icon btn-light-primary w-30px h-30px me-3 edit" data-bs-toggle="modal"
+                                                data-bs-target="#kt_modal_new_card">
+                                                <span data-bs-toggle="tooltip" data-bs-trigger="hover" aria-label="Edit Tractor" data-bs-original-title="Edit Details"
+                                                    data-kt-initialized="1">
+                                                    <i class="ki-outline ki-pencil fs-3"></i> </span>
+                                            </a>
+                                            @if($data['tractor'])
+                                                <a href="#" class="btn btn-icon btn-light-danger w-30px h-30px me-3 remove" data-url="/services/tractor_trailer/remove"
+                                                    data-action="Disconnect this trailer to tractor?" data-column="trailer_id" data-bs-toggle="tooltip"
+                                                    data-bs-original-title="Decouple"
+                                                    data-kt-initialized="1">
+                                                    <i class="ki-outline ki-trash fs-3"></i>
+                                                </a>
+                                            @endif
                                         </div>
+                                    </div>
+                                    <div id="collapse-content-2" class="collapse fs-6 ps-10 collapse show">
+                                        <div class="d-flex flex-wrap py-3">
 
+                                            <div class="flex-equal">
+                                                <table class="table table-flush fw-semibold gy-1">
+                                                    <tr class="pb-3">
+                                                        <td class="text-muted min-w-125px w-125px">Trailer Type</td>
+                                                        <td class="text-gray-800">{{ $data['trailer_type'] }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted min-w-125px w-125px">Plate No</td>
+                                                        <td class="text-gray-800">{{ $data['trailer_plate_no'] }}</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+
+                                            <div class="flex-equal">
+                                                <table class="table table-flush fw-semibold gy-1">
+                                                    <tr class="pb-3">
+                                                        <td class="text-muted min-w-125px w-125px">Status</td>
+                                                        <td class="text-gray-800">
+                                                            <div class="badge badge-light-{{ $data['trailer_status'][1] }}">{{ $data['trailer_status'][0] }}</div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted min-w-125px w-125px">Remarks</td>
+                                                        <td class="text-gray-800">{{ $data['trailer_remarks'] ??'--' }}</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            @endif
 
                         </div>
                     </div>
 
-                  <div class="card card-flush pt-3 mb-5 mb-xl-10">
+                    {{-- DRIVER --}}
+                    <div class="card card-flush pt-3 mb-5 mb-xl-10">
                         <div class="card-header">
                             <div class="card-title">
-                                <h2>Tractor Drivers</h2>
+                                <h2>Driver's Details</h2>
                             </div>
                             <div class="card-toolbar">
-                                <button class="btn btn-light-primary btn-sm" data-bs-toggle="modal"
-                                    data-bs-target="#modal_add_new_driver">
-                                    New Driver
-                                </button>
+                                @if(!isset($data['drivers'][0]) || !isset($data['drivers'][1]))
+                                    <button class="btn btn-sm btn-flex btn-light-primary update_column" data-url="/services/tractor_trailer/update_column" data-column=@if($data['drivers'][0]['column']=='sdriver'){{ 'pdriver' }} @else {{ 'sdriver' }} @endif  data-search="driver" modal-id="#modal_search">
+                                        <i class="ki-outline ki-plus fs-4"></i>
+                                        Add Driver
+                                    </button>
+                                @endif
                             </div>
                         </div>
 
@@ -275,22 +298,78 @@
                             <div class="table-responsive">
                                 <table id=""
                                     class="table align-middle table-row-dashed fs-6 fw-bold gs-0 gy-4 p-0 m-0">
-                                    <thead class="border-bottom border-gray-200 fs-7 text-uppercase fw-bold table-sm">
+                                    <thead class="border-bottom border-gray-200 fs-7 text-uppercase fw-bold">
                                         <tr class="text-start text-gray-500">
-                                            <th class=""></th>
                                             <th class="">#</th>
                                             <th class="">Employee No.</th>
-                                            <th class="">Driver</th>
+                                            <th class="">Drivers</th>
                                             <th class="">Mobile No.</th>
                                             <th class="">License No.</th>
+                                            <th class="">Remarks</th>
                                             <th class="">Status</th>
-                                            <th class="">Action</th>
+                                            <th class="min-w-100px text-end pe-7 dt-orderable-none">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody class="fs-6 fw-semibold text-gray-600">
+                                        @foreach ($data['drivers'] as $key => $driver)
+                                        <tr>
+                                            <td>
+                                                {{ $key+1 }}
+                                            </td>
+                                            <td>
+                                                <a href="#" class="text-gray-600 text-hover-primary mb-1">
+                                                    {{ $driver['emp_no'] }}
+                                                </a>
+                                            </td>
+                                            <td>
+                                               <div class="d-flex align-items-center">
+                                                    <div class="text-gray-800">
+                                                        {{ $driver['name'] }}
+                                                    </div>
+                                                    <div class="badge badge-light-{{ $driver['column']=='pdriver'?'primary':'info' }} ms-5">Driver {{ $driver['column']=='pdriver'?'1':'2' }}</div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {{ $driver['mobile_no'] }}
+                                            </td>
+                                            <td>
+                                                {{ $driver['license_no'] }}
+                                            </td>
+                                            <td>
+                                                {{ $driver['remarks'] }}
+                                            </td>
+                                            <td>
+                                                <div class="badge badge-light-{{ $driver['status'][1] }}">{{ $driver['status'][0] }}</div>
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="">
+                                                    <a href="#" class="btn btn-icon btn-light-primary w-30px h-30px" data-bs-toggle="tooltip"
+                                                        data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" aria-label="More Options"
+                                                        data-bs-original-title="More Options" data-kt-initialized="1">
+                                                        <i class="ki-outline ki-setting-3 fs-3"></i>
+                                                    </a>
+                                                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold w-150px py-3"
+                                                        data-kt-menu="true">
+                                                        <div class="menu-item px-3">
+                                                            <a href="#" class="menu-link px-3" data-kt-payment-mehtod-action="set_as_primary">
+                                                                Set as Primary
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                    @if(count($data['drivers'])==2)
+                                                        <a href="#" class="btn btn-icon btn-light-danger w-30px h-30px me-3 remove" data-url="/services/tractor_trailer/remove"
+                                                            data-action="Do you want to remove this driver ?" data-column="{{ $driver['column'] }}"  data-bs-toggle="tooltip"
+                                                            data-bs-original-title="Remove Driver"
+                                                            data-kt-initialized="1">
+                                                            <i class="ki-outline ki-trash fs-3"></i>
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        @endforeach
                                     </tbody>
                                 </table>
-                                <!--end::Table-->
                             </div>
                         </div>
                     </div>
@@ -419,5 +498,8 @@
             </div>
         </div>
     </div>
+
+    @include('layout.shared.dispatcher.modal_tractor_trailer_info')
 </div>
-</div>
+
+

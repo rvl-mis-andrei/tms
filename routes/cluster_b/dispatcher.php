@@ -17,6 +17,7 @@ Route::group(['prefix'=>'tms/cco-b/dispatcher'], function() {
 
         Route::controller(PageController::class)->group(function () {
 
+            Route::get('/', 'setup_page');
             Route::post('/setup-page', 'setup_page');
 
             Route::get('/client_info/{id}','system_file');

@@ -5,7 +5,6 @@ export function page_state(container, status,val=false){
     var initial_state = container[0].innerHTML;
 
     switch (status) {
-
         case 'empty':
         html = `<div id="empty_state_wrapper" >
                 <div class="card-px text-center pt-15 pb-15">

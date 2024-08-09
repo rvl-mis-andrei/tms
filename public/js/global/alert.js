@@ -1,3 +1,5 @@
+import {modal_state} from "../global.js";
+
 export class Alert {
     static toast(status, message) {
         Swal.fire({

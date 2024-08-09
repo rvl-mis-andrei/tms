@@ -34,11 +34,27 @@ class TractorTrailerDriver extends Model
 
     public function sdriver_emp()
     {
-        return $this->belongsTo(Employee::class,'sdriver')->withDefault();
+        return $this->belongsTo(TmsClusterDriver::class,'sdriver')->withDefault();
     }
 
     public function pdriver_emp()
     {
-        return $this->belongsTo(Employee::class,'pdriver')->withDefault();
+        return $this->belongsTo(TmsClusterDriver::class,'pdriver')->withDefault();
+    }
+
+    public function updated_by_emp()
+    {
+        return $this->belongsTo(Employee::class,'updated_by')->withDefault();
+
+    }
+
+    public function created_by_emp()
+    {
+        return $this->belongsTo(Employee::class,'updated_by')->withDefault();
+    }
+
+    public function deleted_by_emp()
+    {
+        return $this->belongsTo(Employee::class,'deleted_by')->withDefault();
     }
 }

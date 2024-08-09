@@ -15,6 +15,7 @@ class TrailerOption
         $query = Trailer::whereNotIn('status', [2, 3, 4]);
         return match($rq->type){
             'options' => $this->options($rq,$query),
+            'search_modal' => $this->search_modal($rq,$query),
         };
     }
 
@@ -34,6 +35,35 @@ class TrailerOption
         } else {
             return '<option disabled>No Available Location</option>';
         }
+    }
+
+
+    public function search_modal($rq,$query)
+    {
+        $array = [];
+        if(isset($rq->search)){
+            $data = $query->where(function($q) use ($rq) {
+                $q->where('description', 'LIKE', '%'.$rq->search.'%')
+                  ->orWhere('plate_no', 'LIKE', '%'.$rq->search.'%');
+            })
+            ->whereHas('trailer_type', function($q) use ($rq) {
+                $q->where('name', 'LIKE', '%'.$rq->search.'%');
+            })
+            ->get();
+            if($data)
+            {
+                foreach($data as $row)
+                {
+                    $array[]=[
+                        'trailer_type' => $row->trailer_type->name,
+                        'plate_no' => $row->plate_no,
+                        'status' =>config('value.trailer_status.'. $row->status),
+                        'id' => Crypt::encrypt($row->id),
+                    ];
+                }
+            }
+        }
+        return $array;
     }
 
 
