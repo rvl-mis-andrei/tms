@@ -7,7 +7,7 @@ use App\Http\Controllers\ClusterBController\Dispatcher\ClientListing;
 use App\Http\Controllers\ClusterBController\Dispatcher\Dashboard;
 use App\Http\Controllers\ClusterBController\Dispatcher\DriverListing;
 use App\Http\Controllers\ClusterBController\Dispatcher\TractorTrailerDriverListing;
-use App\Http\Controllers\ClusterBController\PageController;
+use App\Http\Controllers\ClusterBController\DispatcherPageController;
 use App\Services\Dispatcher\ClientList;
 use Illuminate\Support\Facades\Route;
 
@@ -15,7 +15,7 @@ Route::group(['prefix'=>'tms/cco-b/dispatcher'], function() {
 
     Route::middleware('auth')->group(function () {
 
-        Route::controller(PageController::class)->group(function () {
+        Route::controller(DispatcherPageController::class)->group(function () {
 
             Route::get('/', 'setup_page');
             Route::post('/setup-page', 'setup_page');

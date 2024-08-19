@@ -9,7 +9,7 @@ use App\Services\Dispatcher\DispatcherPage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class PageController extends Controller
+class DispatcherPageController extends Controller
 {
     public function system_file(Request $rq)
     {
@@ -19,7 +19,8 @@ class PageController extends Controller
             //throw error
         }
 
-        $query = TmsRoleAccess::with('system_file.file_layer')->where([['is_active', 1],['role_id', $user_role->role_id]])->get();
+        $query = TmsRoleAccess::with('system_file.file_layer')
+        ->where([['is_active', 1],['role_id', $user_role->role_id]])->orderBy('file_order')->get();
         if(!$query)
         {
             //throw error

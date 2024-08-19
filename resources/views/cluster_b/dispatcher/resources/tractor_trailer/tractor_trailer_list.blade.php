@@ -60,5 +60,5 @@
             </div>
         </div>
     </div>
-    @include('layout.shared.dispatcher.tractor_trailer')
+    @include('layout.dispatcher.shared.resources.modal.modal_add_tractor_trailer')
 </div>

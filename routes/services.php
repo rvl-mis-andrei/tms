@@ -8,6 +8,8 @@ use App\Services\Dispatcher\ClusterDriverList;
 use App\Services\Dispatcher\TractorList;
 use App\Services\Dispatcher\TractorTrailerList;
 use App\Services\Dispatcher\TrailerList;
+use App\Services\Planner\ClusterBHaulageInfo;
+use App\Services\Planner\HaulageList;
 use App\Services\TractorOption;
 use App\Services\TrailerOption;
 use Illuminate\Support\Facades\Route;
@@ -65,6 +67,29 @@ Route::group(['prefix'=>'services'], function() {
         Route::post('/datatable', 'datatable');
         Route::post('/upsert', 'upsert');
         Route::post('/validate','validate');
+
+        Route::post('/info','info');
+    });
+
+    Route::controller(HaulageList::class)->prefix('haulage')->group(function() {
+        Route::post('/datatable', 'datatable');
+        Route::post('/create', 'create');
+        Route::post('/update', 'update');
+        Route::post('/delete', 'delete');
+        Route::post('/validate','validate');
+
+        Route::post('/info','info');
+    });
+
+    Route::controller(ClusterBHaulageInfo::class)->prefix('haulage_info')->group(function() {
+        Route::post('/list', 'list');
+        Route::post('/create', 'create');
+        Route::post('/update', 'update');
+        Route::post('/delete', 'delete');
+        Route::post('/validate','validate');
+
+        Route::post('/masterlist','masterlist');
+        Route::post('/hauling_plan','hauling_plan');
 
         Route::post('/info','info');
     });

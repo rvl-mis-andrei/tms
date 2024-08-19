@@ -1,4 +1,4 @@
-{{-- MODAL ADD CLIENT --}}
+{{-- MODAL ADD TRACTOR TRAILER --}}
 <div class="modal fade" id="modal_add_tractor_trailer" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered mw-600px">
         <div class="modal-content">

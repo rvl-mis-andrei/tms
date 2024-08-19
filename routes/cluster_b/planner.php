@@ -1,11 +1,34 @@
 <?php
 
+use App\Services\WebRoute as SystemRoute;
+
+use App\Http\Controllers\ClusterBController\PlannerPageController;
 use Illuminate\Support\Facades\Route;
-// use App\Http\Controllers\DispatcherController\Login\Auth as DispatcherLoginController;
 
+Route::group(['prefix'=>'tms/cco-b/planner'], function() {
 
-// Route::prefix('dispatcher')->controller(DispatcherLoginController::class)->group(function () {
-//     Route::get('/', 'form');
-//     Route::post('/login', 'login')->name('dispatcher.login');
-//     Route::post('/logout', 'logout')->name('dispatcher.logout');
-// });
+    Route::middleware('auth')->group(function () {
+
+        Route::controller(PlannerPageController::class)->group(function () {
+
+            Route::get('/', 'setup_page');
+            Route::post('/setup-page', 'setup_page');
+
+            Route::get('/hauling_plan_info/{id}', 'system_file');
+
+            $routes = (new SystemRoute())->getPlannerRoutes();
+            if ($routes) {
+                foreach ($routes as $row) {
+                    if (!$row->file_layer->isEmpty()) {
+                        foreach ($row->file_layer as $layer) {
+                            Route::get('/'.$layer->href,'system_file');
+                        }
+                    }else{
+                        Route::get('/'.$row->href,'system_file');
+                    }
+                }
+            }
+        });
+
+    });
+});

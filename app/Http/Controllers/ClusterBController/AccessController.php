@@ -12,7 +12,7 @@ class AccessController extends Controller
 {
     public function form()
     {
-        return view('cluster_b.login');
+        return view('login.cluster_b');
     }
 
     public function login(LoginRequest $rq)

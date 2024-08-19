@@ -34,4 +34,9 @@ return [
         2 => ['Assigned','success'],
         3 => ['Inactive','secondary'],
     ],
+
+    'haulage_status'=>[
+        1 => ['Completed','success'],
+        2 => ['On-Going','info'],
+    ],
 ];

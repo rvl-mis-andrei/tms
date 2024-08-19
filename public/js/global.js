@@ -120,10 +120,21 @@ export function data_bs_components()
     if (tooltipTriggerList.length > 0) {
         [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     }
+
     let popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
     if (popoverTriggerList.length > 0) {
         [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
     }
+
+    let flatPickrList = document.querySelectorAll('input[input-control="flatpicker"]');
+    if (flatPickrList.length > 0) {
+        $(flatPickrList).flatpickr({
+            // defaultDate: new Date(),
+            dateFormat: 'm-d-Y',
+        });
+    }
+
+
 }
 
 export function fv_validator(){

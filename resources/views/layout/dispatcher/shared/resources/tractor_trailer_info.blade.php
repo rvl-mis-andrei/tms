@@ -499,7 +499,7 @@
         </div>
     </div>
 
-    @include('layout.shared.dispatcher.modal_tractor_trailer_info')
+    @include('layout.dispatcher.shared.resources.modal.modal_tractor_trailer_info')
 </div>
 
 

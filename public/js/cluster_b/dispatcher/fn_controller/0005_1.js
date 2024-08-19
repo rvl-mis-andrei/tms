@@ -339,7 +339,6 @@ export function TractorTrailerInfoController(page,param)
 
             });
 
-
             $('body').delegate('#modal_search .checkbox','change',function(e){
                 e.stopImmediatePropagation()
                 let isChecked = this.checked;
@@ -388,6 +387,24 @@ export function TractorTrailerInfoController(page,param)
                         });
                     }
                 })
+            })
+
+            $('body').delegate('.remarks','click',function(e){
+                e.preventDefault()
+                e.stopImmediatePropagation()
+
+                // const { value: text } = await Swal.fire({
+                //     input: "textarea",
+                //     inputLabel: "Message",
+                //     inputPlaceholder: "Type your message here...",
+                //     inputAttributes: {
+                //       "aria-label": "Type your message here"
+                //     },
+                //     showCancelButton: true
+                //   });
+                //   if (text) {
+                //     Swal.fire(text);
+                //   }
             })
 
         }

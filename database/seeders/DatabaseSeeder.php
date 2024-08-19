@@ -29,15 +29,15 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
-        Employee::factory()->count(50)->create();
-        EmployeeAccount::factory()->count(50)->create();
+        // Employee::factory()->count(50)->create();
+        // EmployeeAccount::factory()->count(50)->create();
 
-        Position::factory()->count(10)->create();
-        Department::factory()->count(10)->create();
-        EmployeePosition::factory()->count(50)->create();
+        // Position::factory()->count(10)->create();
+        // Department::factory()->count(10)->create();
+        // EmployeePosition::factory()->count(50)->create();
 
-        Company::factory()->count(10)->create();
-        CompanyLocation::factory()->count(10)->create();
+        // Company::factory()->count(10)->create();
+        // CompanyLocation::factory()->count(10)->create();
 
         $roles = [
             'Dispatcher',
@@ -54,6 +54,6 @@ class DatabaseSeeder extends Seeder
                 ['is_active' => true, 'created_by' => 1, 'updated_by' => null]
             );
         }
-        TmsUserRole::factory()->count(50)->create();
+        // TmsUserRole::factory()->count(50)->create();
     }
 }

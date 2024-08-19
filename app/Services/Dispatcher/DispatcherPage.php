@@ -16,7 +16,7 @@ class DispatcherPage
             $id = Crypt::decrypt($rq->id);
             $data = (new ClusterClientList)->info($rq);
             $data = json_decode(base64_decode($data['payload']),true);
-            return view('layout.shared.dispatcher.client_info', compact('data'))->render();
+            return view('layout.dispatcher.shared.resources.client_info', compact('data'))->render();
         } catch(Exception $e) {
             return response()->json([
                 'status' => 400,
@@ -32,7 +32,7 @@ class DispatcherPage
             $id = Crypt::decrypt($rq->id);
             $data = (new TractorTrailerList)->info($rq);
             $data = json_decode(base64_decode($data['payload']),true);
-            return view('layout.shared.dispatcher.tractor_trailer_info', compact('data'))->render();
+            return view('layout.dispatcher.shared.resources.tractor_trailer_info', compact('data'))->render();
         } catch(Exception $e) {
             return response()->json([
                 'status' => 400,

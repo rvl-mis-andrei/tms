@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tms_role_access', function (Blueprint $table) {
+        Schema::create('tms_haulage_dealers', function (Blueprint $table) {
             $table->id();
-            $table->integer('role_id');
-            $table->integer('file_id');
-            $table->tinyInteger('is_active')->nullable();
-            $table->tinyInteger('file_order')->nullable();
+            $table->integer('haulage_id')->nullable();
+            $table->integer('dealer_id');
             $table->tinyInteger('is_deleted')->nullable();
             $table->tinyInteger('deleted_by')->nullable();
             $table->tinyInteger('deleted_at')->nullable();
@@ -32,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tms_role_access');
+        Schema::dropIfExists('tms_haulage_dealers');
     }
 };
