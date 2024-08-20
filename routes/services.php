@@ -1,5 +1,6 @@
 <?php
 
+use App\Controllers\ClusterBController\Planner\ClusterBHaulageInfo;
 use App\Services\DealershipLocation;
 use App\Services\Dispatcher\ClientDealershipList;
 use App\Services\Dispatcher\ClusterClientList;
@@ -8,7 +9,6 @@ use App\Services\Dispatcher\ClusterDriverList;
 use App\Services\Dispatcher\TractorList;
 use App\Services\Dispatcher\TractorTrailerList;
 use App\Services\Dispatcher\TrailerList;
-use App\Services\Planner\ClusterBHaulageInfo;
 use App\Services\Planner\HaulageList;
 use App\Services\TractorOption;
 use App\Services\TrailerOption;
@@ -80,20 +80,6 @@ Route::group(['prefix'=>'services'], function() {
 
         Route::post('/info','info');
     });
-
-    Route::controller(ClusterBHaulageInfo::class)->prefix('haulage_info')->group(function() {
-        Route::post('/list', 'list');
-        Route::post('/create', 'create');
-        Route::post('/update', 'update');
-        Route::post('/delete', 'delete');
-        Route::post('/validate','validate');
-
-        Route::post('/masterlist','masterlist');
-        Route::post('/hauling_plan','hauling_plan');
-
-        Route::post('/info','info');
-    });
-
 
 
     Route::prefix('select')->group(function() {

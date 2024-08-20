@@ -12,7 +12,115 @@
     <link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
+    <style>
+        .custom-file-upload {
+            width: 100%;
+            /* max-width: 500px; */
+            margin: 0 auto;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f9f9f9;
+            transition: background-color 0.3s ease;
+        }
 
+        .custom-file-upload:hover {
+            background-color: #f0f0f0;
+        }
+
+        .upload-area {
+            padding: 40px 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .upload-area .icon {
+            font-size: 50px;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+
+        .upload-area h3 {
+            font-size: 20px;
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .upload-area p {
+            color: #666;
+        }
+
+        .upload-area button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .upload-area button:hover {
+            background-color: #0056b3;
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .file-list .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: #fff;
+            transition: background-color 0.3s ease;
+        }
+
+        .file-list .file-item:hover {
+            background-color: #f8f8f8;
+        }
+
+        .file-list .file-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .file-list .progress-bar {
+            width: 100px;
+            height: 8px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-left: 20px;
+        }
+
+        .file-list .progress-bar .progress {
+            width: 0%;
+            height: 100%;
+            background-color: #007bff;
+            transition: width 0.3s ease;
+        }
+
+        .file-list .remove-btn {
+            background-color: transparent;
+            border: none;
+            color: red;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
     <script>
         var defaultThemeMode = "light";
 	    var themeMode;
@@ -35,7 +143,6 @@
             document.documentElement.setAttribute("data-bs-theme", themeMode);
         }
     </script>
-
 </head>
 <body id="kt_app_body" data-kt-app-header-fixed-mobile="true" data-kt-app-sidebar-enabled="true"
     data-kt-app-sidebar-fixed="false" data-kt-app-sidebar-push-header="true" data-kt-app-sidebar-push-toolbar="true"
@@ -44,50 +151,25 @@
         <div class="app-page  flex-column flex-column-fluid " id="kt_app_page">
            @include('layout.planner.navbar')
             <div class="app-wrapper d-flex " id="kt_app_wrapper">
-                <!--begin::Wrapper container-->
                 <div class="app-container  container-fluid d-flex ">
-                    <!--begin::Main-->
                     <div class="app-main flex-column flex-row-fluid " id="kt_app_main">
-                        <!--begin::Content wrapper-->
                         <div class="d-flex flex-column flex-column-fluid">
-
-                            <!--begin::Toolbar-->
                             <div id="kt_app_toolbar" class="app-toolbar pt-7 pt-lg-10 ">
-
-                                <!--begin::Toolbar wrapper-->
                                 <div class="app-toolbar-wrapper d-flex flex-stack flex-wrap gap-4 w-100">
-                                    <!--begin::Page title-->
                                     <div class="page-title d-flex flex-column justify-content-center gap-1 me-3">
-                                        <!--begin::Breadcrumb-->
                                         <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7">
-
-                                            <!--begin::Item-->
                                             <li class="breadcrumb-item text-gray-700 fw-bold lh-1 mx-n1">
                                                 <a href="index.html" class="text-hover-primary">
                                                     <i class="ki-outline ki-home text-gray-700 fs-6"></i> </a>
                                             </li>
-                                            <!--end::Item-->
-
-                                            <!--begin::Item-->
                                             <li class="breadcrumb-item">
                                                 <i class="ki-outline ki-right fs-7 text-gray-700"></i>
                                             </li>
-                                            <!--end::Item-->
-
-
-                                            <!--begin::Item-->
                                             <li class="breadcrumb-item text-gray-700 fw-bold lh-1 mx-n1">
                                                 Account </li>
-                                            <!--end::Item-->
-
-                                            <!--begin::Item-->
                                             <li class="breadcrumb-item">
                                                 <i class="ki-outline ki-right fs-7 text-gray-700"></i>
                                             </li>
-                                            <!--end::Item-->
-
-
-                                            <!--begin::Item-->
                                             <li class="breadcrumb-item text-gray-500 mx-n1">
                                                 Overview </li>
                                         </ul>
@@ -117,6 +199,7 @@
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }});
         </script><script src="{{ asset('assets/plugins/custom/formrepeater/formrepeater.bundle.js') }}"></script>
         <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
         <script src="{{ asset('js/cluster_b/planner/navbar.js') }}" type="module"></script>
 </body>
 </html>

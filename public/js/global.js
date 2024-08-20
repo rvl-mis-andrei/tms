@@ -140,3 +140,36 @@ export function data_bs_components()
 export function fv_validator(){
     return {validators:{notEmpty:{message:'This field is required'}}};
 }
+
+export function custom_upload(){
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileNameDisplay = document.getElementById('fileName');
+    const uploadText = document.getElementById('uploadText');
+    // const uploadIcon = document.getElementById('uploadIcon');
+    const removeFileButton = document.getElementById('removeFile');
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+            fileNameDisplay.textContent = `Selected file: ${[...fileInput.files].map(f => f.name).join(', ')}`;
+            [uploadText].forEach(el => el.style.display = 'none');
+            removeFileButton.style.display = 'inline-block';
+        } else {
+            resetUploadArea();
+        }
+    });
+
+    removeFileButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.value = '';
+        resetUploadArea();
+    });
+
+    function resetUploadArea() {
+        fileNameDisplay.textContent = '';
+        [uploadText, uploadIcon].forEach(el => el.style.display = 'block');
+        removeFileButton.style.display = 'none';
+    }
+}

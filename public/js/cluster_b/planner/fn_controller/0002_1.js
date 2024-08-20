@@ -2,7 +2,7 @@
 // import {ClientListDT} from '../dt_controller/serverside/0004_0.js';
 import {Alert} from "../../../global/alert.js"
 import {RequestHandler} from "../../../global/request.js"
-import {data_bs_components,modal_state,page_state} from "../../../global.js";
+import {data_bs_components,modal_state,page_state,custom_upload} from "../../../global.js";
 import {fvHaulingPlanInfo} from '../fv_controller/0002_1.js';
 
 
@@ -26,6 +26,7 @@ export function HaulingPlanInfoController(page,param){
         return new Promise((resolve, reject) => {
             switch (tab) {
                 case 'tab-content-1':
+                    resolve(true)
                 break;
 
                 case 'tab-content-2':
@@ -36,9 +37,11 @@ export function HaulingPlanInfoController(page,param){
 
 
                 case 'tab-content-3':
-                    loadUnderload(tab).then((res)=>{
-                        resolve(res)
-                    })
+                    // loadUnderload(tab).then((res)=>{
+                    //     resolve(res)
+                    // })
+                    resolve(true)
+
                 break;
 
                 default:
@@ -57,7 +60,7 @@ export function HaulingPlanInfoController(page,param){
         formData.append('id',param)
         formData.append('batch',batch)
         return new Promise((resolve, reject) => {
-            (new RequestHandler).post('/services/haulage_info/list',formData).then((res) => {
+            (new RequestHandler).post('/tms/cco-b/planner/haulage_info/list',formData).then((res) => {
                 console.log(res)
                 if(res.status == 'success'){
                     let payload = JSON.parse(window.atob(res.payload));
@@ -127,6 +130,7 @@ export function HaulingPlanInfoController(page,param){
 
         loadLastTab()
         fvHaulingPlanInfo(param)
+        custom_upload()
 
         _page.on('click','.nav-tab',function(e){
             e.preventDefault()
@@ -173,7 +177,6 @@ export function HaulingPlanInfoController(page,param){
                 localStorage.setItem("haulage_info_tab",data_tab)
             })
         })
-
 
         // _page.on('click','.add-block',function(e){
         // })

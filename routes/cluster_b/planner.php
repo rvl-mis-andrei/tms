@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\WebRoute as SystemRoute;
+use App\Http\Controllers\ClusterBController\Planner\ClusterBHaulageInfo;
 
 use App\Http\Controllers\ClusterBController\PlannerPageController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,19 @@ Route::group(['prefix'=>'tms/cco-b/planner'], function() {
                     }
                 }
             }
+        });
+
+        Route::controller(ClusterBHaulageInfo::class)->prefix('haulage_info')->group(function() {
+            Route::post('/list', 'list');
+            Route::post('/create', 'create');
+            Route::post('/update', 'update');
+            Route::post('/delete', 'delete');
+            Route::post('/validate','validate');
+
+            Route::post('/masterlist','masterlist');
+            Route::post('/hauling_plan','hauling_plan');
+
+            Route::post('/info','info');
         });
 
     });
