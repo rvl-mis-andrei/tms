@@ -15,6 +15,9 @@ return new class extends Migration
             $table->id();
             $table->integer('haulage_id')->nullable();
             $table->integer('dealer_id');
+            $table->string('no_of_trips')->nullable();
+            $table->integer('tractor_id')->nullable();
+            $table->integer('trailer_id')->nullable();
             $table->tinyInteger('is_deleted')->nullable();
             $table->tinyInteger('deleted_by')->nullable();
             $table->tinyInteger('deleted_at')->nullable();

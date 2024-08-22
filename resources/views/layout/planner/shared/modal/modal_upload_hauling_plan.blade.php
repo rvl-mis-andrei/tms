@@ -18,7 +18,7 @@
                                 <div class="icon" id="uploadIcon">
                                     <i class="bi bi-cloud-arrow-up-fill"></i>
                                 </div>
-                                <h3 id="uploadText" class="">Drag & Drop files here</h3>
+                                <h3 id="uploadText" class="">Click here to upload file</h3>
                                 <input type="file" id="fileInput" name="hauling_plan">
                                 <div id="fileName" class="file-name"></div>
                                 <a href="#" id="removeFile" class="text-active-primary mt-3" style="display: none;">Remove File</a>

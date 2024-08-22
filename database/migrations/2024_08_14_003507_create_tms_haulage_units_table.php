@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('tms_haulage_units', function (Blueprint $table) {
             $table->id();
+            $table->string('block_number')->nullable();
             $table->integer('haulage_dealer_id')->nullable();
             $table->integer('car_model_id')->nullable();
             $table->integer('cs_no')->nullable();
@@ -27,6 +28,9 @@ return new class extends Migration
             $table->string('hub')->nullable();
             $table->string('assigned_lsp')->nullable();
             $table->string('remarks')->nullable();
+            $table->tinyInteger('status')->nullable();
+            $table->string('inspected_start')->nullable();
+            $table->string('inspected_end')->nullable();
             $table->tinyInteger('is_deleted')->nullable();
             $table->tinyInteger('deleted_by')->nullable();
             $table->tinyInteger('deleted_at')->nullable();

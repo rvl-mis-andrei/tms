@@ -190,7 +190,7 @@
                                     <div class="d-flex align-items-center fw-bold">
                                         <div class="text-muted fs-7 me-2">Batch:</div>
                                         <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto" data-control="select2"
-                                        data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select a batch" name="hauling_batch">
+                                        data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select a batch" name="batch">
                                             <option value="1">Batch 1</option>
                                             <option value="2">Batch 2</option>
                                         </select>

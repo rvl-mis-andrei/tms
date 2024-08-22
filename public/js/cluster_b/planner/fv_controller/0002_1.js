@@ -73,14 +73,16 @@ export function fvHaulingPlanInfo(param){
                 let btn_submit = $(this);
                 let form_url = form.getAttribute('action');
 
-                // btn_submit.attr("data-kt-indicator","on");
-                // btn_submit.attr("disabled",true);
+
 
                 fvHaulingPlanInfo && fvHaulingPlanInfo.validate().then(function (v) {
                     if(v == "Valid"){
                         Alert.confirm("question","Submit this form?", {
                             onConfirm: function() {
                                 let formData = new FormData(form);
+                                btn_submit.attr("data-kt-indicator","on");
+                                btn_submit.attr("disabled",true);
+                                formData.append('batch',$('select[name="batch"]').val())
                                 if(param) {
                                     formData.append('id',param)
                                 }
@@ -106,9 +108,6 @@ export function fvHaulingPlanInfo(param){
                                 btn_submit.attr("disabled",false);
                             }
                         });
-                    }else{
-                        btn_submit.attr("data-kt-indicator","off");
-                        btn_submit.attr("disabled",false);
                     }
                 })
             })
@@ -179,42 +178,41 @@ export function fvHaulingPlanInfo(param){
                 let btn_submit = $(this);
                 let form_url = form.getAttribute('action');
 
-                // btn_submit.attr("data-kt-indicator","on");
-                // btn_submit.attr("disabled",true);
-
                 fvFinalHaulingPlan && fvFinalHaulingPlan.validate().then(function (v) {
                     if(v == "Valid"){
                         Alert.confirm("question","Submit this form?", {
                             onConfirm: function() {
                                 let formData = new FormData(form);
+                                formData.append('batch',$('select[name="batch"]').val())
+                                btn_submit.attr("data-kt-indicator","on")
+                                btn_submit.attr("disabled",true)
                                 if(param) {
                                     formData.append('id',param)
                                 }
                                 (new RequestHandler).post(form_url,formData,true).then((res) => {
-                                    Alert.toast(res.status,res.message);
                                     if(res.status == 'success'){
-                                        form.reset();
+                                        Alert.toast(res.status,res.message)
+                                        form.reset()
+                                        fvFinalHaulingPlan.resetForm()
+                                        modal_state(modal_id)
+                                    }else if(res.status =='error'){
+                                        Alert.alert('error',res.message, false)
                                     }
-                                    fvFinalHaulingPlan.resetForm();
-                                    modal_state(modal_id);
                                 })
                                 .catch((error) => {
                                     console.log(error)
-                                    Alert.alert('error',"Something went wrong. Try again later", false);
+                                    Alert.alert('error',"Something went wrong. Try again later", false)
                                 })
                                 .finally(() => {
-                                    btn_submit.attr("data-kt-indicator","off");
-                                    btn_submit.attr("disabled",false);
+                                    btn_submit.attr("data-kt-indicator","off")
+                                    btn_submit.attr("disabled",false)
                                 });
                             },
                             onCancel: () => {
-                                btn_submit.attr("data-kt-indicator","off");
-                                btn_submit.attr("disabled",false);
+                                btn_submit.attr("data-kt-indicator","off")
+                                btn_submit.attr("disabled",false)
                             }
                         });
-                    }else{
-                        btn_submit.attr("data-kt-indicator","off");
-                        btn_submit.attr("disabled",false);
                     }
                 })
             })

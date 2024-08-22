@@ -20,9 +20,10 @@ export class Alert {
     static alert(status, message, option) {
         Swal.fire({
             icon: status,
-            title: message,
-            timer: 2000,
-            showConfirmButton: false,
+            title:'Oops',
+            text: message,
+            // timer: 2000,
+            // showConfirmButton: false,
             didRender: () => {
                 if (typeof option === "function") {
                     option.didRender();
