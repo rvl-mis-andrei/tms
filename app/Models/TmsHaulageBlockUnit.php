@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TmsHaulageUnit extends Model
+class TmsHaulageBlockUnit extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'block_number',
-        'haulage_dealers_id',
-        'model_id',
+        'block_id',
+        'dealer_id',
+        'car_model_id',
         'cs_no',
         'color_description',
         'is_allocated',
@@ -20,7 +20,6 @@ class TmsHaulageUnit extends Model
         'inspected_start',
         'inspected_end',
         'cs_no',
-        'car_model_id',
         'remarks',
         'hub',
         'planning_cutoff',

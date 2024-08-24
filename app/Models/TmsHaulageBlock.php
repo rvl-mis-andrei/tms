@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TmsHaulageDealer extends Model
+class TmsHaulageBlock extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'cluster_id',
         'haulage_id',
-        'dealer_id',
+        'block_number',
+        'batch',
         'no_of_trips',
         'tractor_id',
         'trailer_id',
@@ -25,8 +25,8 @@ class TmsHaulageDealer extends Model
     ];
 
 
-    public function haulage_unit()
+    public function block_unit()
     {
-        return $this->hasMany(TmsHaulageUnit::class,'haulage_dealers_id');
+        return $this->hasMany(TmsHaulageBlockUnit::class,'block_id');
     }
 }
