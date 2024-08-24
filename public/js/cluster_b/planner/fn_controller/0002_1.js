@@ -30,7 +30,7 @@ export function HaulingPlanInfoController(page,param){
                 break;
 
                 case 'tab-content-2':
-                    loadHaulage(tab).then((res)=>{
+                    loadTripBlock().then((res)=>{
                         resolve(res)
                     })
                 break;
@@ -51,8 +51,8 @@ export function HaulingPlanInfoController(page,param){
         })
     }
 
-    async function loadHaulage(batch=localStorage.getItem("haulage_info_batch")){
-
+    async function loadTripBlock(batch=1)
+    {
         let hauling_list = $('.hauling_list');
         let empty_hauling_list = $('.empty_hauling_list');
 
@@ -60,12 +60,91 @@ export function HaulingPlanInfoController(page,param){
         formData.append('id',param)
         formData.append('batch',batch)
         return new Promise((resolve, reject) => {
-            (new RequestHandler).post('/tms/cco-b/planner/haulage_info/list',formData).then((res) => {
+            (new RequestHandler).post('/tms/cco-b/planner/haulage_info/tripblock',formData).then((res) => {
                 console.log(res)
                 if(res.status == 'success'){
                     let payload = JSON.parse(window.atob(res.payload));
+                    let html = '',tbody='';
+                    console.log(payload)
                     if(payload.length >0){
-                        hauling_list.removeClass('d-none')
+                        payload.forEach(function(item) {
+                            tbody = '';
+                            item.block_units.forEach(function(units) {
+                                tbody+=`<tr>
+                                        <td>${units.dealer_code}</td>
+                                        <td>${units.cs_no}</td>
+                                        <td>${units.model}</td>
+                                        <td>${units.color_description}</td>
+                                        <td>${units.invoice_date}</td>
+                                        <td>${units.updated_location}</td>
+                                        <td>${units.inspection_start}</td>
+                                        <td>${units.hub}</td>
+                                        <td>${units.remarks}</td>
+                                    </tr>`;
+                            })
+                            html+=`
+                            <div class="card mb-10">
+                                    <div class="card-header collapsible">
+                                        <span class="card-title"><h6>${item.dealer}</h6></span>
+                                        <div class="card-toolbar">
+                                            <div class="me-0">
+                                                <button class="btn btn-sm btn-icon btn-active-color-primary"
+                                                    data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                                    <i class="ki-solid ki-dots-horizontal fs-2x"></i>
+                                                </button>
+                                                <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-3"
+                                                    data-kt-menu="true">
+                                                    <div class="menu-item px-3">
+                                                        <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
+                                                            More Actions
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3">
+                                                            Add Rows
+                                                        </a>
+                                                    </div>
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3 text-danger">
+                                                            Delete Block
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="rotate btn btn-icon btn-sm btn-active-color-info" data-kt-rotate="true" data-bs-toggle="collapse" data-bs-target="#trip_block_${item.block_number}">
+                                                <i class="ki-duotone ki-down fs-1  rotate-n180"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="trip_block_${item.block_number}" class="collapse show">
+                                        <div class="card-body pt-0">
+                                            <div class="table-responsive">
+                                                <table class="table align-middle fs-6 gy-5 table-sm" id="kt_customers_table">
+                                                    <thead class="">
+                                                        <tr class=" fw-bold fs-7 text-uppercase gs-0">
+                                                            <th class="">Dealer</th>
+                                                            <th class="">Cs No.</th>
+                                                            <th class="">Model</th>
+                                                            <th class="">Color</th>
+                                                            <th class="">Invoice Date</th>
+                                                            <th class="">Location</th>
+                                                            <th class="">Inspection TIme</th>
+                                                            <th class="">Hub</th>
+                                                            <th class="">Remarks</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="fs-7 fw-semibold text-gray-600">
+                                                        ${tbody}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        })
+                        hauling_list.empty().append(html).removeClass('d-none')
                         empty_hauling_list.addClass('d-none')
                     }else{
                         hauling_list.addClass('d-none')
@@ -151,11 +230,10 @@ export function HaulingPlanInfoController(page,param){
             })
         })
 
-        _page.on('change','select[name="hauling_batch"]',function(e){
+        _page.on('change','select[name="batch"]',function(e){
             e.preventDefault()
             e.stopImmediatePropagation()
-            loadHaulage($(this).val()).then((res) =>{
-                localStorage.setItem("haulage_info_batch",$(this).val())
+            loadTripBlock($(this).val()).then((res) =>{
             })
         })
 

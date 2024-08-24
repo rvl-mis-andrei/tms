@@ -3,30 +3,36 @@
 namespace App\Services;
 
 use DateTime;
-use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Phpspreadsheet
 {
-    public function read($file,$is_readonly,$is_reademptycells,$sheet){
-
-        $filePath = $file->getRealPath();
-
-        $reader = IOFactory::createReader(IOFactory::identify($file->getRealPath()));
+    public function read($filePath,$is_readonly,$is_reademptycells,$sheet)
+    {
+        $file_type = \PhpOffice\PhpSpreadsheet\IOFactory::identify($filePath);
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($file_type);
+        $reader = self::validate_sheets($reader,$sheet,$filePath,$file_type);
         $reader->setReadDataOnly($is_readonly);
         $reader->setReadEmptyCells($is_reademptycells);
-        $reader->setLoadSheetsOnly($sheet);
-
         $spreadsheet = $reader->load($filePath);
+        $spreadsheet->getCalculationEngine()->setCalculationCacheEnabled(false);
         unset($reader);
-
-        return $spreadsheet->getActiveSheet();
+        $spreadsheet = $spreadsheet->getActiveSheet();
+        $row   = $spreadsheet->getHighestDataRow();
+        $row <= 1 && throw new \Exception("Sheet '{$sheet}' does not have any data.");
+        return [$spreadsheet, $row];
     }
 
-    public function write($file,$config){
+    public function validate_sheets($reader,$sheet,$filePath,$file_type){
 
+        if($file_type == 'Csv'){ return $reader; }
+
+        $sheetNames = $reader->listWorksheetNames($filePath);
+        if (!in_array($sheet, $sheetNames)) {
+            throw new \Exception("Sheet '{$sheet}' does not exist in the file.");
+        }else{
+            return $reader->setLoadSheetsOnly($sheet);
+        }
     }
 
     public function mergecell_value($sheet,$coordinate){

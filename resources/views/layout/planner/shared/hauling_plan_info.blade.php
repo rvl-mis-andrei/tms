@@ -1,5 +1,5 @@
 <div class="haulage_info_page">
-    <div class="card">
+    {{-- <div class="card">
         <div class="card-header border-0 collapsible collapsed">
             <div class="d-flex justify-content-between flex-wrap mb-0">
                 <div class="d-flex align-items-center mb-0">
@@ -89,9 +89,9 @@
                     </li>
                 </ul>
             </div>
-    </div>
+    </div> --}}
 
-    <div class="my-7">
+    <div class="">
         {{-- OVERVIEW --}}
         <div class="overview d-none tab-content tab-content-1">
 
@@ -258,18 +258,16 @@
                                     <div id="kt_docs_card_collapsible" class="collapse show">
                                         <div class="card-body">
                                             <div class="table-responsive">
-                                                <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_customers_table">
+                                                <table class="table align-middle table-row-dashed fs-6 gy-5 table-sm" id="kt_customers_table">
                                                     <thead>
                                                         <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
-                                                            <th class="min-w-125px">#</th>
-                                                            <th class="min-w-125px">Dealer</th>
-                                                            <th class="min-w-125px">Cs No.</th>
-                                                            <th class="min-w-125px">Model</th>
-                                                            <th class="min-w-125px">Color</th>
-                                                            <th class="min-w-125px">Invoice Date</th>
-                                                            <th class="min-w-125px">Location</th>
-                                                            <th class="min-w-125px">Inspection TIme</th>
-                                                            <th class="text-end min-w-70px">Actions</th>
+                                                            <th class="">Dealer</th>
+                                                            <th class="">Cs No.</th>
+                                                            <th class="">Model</th>
+                                                            <th class="">Color</th>
+                                                            <th class="">Invoice Date</th>
+                                                            <th class="">Location</th>
+                                                            <th class="">Inspection TIme</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody class="fs-6 fw-semibold text-gray-600">
@@ -355,5 +353,4 @@
     </div>
     @include('layout.planner.shared.modal.modal_upload_hauling_plan')
 </div>
-
 

@@ -182,6 +182,8 @@
                             <div id="kt_app_content" class="app-content  flex-column-fluid">
                                     <div id="Page"></div>
                             </div>
+
+                            </div>
                             @include('layout.planner.footer')
                         </div>
                     </div>

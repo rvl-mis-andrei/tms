@@ -141,35 +141,42 @@ export function fv_validator(){
     return {validators:{notEmpty:{message:'This field is required'}}};
 }
 
-export function custom_upload(){
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-    const fileNameDisplay = document.getElementById('fileName');
-    const uploadText = document.getElementById('uploadText');
-    // const uploadIcon = document.getElementById('uploadIcon');
-    const removeFileButton = document.getElementById('removeFile');
+export function custom_upload() {
+    const uploadAreas = document.querySelectorAll('.uploadArea');
+    const fileInputs = document.querySelectorAll('.fileInput');
+    const fileNameDisplays = document.querySelectorAll('.fileName');
+    const uploadTexts = document.querySelectorAll('.uploadText');
+    const removeFileButtons = document.querySelectorAll('.removeFile');
 
-    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadAreas.forEach((uploadArea, index) => {
+        const fileInput = fileInputs[index];
+        const fileNameDisplay = fileNameDisplays[index];
+        const uploadText = uploadTexts[index];
+        const removeFileButton = removeFileButtons[index];
 
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files.length) {
-            fileNameDisplay.textContent = `Selected file: ${[...fileInput.files].map(f => f.name).join(', ')}`;
-            [uploadText].forEach(el => el.style.display = 'none');
-            removeFileButton.style.display = 'inline-block';
-        } else {
-            resetUploadArea();
-        }
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                fileNameDisplay.textContent = `Selected file: ${[...fileInput.files].map(f => f.name).join(', ')}`;
+                uploadText.style.display = 'none';
+                removeFileButton.style.display = 'inline-block';
+            } else {
+                resetUploadArea(fileNameDisplay, uploadText, removeFileButton);
+            }
+        });
+
+        removeFileButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fileInput.value = '';
+            resetUploadArea(fileNameDisplay, uploadText, removeFileButton);
+        });
     });
 
-    removeFileButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        fileInput.value = '';
-        resetUploadArea();
-    });
-
-    function resetUploadArea() {
+    function resetUploadArea(fileNameDisplay, uploadText, removeFileButton) {
         fileNameDisplay.textContent = '';
-        [uploadText, uploadIcon].forEach(el => el.style.display = 'block');
+        uploadText.style.display = 'block';
         removeFileButton.style.display = 'none';
     }
 }
+

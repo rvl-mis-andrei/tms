@@ -13,15 +13,15 @@
             <div class="modal-body">
                 <form id="form_hauling_plan" modal-id="#modal_fhauling_plan" class="form fv-plugins-bootstrap5 fv-plugins-framework" action="/tms/cco-b/planner/haulage_info/hauling_plan">
                     <div class="custom-file-upload">
-                        <div class="upload-area" id="uploadArea">
+                        <div class="upload-area uploadArea" id="">
                             <div class="fv-row">
                                 <div class="icon" id="uploadIcon">
                                     <i class="bi bi-cloud-arrow-up-fill"></i>
                                 </div>
-                                <h3 id="uploadText" class="">Click here to upload file</h3>
-                                <input type="file" id="fileInput" name="hauling_plan">
-                                <div id="fileName" class="file-name"></div>
-                                <a href="#" id="removeFile" class="text-active-primary mt-3" style="display: none;">Remove File</a>
+                                <h3 id="" class="uploadText">Click here to upload file</h3>
+                                <input type="file" class="fileInput" name="hauling_plan">
+                                <div id="" class="file-name fileName"></div>
+                                <a href="#" id="" class="text-active-primary mt-3 removeFile" style="display: none;">Remove File</a>
                                 <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                             </div>
                         </div>
@@ -42,7 +42,7 @@
 
 
 {{-- MODAL UPLOAD MASTER LIST --}}
-{{-- <div class="modal fade" id="modal_upload_masterlist" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="modal_upload_masterlist" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header justify-content-center" id="kt_modal_add_user_header">
@@ -54,17 +54,17 @@
                 </div>
             </div>
             <div class="modal-body px-5 my-7">
-                <form id="form_masterlist" modal-id="#modal_upload_masterlist" class="form fv-plugins-bootstrap5 fv-plugins-framework" action="/services/haulage_info/masterlist">
+                <form id="form_masterlist" modal-id="#modal_upload_masterlist" class="form fv-plugins-bootstrap5 fv-plugins-framework" action="/tms/cco-b/planner/haulage_info/masterlist">
                     <div class="custom-file-upload">
-                        <div class="upload-area" id="uploadArea">
+                        <div class="upload-area uploadArea">
                             <div class="fv-row">
                                 <div class="icon" id="uploadIcon">
                                     <i class="bi bi-cloud-arrow-up-fill"></i>
                                 </div>
-                                <h3 id="uploadText" class="">Drag & Drop files here</h3>
-                                <input type="file" id="fileInput" name="masterlist">
-                                <div id="fileName" class="file-name"></div>
-                                <a href="#" id="removeFile" class="text-active-primary mt-3" style="display: none;">Remove File</a>
+                                <h3 id="" class="uploadText">Drag & Drop files here</h3>
+                                <input type="file" class="fileInput" name="masterlist">
+                                <div id="" class="file-name fileName"></div>
+                                <a href="#" id="" class="text-active-primary mt-3 removeFile" style="display: none;">Remove File</a>
                                 <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                             </div>
                         </div>
@@ -81,4 +81,4 @@
             </div>
         </div>
     </div>
-</div> --}}
+</div>

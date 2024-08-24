@@ -33,4 +33,12 @@ class TmsHaulageBlockUnit extends Model
         'deleted_at',
         'deleted_by'
     ];
+
+    public function dealer(){
+        return $this->belongsTo(TmsClientDealership::class,'dealer_id');
+    }
+
+    public function car(){
+        return $this->belongsTo(TmsClusterCarModel::class,'car_model_id');
+    }
 }
