@@ -10,50 +10,51 @@ import {fvHaulingPlanInfo} from '../fv_controller/0002_1.js';
 export function HaulingPlanInfoController(page,param){
 
     let _page = $('.haulage_info_page');
+    var block_number = 0;
+    var hauling_list = $('.hauling_list');
 
-    function loadLastTab(){
-        let tab = localStorage.getItem('haulage_info_tab') || 'tab-content-1';
-        loadTab(tab).then(()=>{
-            $(`a[data-tab='${tab}']`).addClass('active')
-            $(`.${tab}`).removeClass('d-none')
-            KTComponents.init()
-            data_bs_components()
-        })
-    }
+    // function loadLastTab(){
+    //     let tab = localStorage.getItem('haulage_info_tab') || 'tab-content-1';
+    //     loadTab(tab).then(()=>{
+    //         $(`a[data-tab='${tab}']`).addClass('active')
+    //         $(`.${tab}`).removeClass('d-none')
+    //         KTComponents.init()
+    //         data_bs_components()
+    //     })
+    // }
 
-    function loadTab(tab)
+    // function loadTab(tab)
+    // {
+    //     return new Promise((resolve, reject) => {
+    //         switch (tab) {
+    //             case 'tab-content-1':
+    //                 resolve(true)
+    //             break;
+
+    //             case 'tab-content-2':
+    //                 loadTripBlock().then((res)=>{
+    //                     resolve(res)
+    //                 })
+    //             break;
+
+
+    //             case 'tab-content-3':
+    //                 // loadUnderload(tab).then((res)=>{
+    //                 //     resolve(res)
+    //                 // })
+    //                 resolve(true)
+
+    //             break;
+
+    //             default:
+    //                 resolve(false)
+    //             break;
+    //         }
+    //     })
+    // }
+
+    function loadTripBlock(batch=1)
     {
-        return new Promise((resolve, reject) => {
-            switch (tab) {
-                case 'tab-content-1':
-                    resolve(true)
-                break;
-
-                case 'tab-content-2':
-                    loadTripBlock().then((res)=>{
-                        resolve(res)
-                    })
-                break;
-
-
-                case 'tab-content-3':
-                    // loadUnderload(tab).then((res)=>{
-                    //     resolve(res)
-                    // })
-                    resolve(true)
-
-                break;
-
-                default:
-                    resolve(false)
-                break;
-            }
-        })
-    }
-
-    async function loadTripBlock(batch=1)
-    {
-        let hauling_list = $('.hauling_list');
         let empty_hauling_list = $('.empty_hauling_list');
 
         let formData = new FormData();
@@ -61,11 +62,9 @@ export function HaulingPlanInfoController(page,param){
         formData.append('batch',batch)
         return new Promise((resolve, reject) => {
             (new RequestHandler).post('/tms/cco-b/planner/haulage_info/tripblock',formData).then((res) => {
-                console.log(res)
                 if(res.status == 'success'){
                     let payload = JSON.parse(window.atob(res.payload));
                     let html = '',tbody='';
-                    console.log(payload)
                     if(payload.length >0){
                         payload.forEach(function(item) {
                             tbody = '';
@@ -101,13 +100,18 @@ export function HaulingPlanInfoController(page,param){
                                                     </div>
 
                                                     <div class="menu-item px-3">
-                                                        <a href="#" class="menu-link px-3">
+                                                        <a href="#" class="menu-link px-3 add-row">
                                                             Add Rows
                                                         </a>
                                                     </div>
                                                     <div class="menu-item px-3">
-                                                        <a href="#" class="menu-link px-3 text-danger">
-                                                            Delete Block
+                                                        <a href="#" class="menu-link px-3 delete-row">
+                                                            Delete Rows
+                                                        </a>
+                                                    </div>
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3 text-danger remove-block" data-id="${item.encrypted_id}">
+                                                            Remove Block
                                                         </a>
                                                     </div>
                                                 </div>
@@ -143,9 +147,14 @@ export function HaulingPlanInfoController(page,param){
                                     </div>
                                 </div>
                             `;
+                            block_number = item.block_number;
                         })
+
                         hauling_list.empty().append(html).removeClass('d-none')
                         empty_hauling_list.addClass('d-none')
+                        $(`.tab-content-2`).removeClass('d-none')
+                        KTComponents.init()
+                        data_bs_components()
                     }else{
                         hauling_list.addClass('d-none')
                         empty_hauling_list.removeClass('d-none')
@@ -160,6 +169,129 @@ export function HaulingPlanInfoController(page,param){
             })
             .finally(() => {
                 // code here
+            });
+        })
+    }
+
+    function addTripBlock(){
+        let formData = new FormData();
+        formData.append('id',param)
+        formData.append('batch',$('select[name="batch"]').val())
+        formData.append('block_number',block_number++)
+
+        return new Promise((resolve, reject) => {
+            (new RequestHandler).post('/tms/cco-b/planner/haulage_info/add_tripblock',formData).then((res) => {
+                if(res.status == 'success'){
+                    let payload = JSON.parse(window.atob(res.payload));
+                    if(payload.length >0){
+                        payload.forEach(function(item) {
+                            let html =`<div class="card mb-10" data-block="${item.block_number}">
+                                    <div class="card-header collapsible">
+                                        <span class="card-title"><h6>Trip Block #${item.block_number}</h6></span>
+                                        <div class="card-toolbar">
+                                            <div class="me-0">
+                                                <button class="btn btn-sm btn-icon btn-active-color-primary"
+                                                    data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                                    <i class="ki-solid ki-dots-horizontal fs-2x"></i>
+                                                </button>
+                                                <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-3"
+                                                    data-kt-menu="true">
+                                                    <div class="menu-item px-3">
+                                                        <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
+                                                            More Actions
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3 add-rows">
+                                                            Add Rows
+                                                        </a>
+                                                    </div>
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3 remove-rows">
+                                                            Remove Rows
+                                                        </a>
+                                                    </div>
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3 text-danger remove-block" data-id="${item.encrypted_id}">
+                                                            Delete Block
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="rotate btn btn-icon btn-sm btn-active-color-info" data-kt-rotate="true" data-bs-toggle="collapse" data-bs-target="#trip_block_${item.block_number}">
+                                                <i class="ki-duotone ki-down fs-1  rotate-n180"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="trip_block_${item.block_number}" class="collapse show">
+                                        <div class="card-body pt-0">
+                                            <div class="table-responsive">
+                                                <table class="table align-middle fs-6 gy-5 table-sm" id="kt_customers_table">
+                                                    <thead class="">
+                                                        <tr class=" fw-bold fs-7 text-uppercase gs-0">
+                                                            <th class="">Dealer</th>
+                                                            <th class="">Cs No.</th>
+                                                            <th class="">Model</th>
+                                                            <th class="">Color</th>
+                                                            <th class="">Invoice Date</th>
+                                                            <th class="">Location</th>
+                                                            <th class="">Inspection TIme</th>
+                                                            <th class="">Hub</th>
+                                                            <th class="">Remarks</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="fs-7 fw-semibold text-gray-600">
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            hauling_list.last().append(html)
+                            resolve(true)
+                        })
+                    }
+                }
+            })
+            .catch((error) => {
+                console.log(error)
+                resolve(false);
+                Alert.alert('error',"Something went wrong. Try again later", false);
+            })
+            .finally(() => {
+                KTComponents.init()
+                data_bs_components()
+            });
+        })
+
+
+
+    }
+
+    function removeTripBlock(_this){
+
+        let formData = new FormData();
+        formData.append('id',param)
+        formData.append('batch',$('select[name="batch"]').val())
+        formData.append('block_id',_this.attr('data-id'))
+
+        return new Promise((resolve, reject) => {
+            (new RequestHandler).post('/tms/cco-b/planner/haulage_info/remove_tripblock',formData).then((res) => {
+                if(res.status == 'success'){
+                    $(_this).closest('.card').remove();
+                    resolve(true)
+                }
+            })
+            .catch((error) => {
+                console.log(error)
+                resolve(false);
+                Alert.alert('error',"Something went wrong. Try again later", false);
+            })
+            .finally(() => {
+                KTComponents.init()
+                data_bs_components()
             });
         })
     }
@@ -207,28 +339,29 @@ export function HaulingPlanInfoController(page,param){
 
     $(document).ready(function(e){
 
-        loadLastTab()
+        // loadLastTab()
+        loadTripBlock()
         fvHaulingPlanInfo(param)
         custom_upload()
 
-        _page.on('click','.nav-tab',function(e){
-            e.preventDefault()
-            e.stopImmediatePropagation()
-            let tab = $(this);
-            let data_tab = tab.attr('data-tab');
-            loadTab(data_tab).then(()=>{
+        // _page.on('click','.nav-tab',function(e){
+        //     e.preventDefault()
+        //     e.stopImmediatePropagation()
+        //     let tab = $(this);
+        //     let data_tab = tab.attr('data-tab');
+        //     loadTab(data_tab).then(()=>{
 
-                $('.nav-tab').removeClass('active')
-                tab.addClass('active')
+        //         $('.nav-tab').removeClass('active')
+        //         tab.addClass('active')
 
-                $('.tab-content').addClass('d-none')
-                $(`.${data_tab}`).removeClass('d-none')
+        //         $('.tab-content').addClass('d-none')
+        //         $(`.${data_tab}`).removeClass('d-none')
 
-                KTComponents.init()
-                data_bs_components()
-                localStorage.setItem("haulage_info_tab",data_tab)
-            })
-        })
+        //         KTComponents.init()
+        //         data_bs_components()
+        //         localStorage.setItem("haulage_info_tab",data_tab)
+        //     })
+        // })
 
         _page.on('change','select[name="batch"]',function(e){
             e.preventDefault()
@@ -237,27 +370,55 @@ export function HaulingPlanInfoController(page,param){
             })
         })
 
-        _page.on('click','.upload',function(e){
+        // _page.on('click','.upload',function(e){
+        //     e.preventDefault()
+        //     e.stopImmediatePropagation()
+        //     let tab = $(this);
+        //     let data_tab = tab.attr('data-tab');
+        //     loadTab(data_tab).then(()=>{
+
+        //         $('.nav-tab').removeClass('active')
+        //         tab.addClass('active')
+
+        //         $('.tab-content').addClass('d-none')
+        //         $(`.${data_tab}`).removeClass('d-none')
+
+        //         KTComponents.init()
+        //         data_bs_components()
+        //         localStorage.setItem("haulage_info_tab",data_tab)
+        //     })
+        // })
+
+        _page.on('click','.add-block',function(e){
             e.preventDefault()
             e.stopImmediatePropagation()
-            let tab = $(this);
-            let data_tab = tab.attr('data-tab');
-            loadTab(data_tab).then(()=>{
-
-                $('.nav-tab').removeClass('active')
-                tab.addClass('active')
-
-                $('.tab-content').addClass('d-none')
-                $(`.${data_tab}`).removeClass('d-none')
-
-                KTComponents.init()
-                data_bs_components()
-                localStorage.setItem("haulage_info_tab",data_tab)
+            addTripBlock().then((res) =>{
+                if(res){
+                    Alert.toast('success','Trip block added')
+                }
             })
         })
 
-        // _page.on('click','.add-block',function(e){
-        // })
+        _page.on('click','.remove-block',function(e){
+            e.preventDefault()
+            e.stopImmediatePropagation()
+
+            // Alert.confirm('question',"Remove this block ?",{
+            //     onConfirm: () => {
+            //          removeTripBlock($(this)).then((res) =>{
+            //             if(res){
+            //                 Alert.toast('success','Trip block removed')
+            //             }
+            //         })
+            //     }
+            // })
+
+            removeTripBlock($(this)).then((res) =>{
+                if(res){
+                    Alert.toast('success','Trip block removed')
+                }
+            })
+        })
 
 
         // Initialize Sortable with MultiDrag plugin on the allocation list

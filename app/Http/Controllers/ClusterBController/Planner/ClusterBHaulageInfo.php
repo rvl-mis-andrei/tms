@@ -47,7 +47,7 @@ class ClusterBHaulageInfo extends Controller
                             'invoice_date'=>date('m/d/Y',strtotime($row->invoice_date)),
                             'updated_location'=>$row->updated_location,
                             'inspection_start'=>date('g:i A',strtotime($row->inspected_start)),
-                            'hub'=>$row->hub,
+                            'hub'=>$row->hub ??'--',
                             'remarks'=>$row->remarks,
                         ];
                     }
@@ -63,6 +63,50 @@ class ClusterBHaulageInfo extends Controller
             }
             $payload = base64_encode(json_encode($array));
             return ['status'=>'success','message' =>'success', 'payload' => $payload];
+        }catch(Exception $e) {
+            return response()->json([
+                'status' => 400,
+                // 'message' =>  'Something went wrong. try again later'
+                'message' =>  $e->getMessage()
+            ]);
+        }
+    }
+
+    public function add_tripblock(Request $rq)
+    {
+        try{
+            $id = Crypt::decrypt($rq->id);
+            $query = TmsHaulageBlock::create([
+                'haulage_id' =>$id,
+                'block_number' =>$rq->block_number,
+                'batch' =>$rq->batch,
+                'no_of_trips' =>1,
+            ]);
+
+            $array[] = [
+                'encrypted_id' =>Crypt::encrypt($query->id),
+                'block_number' =>$query->block_number,
+                'no_of_trips' =>$query->no_of_trips,
+            ];
+            $payload = base64_encode(json_encode($array));
+
+            return ['status'=>'success','message' =>'success', 'payload' => $payload];
+        }catch(Exception $e) {
+            return response()->json([
+                'status' => 400,
+                // 'message' =>  'Something went wrong. try again later'
+                'message' =>  $e->getMessage()
+            ]);
+        }
+    }
+
+    public function remove_tripblock(Request $rq)
+    {
+        try{
+            $haulage_id = Crypt::decrypt($rq->id);
+            $block_id = Crypt::decrypt($rq->block_id);
+            TmsHaulageBlock::where([['batch',$rq->batch],['haulage_id',$haulage_id],['id',$block_id]])->delete();
+            return ['status'=>'success','message' =>'success'];
         }catch(Exception $e) {
             return response()->json([
                 'status' => 400,

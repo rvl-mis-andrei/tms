@@ -190,13 +190,14 @@
                                     <div class="d-flex align-items-center fw-bold">
                                         <div class="text-muted fs-7 me-2">Batch:</div>
                                         <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto" data-control="select2"
-                                        data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select a batch" name="batch">
+                                        data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select a batch" data-minimum-results-for-search="Infinity"
+                                         name="batch">
                                             <option value="1">Batch 1</option>
                                             <option value="2">Batch 2</option>
                                         </select>
 
                                     </div>
-                                    <button class="btn btn-sm btn-light-info">
+                                    <button class="btn btn-sm btn-light-info add-block">
                                         Add Block
                                         <i class="ki-duotone ki-plus ms-1"></i>
                                     </button>
@@ -212,12 +213,12 @@
                                             </div>
                                         </div>
                                         <div class="menu-item px-3">
-                                            <a href="#" class="menu-link px-3">
+                                            <a href="#" class="menu-link px-3 save" data-status="2">
                                                 Save Progress
                                             </a>
                                         </div>
                                         <div class="menu-item px-3">
-                                            <a href="#" class="menu-link px-3">
+                                            <a href="#" class="menu-link px-3 save" data-status="1">
                                                 Finalize Planning
                                             </a>
                                         </div>
@@ -225,7 +226,7 @@
                                         <div class="menu-item px-3">
                                             <div class="menu-content px-3">
                                                 <label class="form-check form-switch form-check-custom form-check-solid">
-                                                    <input class="form-check-input w-30px h-20px" type="checkbox" value="1" checked="checked" name="notifications">
+                                                    <input class="form-check-input w-30px h-20px auto-save" data-status="2" data-action="auto-save" type="checkbox" value="1" checked="checked" name="notifications">
                                                     <span class=" ms-3 fs-7">
                                                         Auto Save
                                                     </span>
