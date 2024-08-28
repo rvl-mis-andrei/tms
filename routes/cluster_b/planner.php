@@ -33,6 +33,7 @@ Route::group(['prefix'=>'tms/cco-b/planner'], function() {
 
         Route::controller(ClusterBHaulageInfo::class)->prefix('haulage_info')->group(function() {
             Route::post('/tripblock', 'tripblock');
+            Route::post('/for_allocation', 'for_allocation');
             Route::post('/add_tripblock', 'add_tripblock');
             Route::post('/remove_tripblock', 'remove_tripblock');
             Route::post('/create', 'create');

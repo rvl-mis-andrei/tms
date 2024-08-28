@@ -12,50 +12,10 @@ export function HaulingPlanInfoController(page,param){
     let _page = $('.haulage_info_page');
     var block_number = 0;
     var hauling_list = $('.hauling_list');
-
-    // function loadLastTab(){
-    //     let tab = localStorage.getItem('haulage_info_tab') || 'tab-content-1';
-    //     loadTab(tab).then(()=>{
-    //         $(`a[data-tab='${tab}']`).addClass('active')
-    //         $(`.${tab}`).removeClass('d-none')
-    //         KTComponents.init()
-    //         data_bs_components()
-    //     })
-    // }
-
-    // function loadTab(tab)
-    // {
-    //     return new Promise((resolve, reject) => {
-    //         switch (tab) {
-    //             case 'tab-content-1':
-    //                 resolve(true)
-    //             break;
-
-    //             case 'tab-content-2':
-    //                 loadTripBlock().then((res)=>{
-    //                     resolve(res)
-    //                 })
-    //             break;
-
-
-    //             case 'tab-content-3':
-    //                 // loadUnderload(tab).then((res)=>{
-    //                 //     resolve(res)
-    //                 // })
-    //                 resolve(true)
-
-    //             break;
-
-    //             default:
-    //                 resolve(false)
-    //             break;
-    //         }
-    //     })
-    // }
+    var empty_hauling_list = $('.empty_hauling_list');
 
     function loadTripBlock(batch=1)
     {
-        let empty_hauling_list = $('.empty_hauling_list');
 
         let formData = new FormData();
         formData.append('id',param)
@@ -124,9 +84,9 @@ export function HaulingPlanInfoController(page,param){
                                     <div id="trip_block_${item.block_number}" class="collapse show">
                                         <div class="card-body pt-0">
                                             <div class="table-responsive">
-                                                <table class="table align-middle fs-6 gy-5 table-sm" id="kt_customers_table">
+                                                <table class="table align-middle gy-5 table-sm" id="kt_customers_table">
                                                     <thead class="">
-                                                        <tr class=" fw-bold fs-7 text-uppercase gs-0">
+                                                        <tr class=" fw-bold fs-8 text-uppercase gs-0">
                                                             <th class="">Dealer</th>
                                                             <th class="">Cs No.</th>
                                                             <th class="">Model</th>
@@ -138,7 +98,7 @@ export function HaulingPlanInfoController(page,param){
                                                             <th class="">Remarks</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody class="fs-7 fw-semibold text-gray-600">
+                                                    <tbody class="fs-8 fw-semibold text-gray-600">
                                                         ${tbody}
                                                     </tbody>
                                                 </table>
@@ -152,13 +112,13 @@ export function HaulingPlanInfoController(page,param){
 
                         hauling_list.empty().append(html).removeClass('d-none')
                         empty_hauling_list.addClass('d-none')
-                        $(`.tab-content-2`).removeClass('d-none')
-                        KTComponents.init()
-                        data_bs_components()
                     }else{
                         hauling_list.addClass('d-none')
                         empty_hauling_list.removeClass('d-none')
                     }
+                    $('.haulage_info_page').removeClass('d-none')
+                    KTComponents.init()
+                    data_bs_components()
                     resolve(true);
                 }
             })
@@ -175,9 +135,10 @@ export function HaulingPlanInfoController(page,param){
 
     function addTripBlock(){
         let formData = new FormData();
+        block_number++;
         formData.append('id',param)
         formData.append('batch',$('select[name="batch"]').val())
-        formData.append('block_number',block_number++)
+        formData.append('block_number',block_number)
 
         return new Promise((resolve, reject) => {
             (new RequestHandler).post('/tms/cco-b/planner/haulage_info/add_tripblock',formData).then((res) => {
@@ -249,7 +210,8 @@ export function HaulingPlanInfoController(page,param){
                                     </div>
                                 </div>
                             `;
-                            hauling_list.last().append(html)
+                            hauling_list.last().append(html).removeClass('d-none');
+                            empty_hauling_list.addClass('d-none');
                             resolve(true)
                         })
                     }
@@ -281,6 +243,10 @@ export function HaulingPlanInfoController(page,param){
             (new RequestHandler).post('/tms/cco-b/planner/haulage_info/remove_tripblock',formData).then((res) => {
                 if(res.status == 'success'){
                     $(_this).closest('.card').remove();
+                    block_number--;
+                    if(block_number ==0){
+                        loadTripBlock($('select[name="batch"]').val())
+                    }
                     resolve(true)
                 }
             })
@@ -296,72 +262,101 @@ export function HaulingPlanInfoController(page,param){
         })
     }
 
-    // async function loadForAllocation(){
-    //     let for_allocation = $('.for_allocation');
+    function loadForAllocation(hub='svc'){
+        let formData = new FormData();
+        formData.append('id',param)
+        formData.append('hub',hub)
+        return new Promise((resolve, reject) => {
+            (new RequestHandler).post('/tms/cco-b/planner/haulage_info/for_allocation',formData).then((res) => {
+                if(res.status == 'success'){
+                    let payload = JSON.parse(window.atob(res.payload));
+                    let html = '',accordion=0;
+                    console.log(payload)
+                    if(Object.keys(payload).length){
+                        Object.keys(payload).forEach(function(key) {
+                            let tbody = '';
+                            accordion++;
+                            payload[key].forEach(function(item) {
+                                tbody+=`<tr>
+                                    <td>${item.cs_no}</td>
+                                    <td>${item.model}</td>
+                                    <td>${item.color_description}</td>
+                                    <td>${item.invoice_date}</td>
+                                    <td>${item.updated_location}</td>
+                                </tr>`;
+                            })
+                            html+=`<div class="accordion" id="kt_accordion_${accordion}">
+                                    <div class="accordion-item rounded-0">
+                                        <h2 class="accordion-header rounded-0" id="accordion_${key}">
+                                            <button class="accordion-button fs-4 fw-semibold rounded-0 collapsed" type="button"
+                                                data-bs-toggle="collapse" data-bs-target="#kt_accordion_${accordion}_body_${accordion}"
+                                                aria-expanded="true" aria-controls="kt_accordion_${accordion}_body_${accordion}">
+                                                ${key} Units : ${payload[key].length}
+                                            </button>
+                                        </h2>
+                                        <div id="kt_accordion_${accordion}_body_${accordion}" class="accordion-collapse collapse"
+                                            aria-labelledby="accordion_${key}" data-bs-parent="#kt_accordion_${accordion}">
+                                            <div class="accordion-body">
+                                                <div class="table-responsive">
+                                                    <table class="table align-middle gy-5 table-sm">
+                                                        <thead class="">
+                                                            <tr class=" fw-bold fs-8 text-uppercase gs-0">
+                                                                <th class="">Cs No.</th>
+                                                                <th class="">Model</th>
+                                                                <th class="">Color</th>
+                                                                <th class="">Invoice</th>
+                                                                <th class="">Location</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="fs-8 fw-semibold text-gray-600">
+                                                            ${tbody}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>`;
+                        })
+                        $(`.${hub}_content`).removeClass('d-none').empty().append(html);
+                        $(`.empty_${hub}`).addClass('d-none');
+                    }else{
+                        $(`.${hub}_content`).addClass('d-none').empty();
+                        $(`.${hub}_content`).removeClass('d-none');
+                    }
 
-    //     return new Promise((resolve, reject) => {
-    //         (new RequestHandler).post(url,formData).then((res) => {
-    //             Alert.toast(res.status,res.message);
-    //             if(res.status == 'success' && res.page){
-    //                 for_allocation.empty().html(res.page).promise().done(function(){
-    //                 });
-    //             }
-    //         })
-    //         .catch((error) => {
-    //             console.log(error)
-    //             Alert.alert('error',"Something went wrong. Try again later", false);
-    //         })
-    //         .finally(() => {
-    //             // code here
-    //         });
-    //     })
-    // }
-
-    // function loadUnderload(){
-    //     let for_underload = $('.for_underload');
-    //     return new Promise((resolve, reject) => {
-    //         (new RequestHandler).post(url,formData).then((res) => {
-    //             Alert.toast(res.status,res.message);
-    //             if(res.status == 'success' && res.page){
-    //                 for_underload.empty().html(res.page).promise().done(function(){
-    //                 });
-    //             }
-    //         })
-    //         .catch((error) => {
-    //             console.log(error)
-    //             Alert.alert('error',"Something went wrong. Try again later", false);
-    //         })
-    //         .finally(() => {
-    //             // code here
-    //         });
-    //     })
-    // }
+                    KTComponents.init()
+                    data_bs_components()
+                    resolve(true);
+                }
+            })
+            .catch((error) => {
+                console.log(error)
+                resolve(false);
+                Alert.alert('error',"Something went wrong. Try again later", false);
+            })
+            .finally(() => {
+                // code here
+            });
+        })
+    }
 
     $(document).ready(function(e){
 
-        // loadLastTab()
-        loadTripBlock()
-        fvHaulingPlanInfo(param)
-        custom_upload()
+        loadTripBlock().then(()=>{
+            fvHaulingPlanInfo(param)
+            loadForAllocation('svc')
+            custom_upload()
+        })
 
-        // _page.on('click','.nav-tab',function(e){
-        //     e.preventDefault()
-        //     e.stopImmediatePropagation()
-        //     let tab = $(this);
-        //     let data_tab = tab.attr('data-tab');
-        //     loadTab(data_tab).then(()=>{
 
-        //         $('.nav-tab').removeClass('active')
-        //         tab.addClass('active')
-
-        //         $('.tab-content').addClass('d-none')
-        //         $(`.${data_tab}`).removeClass('d-none')
-
-        //         KTComponents.init()
-        //         data_bs_components()
-        //         localStorage.setItem("haulage_info_tab",data_tab)
-        //     })
-        // })
+        _page.on('click','.nav-tab',function(e){
+            e.preventDefault()
+            e.stopImmediatePropagation()
+            let tab = $(this);
+            let hub = tab.attr('data-hub');
+            loadForAllocation(hub)
+        })
 
         _page.on('change','select[name="batch"]',function(e){
             e.preventDefault()
@@ -369,25 +364,6 @@ export function HaulingPlanInfoController(page,param){
             loadTripBlock($(this).val()).then((res) =>{
             })
         })
-
-        // _page.on('click','.upload',function(e){
-        //     e.preventDefault()
-        //     e.stopImmediatePropagation()
-        //     let tab = $(this);
-        //     let data_tab = tab.attr('data-tab');
-        //     loadTab(data_tab).then(()=>{
-
-        //         $('.nav-tab').removeClass('active')
-        //         tab.addClass('active')
-
-        //         $('.tab-content').addClass('d-none')
-        //         $(`.${data_tab}`).removeClass('d-none')
-
-        //         KTComponents.init()
-        //         data_bs_components()
-        //         localStorage.setItem("haulage_info_tab",data_tab)
-        //     })
-        // })
 
         _page.on('click','.add-block',function(e){
             e.preventDefault()
@@ -402,20 +378,13 @@ export function HaulingPlanInfoController(page,param){
         _page.on('click','.remove-block',function(e){
             e.preventDefault()
             e.stopImmediatePropagation()
-
-            // Alert.confirm('question',"Remove this block ?",{
-            //     onConfirm: () => {
-            //          removeTripBlock($(this)).then((res) =>{
-            //             if(res){
-            //                 Alert.toast('success','Trip block removed')
-            //             }
-            //         })
-            //     }
-            // })
-
-            removeTripBlock($(this)).then((res) =>{
-                if(res){
-                    Alert.toast('success','Trip block removed')
+            Alert.confirm('question',"Remove this block ?",{
+                onConfirm: () => {
+                     removeTripBlock($(this)).then((res) =>{
+                        if(res){
+                            Alert.toast('success','Trip block removed')
+                        }
+                    })
                 }
             })
         })
