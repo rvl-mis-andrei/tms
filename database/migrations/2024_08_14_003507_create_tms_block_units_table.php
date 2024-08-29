@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tms_haulage_units', function (Blueprint $table) {
+        Schema::create('tms_haulage_block_units', function (Blueprint $table) {
             $table->id();
-            $table->string('block_number')->nullable();
-            $table->integer('haulage_dealer_id')->nullable();
+            $table->integer('block_id')->nullable();
+            $table->integer('haulage_id')->nullable();
+            $table->integer('dealer_id')->nullable();
             $table->integer('car_model_id')->nullable();
             $table->integer('cs_no')->nullable();
             $table->integer('color_description')->nullable();
@@ -33,7 +34,7 @@ return new class extends Migration
             $table->string('inspected_end')->nullable();
             $table->tinyInteger('is_deleted')->nullable();
             $table->tinyInteger('deleted_by')->nullable();
-            $table->tinyInteger('deleted_at')->nullable();
+            $table->dateTime('deleted_at')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamp('created_at')->useCurrent();
@@ -46,6 +47,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tms_haulage_units');
+        Schema::dropIfExists('tms_haulage_block_units');
     }
 };

@@ -9,6 +9,7 @@ class TmsHaulageBlockUnit extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'haulage_id',
         'block_id',
         'dealer_id',
         'car_model_id',

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('remarks')->nullable();
             $table->tinyInteger('is_deleted')->nullable();
             $table->tinyInteger('deleted_by')->nullable();
-            $table->tinyInteger('deleted_at')->nullable();
+            $table->dateTime('deleted_at')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamp('created_at')->useCurrent();

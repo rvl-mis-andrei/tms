@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id();
             $table->integer('cluster_id');
             $table->string('name');
-            $table->date('haulage_date');
+            $table->date('planning_date');
             $table->string('remarks')->nullable();
             $table->tinyInteger('status');
             $table->tinyInteger('is_deleted')->nullable();
             $table->tinyInteger('deleted_by')->nullable();
-            $table->tinyInteger('deleted_at')->nullable();
+            $table->dateTime('deleted_at')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamp('created_at')->useCurrent();

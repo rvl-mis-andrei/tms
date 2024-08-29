@@ -58,7 +58,7 @@ class ClusterBHaulageInfo extends Controller
                         'block_number'=>$data->block_number,
                         'batch'=>$data->batch,
                         'no_of_trips'=>$data->no_of_trips,
-                        'dealer'=>implode(', ', $dealer_arr),
+                        'dealer'=>$dealer_arr?implode(', ', $dealer_arr):null,
                         'block_units'=>$block_unit,
                     ];
                 }
@@ -135,14 +135,14 @@ class ClusterBHaulageInfo extends Controller
     {
         try{
             $id = Crypt::decrypt($rq->id);
-            $find  = TmsHaulage::find($id);
-            $query = TmsHaulageBlockUnit::where('hub', 'LIKE', "%$rq->hub%")
-            ->where('status',0)->whereDate('created_at',date('Y-m-d',strtotime($find->created_at)))->get();
+            $query = TmsHaulageBlockUnit::where('hub', 'LIKE', "%$rq->hub%")->where('haulage_id',$id)->get();
+            $array = [];
             if($query){
                 foreach($query as $data){
                     $dealer = $data->dealer;
-                    $array[$dealer->code][]=[
-                        'encrypted_id'=>Crypt::encrypt($data->id),
+                    $unit=[];
+                    if($data->status == 0){
+                        $unit=['encrypted_id'=>Crypt::encrypt($data->id),
                         'dealer_code'=>$dealer->code,
                         'model'=>$data->car->car_model,
                         'cs_no'=>$data->cs_no,
@@ -151,12 +151,11 @@ class ClusterBHaulageInfo extends Controller
                         'updated_location'=>$data->updated_location,
                         'inspection_start'=>date('g:i A',strtotime($data->inspected_start)),
                         'hub'=>$data->hub ??'--',
-                        'remarks'=>$data->remarks ?? '--',
-                    ];
-
+                        'remarks'=>$data->remarks ?? '--'];
+                    }
+                    $array[$dealer->code][]=$unit;
                 }
             }
-            // dd($array);
             $payload = base64_encode(json_encode($array));
             return ['status'=>'success','message' =>'success', 'payload' => $payload];
         }catch(Exception $e) {
@@ -174,6 +173,7 @@ class ClusterBHaulageInfo extends Controller
         set_time_limit(0);
         try{
             DB::beginTransaction();
+            $haulage_id = Crypt::decrypt($rq->id);
             $class         = new Phpspreadsheet;
             [$sheet,$highestRow] = $class->read($rq->file('masterlist')->getRealPath(),true,true,'RVL');
             $cluster_id    = Auth::user()->emp_cluster->cluster_id;
@@ -195,6 +195,7 @@ class ClusterBHaulageInfo extends Controller
                     }
                     $this->haulage_block_unit[] = [
                         'block_id'=>null,
+                        'haulage_id'=>$haulage_id,
                         'dealer_id' => $dealer_arr[$dealer_code],
                         'car_model_id' =>$car_model_id,
                         'cs_no' => $cs_no,
@@ -241,6 +242,7 @@ class ClusterBHaulageInfo extends Controller
             $class  = new Phpspreadsheet;
             [$sheet,$highestRow] = $class->read($rq->file('hauling_plan')->getRealPath(),false,true,'PDI');
 
+            $haulage_id    = Crypt::decrypt($rq->id);
             $cluster_id    = Auth::user()->emp_cluster->cluster_id;
             $dealer_arr    = TmsClientDealership::all()->pluck('id', 'code')->toArray();
             $car_model_arr = TmsClusterCarModel::where('cluster_id',$cluster_id)->get()->pluck('id', 'car_model')->toArray();
@@ -273,6 +275,7 @@ class ClusterBHaulageInfo extends Controller
                     }
                     $this->haulage_block_unit = [
                         'block_id'=>null,
+                        'haulage_id' =>$haulage_id,
                         'dealer_id' => $dealer_arr[$dealer_code],
                         'car_model_id' =>$car_model_id,
                         'cs_no' => $cs_no,
@@ -299,7 +302,7 @@ class ClusterBHaulageInfo extends Controller
                             return ['status'=>'error', 'message' =>'There is no trailer assign to tractor '.$plate_no];
                         }
                         $this->haulage_block[$this->block] = [
-                            'haulage_id' =>Crypt::decrypt($rq->id),
+                            'haulage_id' =>$haulage_id,
                             'block_number' =>$this->block,
                             'dealer_id'=>null,
                             'tractor_id' =>$this->tractor_arr[$plate_no]['tractor_id'],

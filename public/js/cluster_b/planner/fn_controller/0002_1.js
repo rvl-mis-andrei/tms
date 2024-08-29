@@ -26,10 +26,11 @@ export function HaulingPlanInfoController(page,param){
                     let payload = JSON.parse(window.atob(res.payload));
                     let html = '',tbody='';
                     if(payload.length >0){
-                        payload.forEach(function(item) {
+                        hauling_list.empty();
+                        payload.forEach(function(item,key) {
                             tbody = '';
                             item.block_units.forEach(function(units) {
-                                tbody+=`<tr>
+                                tbody+=`<tr data-original-table="tbl_${dealer_code}" data-type="forAllocation">
                                         <td>${units.dealer_code}</td>
                                         <td>${units.cs_no}</td>
                                         <td>${units.model}</td>
@@ -41,10 +42,10 @@ export function HaulingPlanInfoController(page,param){
                                         <td>${units.remarks}</td>
                                     </tr>`;
                             })
-                            html+=`
+                            html=`
                             <div class="card mb-10">
                                     <div class="card-header collapsible">
-                                        <span class="card-title"><h6>${item.dealer}</h6></span>
+                                        <span class="card-title"><h6>${item.dealer ?? 'Trip Block #'+(key+1)}</h6></span>
                                         <div class="card-toolbar">
                                             <div class="me-0">
                                                 <button class="btn btn-sm btn-icon btn-active-color-primary"
@@ -84,7 +85,7 @@ export function HaulingPlanInfoController(page,param){
                                     <div id="trip_block_${item.block_number}" class="collapse show">
                                         <div class="card-body pt-0">
                                             <div class="table-responsive">
-                                                <table class="table align-middle gy-5 table-sm" id="kt_customers_table">
+                                                <table class="table align-middle gy-5 table-sm" id="tbl_block_${item.block_number}" data-type="planning">
                                                     <thead class="">
                                                         <tr class=" fw-bold fs-8 text-uppercase gs-0">
                                                             <th class="">Dealer</th>
@@ -98,7 +99,7 @@ export function HaulingPlanInfoController(page,param){
                                                             <th class="">Remarks</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody class="fs-8 fw-semibold text-gray-600">
+                                                    <tbody class="fs-8 fw-semibold text-gray-600" data-type="planning">
                                                         ${tbody}
                                                     </tbody>
                                                 </table>
@@ -108,9 +109,10 @@ export function HaulingPlanInfoController(page,param){
                                 </div>
                             `;
                             block_number = item.block_number;
+                        hauling_list.append(html)
+                        initSortableTribBlock(`tbl_block_${item.block_number}`)
                         })
-
-                        hauling_list.empty().append(html).removeClass('d-none')
+                        hauling_list.removeClass('d-none')
                         empty_hauling_list.addClass('d-none')
                     }else{
                         hauling_list.addClass('d-none')
@@ -188,7 +190,7 @@ export function HaulingPlanInfoController(page,param){
                                     <div id="trip_block_${item.block_number}" class="collapse show">
                                         <div class="card-body pt-0">
                                             <div class="table-responsive">
-                                                <table class="table align-middle fs-6 gy-5 table-sm" id="kt_customers_table">
+                                                <table class="table align-middle fs-6 gy-5 table-sm" id="tbl_block_${item.block_number}" data-type="planning">
                                                     <thead class="">
                                                         <tr class=" fw-bold fs-7 text-uppercase gs-0">
                                                             <th class="">Dealer</th>
@@ -202,7 +204,7 @@ export function HaulingPlanInfoController(page,param){
                                                             <th class="">Remarks</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody class="fs-7 fw-semibold text-gray-600">
+                                                    <tbody class="fs-7 fw-semibold text-gray-600" data-type="planning">
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -211,6 +213,7 @@ export function HaulingPlanInfoController(page,param){
                                 </div>
                             `;
                             hauling_list.last().append(html).removeClass('d-none');
+                            initSortableTribBlock(`tbl_block_${item.block_number}`)
                             empty_hauling_list.addClass('d-none');
                             resolve(true)
                         })
@@ -271,8 +274,9 @@ export function HaulingPlanInfoController(page,param){
                 if(res.status == 'success'){
                     let payload = JSON.parse(window.atob(res.payload));
                     let html = '',accordion=0;
-                    console.log(payload)
                     if(Object.keys(payload).length){
+                        $(`.${hub}_content`).empty();
+                        $(`.for_allocation`).empty();
                         Object.keys(payload).forEach(function(key) {
                             let tbody = '';
                             accordion++;
@@ -285,7 +289,7 @@ export function HaulingPlanInfoController(page,param){
                                     <td>${item.updated_location}</td>
                                 </tr>`;
                             })
-                            html+=`<div class="accordion" id="kt_accordion_${accordion}">
+                            html=`<div class="accordion" id="kt_accordion_${accordion}">
                                     <div class="accordion-item rounded-0">
                                         <h2 class="accordion-header rounded-0" id="accordion_${key}">
                                             <button class="accordion-button fs-4 fw-semibold rounded-0 collapsed" type="button"
@@ -298,7 +302,7 @@ export function HaulingPlanInfoController(page,param){
                                             aria-labelledby="accordion_${key}" data-bs-parent="#kt_accordion_${accordion}">
                                             <div class="accordion-body">
                                                 <div class="table-responsive">
-                                                    <table class="table align-middle gy-5 table-sm">
+                                                    <table class="table align-middle gy-5 table-sm" id="tbl_${key}" data-type="forAllocation">
                                                         <thead class="">
                                                             <tr class=" fw-bold fs-8 text-uppercase gs-0">
                                                                 <th class="">Cs No.</th>
@@ -308,7 +312,7 @@ export function HaulingPlanInfoController(page,param){
                                                                 <th class="">Location</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody class="fs-8 fw-semibold text-gray-600">
+                                                        <tbody class="fs-8 fw-semibold text-gray-600 cursor-pointer" data-type="forAllocation">
                                                             ${tbody}
                                                         </tbody>
                                                     </table>
@@ -317,12 +321,14 @@ export function HaulingPlanInfoController(page,param){
                                         </div>
                                     </div>
                                 </div>`;
+                            $(`.${hub}_content`).append(html);
+                            initSortableAllocation(`tbl_${key}`)
                         })
-                        $(`.${hub}_content`).removeClass('d-none').empty().append(html);
+                        $(`.${hub}_content`).removeClass('d-none');
                         $(`.empty_${hub}`).addClass('d-none');
                     }else{
                         $(`.${hub}_content`).addClass('d-none').empty();
-                        $(`.${hub}_content`).removeClass('d-none');
+                        $(`.empty_${hub}`).removeClass('d-none');
                     }
 
                     KTComponents.init()
@@ -341,6 +347,73 @@ export function HaulingPlanInfoController(page,param){
         })
     }
 
+    function initSortableAllocation(id)
+    {
+        new Sortable(document.getElementById(id).getElementsByTagName('tbody')[0], {
+            group: {
+                name: 'forAllocation',
+                pull: true,
+                put: ['planning']
+            },
+            animation: 150,
+            multiDrag: true,
+            selectedClass: 'selected',
+            onEnd: function(evt) {
+                let fromTable = evt.from.closest('table').id;
+                let toTable = evt.to.closest('table').id;
+                let selectedItems = evt.items.length >0 ? evt.items : [evt.item];
+                selectedItems.forEach(function(item) {
+                    if (item.getAttribute('data-type') === 'forAllocation') {
+                        if (fromTable !== toTable && evt.to.getAttribute('data-type') === 'forAllocation') {
+                            evt.from.appendChild(item);
+                        }
+                    }
+                });
+            },
+            // onStart: function(evt) {
+            //     evt.item.setAttribute('data-original-table', evt.from.closest('table').id);
+            //     evt.item.setAttribute('data-type','forAllocation');
+            // },
+            onSelect: function(evt) {
+                evt.item.setAttribute('data-original-table', evt.from.closest('table').id);
+                evt.item.setAttribute('data-type','forAllocation');
+            },
+            onDeselect: function(evt) {
+                evt.item
+            },
+        });
+    }
+
+    function initSortableTribBlock(id) {
+        new Sortable(document.getElementById(id).getElementsByTagName('tbody')[0], {
+            group: {
+                name: 'planning',
+                pull: true,
+                put: ['planning', 'forAllocation']
+            },
+            animation: 150,
+            multiDrag: true,
+            selectedClass: 'selected',
+            onEnd: function(evt) {
+                let originalTableId = evt.item.getAttribute('data-original-table');
+                let currentTableId = evt.to.closest('table').id;
+                let selectedItems = evt.items.length >0 ? evt.items : [evt.item];
+                selectedItems.forEach(function(item) {
+                    if (item.getAttribute('data-type') === 'forAllocation') {
+                        if (currentTableId !== originalTableId && evt.to.getAttribute('data-type') === 'forAllocation') {
+                            document.getElementById(originalTableId).getElementsByTagName('tbody')[0].appendChild(item);
+                        }
+                    }
+                });
+            },
+            onStart: function(evt) {
+                // if (!evt.item.getAttribute('data-original-table')) {
+                //     evt.item.setAttribute('data-original-table', evt.from.closest('table').id);
+                // }
+            },
+        });
+    }
+
     $(document).ready(function(e){
 
         loadTripBlock().then(()=>{
@@ -348,7 +421,6 @@ export function HaulingPlanInfoController(page,param){
             loadForAllocation('svc')
             custom_upload()
         })
-
 
         _page.on('click','.nav-tab',function(e){
             e.preventDefault()
@@ -390,31 +462,7 @@ export function HaulingPlanInfoController(page,param){
         })
 
 
-        // Initialize Sortable with MultiDrag plugin on the allocation list
-        // new Sortable(document.getElementById('allocation-list').getElementsByTagName('tbody')[0], {
-        //     group: 'shared',
-        //     animation: 150,
-        //     multiDrag: true,
-        //     selectedClass: 'selected',
-        //     onEnd: function(evt) {
-        //         console.log(evt.to)
-        //         // Check if the item was dropped into the destination table
-        //         if (evt.to === document.getElementById('destination-table').getElementsByTagName('tbody')[0]) {
-        //             alert('Row successfully moved to the destination table!');
-        //         } else {
-        //             alert('Row returned to the original table.');
-        //         }
-        //     },
-        //     // Called when an item is selected
-        //     onSelect: function(/**Event*/evt) {
-        //         evt.item // The selected item
-        //     },
 
-        //     // Called when an item is deselected
-        //     onDeselect: function(/**Event*/evt) {
-        //         evt.item // The deselected item
-        //     }
-        // });
 
         // Initialize Sortable with MultiDrag plugin on the destination table
         // new Sortable(document.getElementById('destination-table').getElementsByTagName('tbody')[0], {

@@ -7,12 +7,16 @@
     <meta content="{{ csrf_token() }}" name="csrf-token" id="csrf-token">
     <meta content="{{ url('assets') }}" name="asset-url">
     {{-- <link rel="shortcut icon" href="assets/media/logos/favicon.ico" /> --}}
-    {{-- <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" /> --}}
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
     <link href="{{ asset('assets/plugins/custom/fullcalendar/fullcalendar.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
     <style>
+        .selected {
+            background-color: #d1ecf1; /* Light blue background */
+            color: #0c5460; /* Dark blue text */
+        }
         .custom-file-upload {
             width: 100%;
             /* max-width: 500px; */

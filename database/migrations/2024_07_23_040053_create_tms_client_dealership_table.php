@@ -20,7 +20,7 @@ return new class extends Migration
             $table->tinyInteger('is_active')->nullable();
             $table->tinyInteger('is_deleted')->nullable();
             $table->tinyInteger('deleted_by')->nullable();
-            $table->tinyInteger('deleted_at')->nullable();
+            $table->dateTime('deleted_at')->nullable();
             $table->longText('receiving_personnel')->nullable();
             $table->integer('pv_lead_time')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();

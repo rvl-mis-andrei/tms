@@ -12,7 +12,7 @@ class PlannerPage
         try{
             $data = (new HaulageList)->info($rq);
             $data = json_decode(base64_decode($data['payload']),true);
-            return view('layout.planner.shared.hauling_plan_info', compact('data'))->render();
+            return view('cluster_b.planner.hauling_plan.hauling_plan_info', compact('data'))->render();
         } catch(Exception $e) {
             return response()->json([
                 'status' => 400,
