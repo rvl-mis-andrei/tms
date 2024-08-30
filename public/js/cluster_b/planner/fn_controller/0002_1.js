@@ -1,7 +1,8 @@
 'use strict';
 // import {ClientListDT} from '../dt_controller/serverside/0004_0.js';
 import {Alert} from "../../../global/alert.js"
-import {RequestHandler} from "../../../global/request.js"
+import {RequestHandler,} from "../../../global/request.js"
+import {dealer,car_model} from "../../../global/select.js"
 import {data_bs_components,modal_state,page_state,custom_upload} from "../../../global.js";
 import {fvHaulingPlanInfo} from '../fv_controller/0002_1.js';
 
@@ -16,7 +17,6 @@ export function HaulingPlanInfoController(page,param){
 
     function loadTripBlock(batch=1)
     {
-
         let formData = new FormData();
         formData.append('id',param)
         formData.append('batch',batch)
@@ -25,23 +25,23 @@ export function HaulingPlanInfoController(page,param){
                 if(res.status == 'success'){
                     let payload = JSON.parse(window.atob(res.payload));
                     let html = '',tbody='';
+                    hauling_list.empty();
                     if(payload.length >0){
-                        hauling_list.empty();
                         payload.forEach(function(item,key) {
                             tbody = '';
                             item.block_units.forEach(function(units) {
-                                tbody+=`<tr data-original-table="tbl_${dealer_code}" data-type="forAllocation">
-                                        <td>${units.dealer_code}</td>
+                                tbody+=`<tr data-original-table="tbl_${units.dealer_code}" data-type="forAllocation" data-id="${units.encrypted_id}">
+                                        <td class="remove-cell">${units.dealer_code}</td>
                                         <td>${units.cs_no}</td>
                                         <td>${units.model}</td>
                                         <td>${units.color_description}</td>
                                         <td>${units.invoice_date}</td>
                                         <td>${units.updated_location}</td>
-                                        <td>${units.inspection_start}</td>
-                                        <td>${units.hub}</td>
-                                        <td>${units.remarks}</td>
+                                        <td class="remove-cell">${units.inspection_start}</td>
+                                        <td class="remove-cell">${units.hub}</td>
+                                        <td class="remove-cell">${units.remarks}</td>
                                     </tr>`;
-                            })
+                            });
                             html=`
                             <div class="card mb-10">
                                     <div class="card-header collapsible">
@@ -85,21 +85,21 @@ export function HaulingPlanInfoController(page,param){
                                     <div id="trip_block_${item.block_number}" class="collapse show">
                                         <div class="card-body pt-0">
                                             <div class="table-responsive">
-                                                <table class="table align-middle gy-5 table-sm" id="tbl_block_${item.block_number}" data-type="planning">
-                                                    <thead class="">
+                                                <table class="table align-middle gy-5 table-sm" id="tbl_block_${item.block_number}" data-type="planning" data-id="${item.encrypted_id}">
+                                                    <thead>
                                                         <tr class=" fw-bold fs-8 text-uppercase gs-0">
-                                                            <th class="">Dealer</th>
-                                                            <th class="">Cs No.</th>
-                                                            <th class="">Model</th>
-                                                            <th class="">Color</th>
-                                                            <th class="">Invoice Date</th>
-                                                            <th class="">Location</th>
-                                                            <th class="">Inspection TIme</th>
-                                                            <th class="">Hub</th>
-                                                            <th class="">Remarks</th>
+                                                            <th>Dealer</th>
+                                                            <th>Cs No.</th>
+                                                            <th>Model</th>
+                                                            <th>Color</th>
+                                                            <th>Invoice Date</th>
+                                                            <th>Location</th>
+                                                            <th>Inspection TIme</th>
+                                                            <th>Hub</th>
+                                                            <th>Remarks</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody class="fs-8 fw-semibold text-gray-600" data-type="planning">
+                                                    <tbody class="fs-8 fw-semibold text-gray-600" data-type="planning" data-id="${item.encrypted_id}">
                                                         ${tbody}
                                                     </tbody>
                                                 </table>
@@ -109,8 +109,8 @@ export function HaulingPlanInfoController(page,param){
                                 </div>
                             `;
                             block_number = item.block_number;
-                        hauling_list.append(html)
-                        initSortableTribBlock(`tbl_block_${item.block_number}`)
+                            hauling_list.append(html)
+                            if(item.status !=2){  initSortableTribBlock(`tbl_block_${item.block_number}`)  }
                         })
                         hauling_list.removeClass('d-none')
                         empty_hauling_list.addClass('d-none')
@@ -148,6 +148,7 @@ export function HaulingPlanInfoController(page,param){
                     let payload = JSON.parse(window.atob(res.payload));
                     if(payload.length >0){
                         payload.forEach(function(item) {
+                            console.log(payload.length)
                             let html =`<div class="card mb-10" data-block="${item.block_number}">
                                     <div class="card-header collapsible">
                                         <span class="card-title"><h6>Trip Block #${item.block_number}</h6></span>
@@ -281,13 +282,15 @@ export function HaulingPlanInfoController(page,param){
                             let tbody = '';
                             accordion++;
                             payload[key].forEach(function(item) {
-                                tbody+=`<tr>
-                                    <td>${item.cs_no}</td>
-                                    <td>${item.model}</td>
-                                    <td>${item.color_description}</td>
-                                    <td>${item.invoice_date}</td>
-                                    <td>${item.updated_location}</td>
-                                </tr>`;
+                                if(item.encrypted_id){
+                                    tbody+=`<tr data-id="${item.encrypted_id}">
+                                        <td>${item.cs_no}</td>
+                                        <td>${item.model}</td>
+                                        <td>${item.color_description}</td>
+                                        <td>${item.invoice_date}</td>
+                                        <td>${item.updated_location}</td>
+                                    </tr>`;
+                                }
                             })
                             html=`<div class="accordion" id="kt_accordion_${accordion}">
                                     <div class="accordion-item rounded-0">
@@ -359,21 +362,68 @@ export function HaulingPlanInfoController(page,param){
             multiDrag: true,
             selectedClass: 'selected',
             onEnd: function(evt) {
-                let fromTable = evt.from.closest('table').id;
-                let toTable = evt.to.closest('table').id;
-                let selectedItems = evt.items.length >0 ? evt.items : [evt.item];
+                let selectedItems = evt.items.length > 0 ? evt.items : [evt.item];
                 selectedItems.forEach(function(item) {
-                    if (item.getAttribute('data-type') === 'forAllocation') {
-                        if (fromTable !== toTable && evt.to.getAttribute('data-type') === 'forAllocation') {
-                            evt.from.appendChild(item);
-                        }
+                    let originalTableId = item.getAttribute('data-original-table');
+                    let currentTableId = evt.to.closest('table').id;
+                    let cells = item.getElementsByClassName('remove-cell');
+
+                    if(evt.to.getAttribute('data-type') === 'planning' && item.getAttribute('data-type') === 'forAllocation'){
+                        let formData = new FormData();
+                        formData.append('haulage_id',param);
+                        formData.append('block_id',evt.to.getAttribute('data-id'));
+                        formData.append('unit_id',item.getAttribute('data-id'));
+                        formData.append('batch',$('select[name="batch"]').val());
+                        formData.append('status',1);
+
+                        (new RequestHandler).post('/tms/cco-b/planner/haulage_info/update_block_units',formData).then((res) => {
+                            if(res.status == 'success'){
+                                let payload = JSON.parse(window.atob(res.payload));
+
+                                while (cells.length > 0) {
+                                    cells[0].parentNode.removeChild(cells[0]);
+                                }
+
+                                let dealerCodeCell = document.createElement('td');
+                                dealerCodeCell.classList.add('remove-cell');
+
+                                dealerCodeCell.textContent = payload.dealer_code;
+                                item.insertBefore(dealerCodeCell, item.firstChild);
+
+                                let inspectionTimeCell = document.createElement('td');
+                                inspectionTimeCell.classList.add('remove-cell');
+
+                                inspectionTimeCell.textContent = payload.inspection_time;
+                                item.appendChild(inspectionTimeCell);
+
+                                let hubCell = document.createElement('td');
+                                hubCell.classList.add('remove-cell');
+
+                                hubCell.textContent = payload.hub;
+                                item.appendChild(hubCell);
+
+                                let remarksCell = document.createElement('td');
+                                remarksCell.classList.add('remove-cell');
+
+                                remarksCell.textContent = payload.remarks;
+                                item.appendChild(remarksCell);
+                            }else{
+                                Alert.alert('error',res.message)
+                            }
+                        })
                     }
+
+                    // if (item.getAttribute('data-type') === 'forAllocation') {
+                    //     if (currentTableId !== originalTableId && evt.to.getAttribute('data-type') === 'forAllocation') {
+                    //         document.getElementById(originalTableId).getElementsByTagName('tbody')[0].appendChild(item);
+                    //     }
+                    // }
                 });
             },
-            // onStart: function(evt) {
-            //     evt.item.setAttribute('data-original-table', evt.from.closest('table').id);
-            //     evt.item.setAttribute('data-type','forAllocation');
-            // },
+            onStart: function(evt) {
+                evt.item.setAttribute('data-original-table', evt.from.closest('table').id);
+                evt.item.setAttribute('data-type','forAllocation');
+            },
             onSelect: function(evt) {
                 evt.item.setAttribute('data-original-table', evt.from.closest('table').id);
                 evt.item.setAttribute('data-type','forAllocation');
@@ -395,15 +445,43 @@ export function HaulingPlanInfoController(page,param){
             multiDrag: true,
             selectedClass: 'selected',
             onEnd: function(evt) {
-                let originalTableId = evt.item.getAttribute('data-original-table');
-                let currentTableId = evt.to.closest('table').id;
-                let selectedItems = evt.items.length >0 ? evt.items : [evt.item];
+                let selectedItems = evt.items.length > 0 ? evt.items : [evt.item];
+                let currentTable = evt.to.closest('table');
+
                 selectedItems.forEach(function(item) {
-                    if (item.getAttribute('data-type') === 'forAllocation') {
-                        if (currentTableId !== originalTableId && evt.to.getAttribute('data-type') === 'forAllocation') {
-                            document.getElementById(originalTableId).getElementsByTagName('tbody')[0].appendChild(item);
+                    let originalTableId = item.getAttribute('data-original-table');
+                    let currentTableId = evt.to.closest('table').id;
+                    let tableToType = evt.to.getAttribute('data-type');
+                    let cells = item.getElementsByClassName('remove-cell');
+                    let formData = new FormData();
+
+                    formData.append('haulage_id',param);
+                    formData.append('block_id',tableToType === 'forAllocation'?'':evt.to.getAttribute('data-id'));
+                    formData.append('unit_id',item.getAttribute('data-id'));
+                    formData.append('batch',$('select[name="batch"]').val());
+                    formData.append('status',tableToType === 'forAllocation'?0:1);
+                    formData.append('unit_order',Array.from(currentTable.querySelectorAll('tbody tr')).indexOf(item) + 1);
+
+                    (new RequestHandler).post('/tms/cco-b/planner/haulage_info/update_block_units',formData).then((res) => {
+                        if(res.status == 'success'){
+                            if (item.getAttribute('data-type') === 'forAllocation' && tableToType === "forAllocation") {
+                                while (cells.length > 0) {
+                                    cells[0].parentNode.removeChild(cells[0]);
+                                }
+                                if (currentTableId !== originalTableId) {
+                                    document.getElementById(originalTableId).getElementsByTagName("tbody")[0].appendChild(item);
+                                }
+                            }
+                        }else{
+                            Alert.alert('error',res.message)
                         }
-                    }
+                    }).catch((error) => {
+                        console.log(error)
+                        Alert.alert('error',"Something went wrong. Try again later", false)
+                    })
+                    .finally(() => {
+                        // code here
+                    });
                 });
             },
             onStart: function(evt) {
@@ -420,6 +498,8 @@ export function HaulingPlanInfoController(page,param){
             fvHaulingPlanInfo(param)
             loadForAllocation('svc')
             custom_upload()
+            dealer()
+            car_model()
         })
 
         _page.on('click','.nav-tab',function(e){
@@ -461,29 +541,41 @@ export function HaulingPlanInfoController(page,param){
             })
         })
 
+        _page.on('click','.finalize-plan',function(e){
+            e.preventDefault()
+            e.stopImmediatePropagation()
 
+            let btn_submit = $(this);
+            let rq_url = $(this).attr('rq-url');
 
+            Alert.confirm("question","Finalize Hauling Plan?", {
+                onConfirm: function() {
+                    btn_submit.attr("data-kt-indicator","on");
+                    btn_submit.attr("disabled",true);
+                    let formData = new FormData();
+                    formData.append('id',param);
+                    (new RequestHandler).post(rq_url,formData).then((res) => {
+                        Alert.toast(res.status,res.message);
+                        if(res.status == 'success'){
+                        }
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                        Alert.alert('error',"Something went wrong. Try again later", false);
+                    })
+                    .finally(() => {
+                        btn_submit.attr("data-kt-indicator","off");
+                        btn_submit.attr("disabled",false);
+                        $("#hauling_plan_table").DataTable().ajax.reload(null, false);
+                    });
+                },
+                onCancel: () => {
+                    btn_submit.attr("data-kt-indicator","off");
+                    btn_submit.attr("disabled",false);
+                }
+            });
+        })
 
-        // Initialize Sortable with MultiDrag plugin on the destination table
-        // new Sortable(document.getElementById('destination-table').getElementsByTagName('tbody')[0], {
-        //     group: 'shared',
-        //     animation: 150,
-        //     multiDrag: true,
-        //     selectedClass: 'selected',
-        //     onEnd: function(evt) {
-        //         console.log(123)
-        //     },
-        //     // Called when an item is selected
-        //     onSelect: function(/**Event*/evt) {
-        //         evt.item // The selected item
-        //     },
-
-        //     // Called when an item is deselected
-        //     onDeselect: function(/**Event*/evt) {
-        //         evt.item // The deselected item
-        //     }
-        // });
     })
-
 
 }

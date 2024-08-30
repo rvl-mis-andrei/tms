@@ -214,10 +214,100 @@ export function fvHaulingPlanInfo(param){
             })
         }
 
+        var _handlefvNewUnit = function(){
+            let form = document.querySelector("#form_new_unit");
+            let modal_id = form.getAttribute('modal-id');
+            let fvNewUnit = FormValidation.formValidation(form, {
+                fields: {
+                    'invoice_date': {
+                        validators: {
+                            notEmpty: { message: 'This field is required'
+                            },
+                            date: {
+                                format: 'MM-DD-YYYY',
+                                message: 'The date is not valid'
+                            }
+                        }
+                    },
+                    'dealer': fv_validator(),
+                    'model': fv_validator(),
+                    'location': fv_validator(),
+                    'hub': fv_validator(),
+                    'cs_no': fv_validator(),
+                },
+                plugins: {
+                trigger: new FormValidation.plugins.Trigger(),
+                bootstrap: new FormValidation.plugins.Bootstrap5({
+                    rowSelector: ".fv-row",
+                    eleInvalidClass: "",
+                    eleValidClass: "",
+                }),
+                },
+            })
+
+            $(modal_id).on('click','.cancel',function(e){
+                e.preventDefault()
+                e.stopImmediatePropagation()
+                Alert.confirm('question',"Close this form ?",{
+                    onConfirm: () => {
+                        modal_state(modal_id);
+                        fvNewUnit.resetForm();
+                        form.reset();
+                        $('#form').attr('action','/services/haulage/create');
+                        $('.submit').attr('data-id','');
+                        $('.modal_title').text('New Hauling Plan');
+                    }
+                })
+            })
+
+            $(modal_id).on('click','.submit',function(e){
+                e.preventDefault()
+                e.stopImmediatePropagation()
+
+                let btn_submit = $(this);
+                let form_url = form.getAttribute('action');
+
+                fvNewUnit && fvNewUnit.validate().then(function (v) {
+                    if(v == "Valid"){
+                        Alert.confirm("question","Submit this form?", {
+                            onConfirm: function() {
+                                btn_submit.attr("data-kt-indicator","on");
+                                btn_submit.attr("disabled",true);
+                                let formData = new FormData(form);
+                                formData.append('id',param);
+                                (new RequestHandler).post(form_url,formData).then((res) => {
+                                    Alert.toast(res.status,res.message);
+                                    if(res.status == 'success'){
+                                        // form.reset();
+                                        fvNewUnit.resetForm();
+                                        $('.nav-tab.active').click()
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.log(error)
+                                    Alert.alert('error',"Something went wrong. Try again later", false);
+                                })
+                                .finally(() => {
+                                    btn_submit.attr("data-kt-indicator","off");
+                                    btn_submit.attr("disabled",false);
+                                    $("#hauling_plan_table").DataTable().ajax.reload(null, false);
+                                });
+                            },
+                            onCancel: () => {
+                                btn_submit.attr("data-kt-indicator","off");
+                                btn_submit.attr("disabled",false);
+                            }
+                        });
+                    }
+                })
+            })
+        }
+
     return {
         init: function () {
             _handlefvMasterList()
             _handlefvHaulingPlan()
+            _handlefvNewUnit()
         },
       };
 

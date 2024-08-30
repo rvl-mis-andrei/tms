@@ -41,16 +41,17 @@ class ClusterBHaulageInfo extends Controller
                             $dealer_arr[] = $dealer->name;
                         }
                         $block_unit[]=[
-                            'encrypted_id'=>Crypt::encrypt($data->id),
+                            'encrypted_id'=>Crypt::encrypt($row->id),
                             'dealer_code'=>$dealer->code,
                             'model'=>$row->car->car_model,
                             'cs_no'=>$row->cs_no,
                             'color_description'=>$row->color_description,
                             'invoice_date'=>date('m/d/Y',strtotime($row->invoice_date)),
                             'updated_location'=>$row->updated_location,
-                            'inspection_start'=>date('g:i A',strtotime($row->inspected_start)),
+                            'inspection_start'=>$row->inspected_start?date('g:i A',strtotime($row->inspected_start)):'--',
                             'hub'=>$row->hub ??'--',
-                            'remarks'=>$row->remarks,
+                            'remarks'=>$row->remarks ?? '--',
+                            'status'=>$row->status,
                         ];
                     }
                     $array[]=[
@@ -60,9 +61,11 @@ class ClusterBHaulageInfo extends Controller
                         'no_of_trips'=>$data->no_of_trips,
                         'dealer'=>$dealer_arr?implode(', ', $dealer_arr):null,
                         'block_units'=>$block_unit,
+                        'status'=>$data->status,
                     ];
                 }
             }
+
             $payload = base64_encode(json_encode($array));
             return ['status'=>'success','message' =>'success', 'payload' => $payload];
         }catch(Exception $e) {
@@ -135,25 +138,29 @@ class ClusterBHaulageInfo extends Controller
     {
         try{
             $id = Crypt::decrypt($rq->id);
-            $query = TmsHaulageBlockUnit::where('hub', 'LIKE', "%$rq->hub%")->where('haulage_id',$id)->get();
+            $query = TmsHaulageBlockUnit::where('hub', 'LIKE', "%$rq->hub%")->where([['haulage_id',$id]])->get();
             $array = [];
             if($query){
                 foreach($query as $data){
                     $dealer = $data->dealer;
                     $unit=[];
-                    if($data->status == 0){
-                        $unit=['encrypted_id'=>Crypt::encrypt($data->id),
-                        'dealer_code'=>$dealer->code,
-                        'model'=>$data->car->car_model,
-                        'cs_no'=>$data->cs_no,
-                        'color_description'=>$data->color_description,
-                        'invoice_date'=>date('m/d/Y',strtotime($data->invoice_date)),
-                        'updated_location'=>$data->updated_location,
-                        'inspection_start'=>date('g:i A',strtotime($data->inspected_start)),
-                        'hub'=>$data->hub ??'--',
-                        'remarks'=>$data->remarks ?? '--'];
+                    if($data->status == null){
+                        $unit=[
+                            'encrypted_id'=>Crypt::encrypt($data->id),
+                            'dealer_code'=>$dealer->code,
+                            'model'=>$data->car->car_model,
+                            'cs_no'=>$data->cs_no,
+                            'color_description'=>$data->color_description,
+                            'invoice_date'=>date('m/d/Y',strtotime($data->invoice_date)),
+                            'updated_location'=>$data->updated_location,
+                            'inspection_start'=>date('g:i A',strtotime($data->inspected_start)),
+                            'hub'=>$data->hub ??'--',
+                            'remarks'=>$data->remarks ?? '--',
+                            'status'=>$data->status,
+                        ];
+
                     }
-                    $array[$dealer->code][]=$unit;
+                    $array[$dealer->code][]=[$unit];
                 }
             }
             $payload = base64_encode(json_encode($array));
@@ -209,7 +216,6 @@ class ClusterBHaulageInfo extends Controller
                         'hub' => $sheet->getCell("K$row")->getCalculatedValue(),
                         'assigned_lsp' =>$sheet->getCell("L$row")->getCalculatedValue(),
                         'vld_planner_confirmation' =>$sheet->getCell("M$row")->getCalculatedValue(),
-                        'status'=>0,
                         'created_by'=>$user_id,
                     ];
                 }else{
@@ -248,6 +254,7 @@ class ClusterBHaulageInfo extends Controller
             $car_model_arr = TmsClusterCarModel::where('cluster_id',$cluster_id)->get()->pluck('id', 'car_model')->toArray();
             $tractors      = TractorTrailerDriver::with('tractor:id,plate_no')->get();
             $user_id = Auth::user()->emp_id;
+            $unit_order=0;
 
             foreach ($tractors as $data) {
                 if($data->tractor_id !=null){
@@ -266,6 +273,7 @@ class ClusterBHaulageInfo extends Controller
                 $car_model = strtoupper($sheet->getCell("D$row")->getCalculatedValue());
                 $car_model_id = $car_model_arr[$car_model] ?? false;
                 $cs_no = $sheet->getCell("C$row")->getCalculatedValue();
+                $unit_order++;
                 if ($dealer_code !== null && $cs_no !== null){
                     if(!$car_model_id){
                         return ['status'=>'error', 'message' =>$car_model.' does not exist in the car list'];
@@ -275,6 +283,8 @@ class ClusterBHaulageInfo extends Controller
                     }
                     $this->haulage_block_unit = [
                         'block_id'=>null,
+                        'status'=>1,
+                        'unit_order'=>$unit_order,
                         'haulage_id' =>$haulage_id,
                         'dealer_id' => $dealer_arr[$dealer_code],
                         'car_model_id' =>$car_model_id,
@@ -313,6 +323,7 @@ class ClusterBHaulageInfo extends Controller
                             'block_units' => [$this->haulage_block_unit],
                             'batch'=>$rq->batch,
                             'created_by'=>$user_id,
+                            'status'=>1,
                         ];
                     }
                 }else{
@@ -336,7 +347,7 @@ class ClusterBHaulageInfo extends Controller
                         ) {
                         break;
                     }
-                    $this->haulage_block = []; $this->block++;
+                    $this->haulage_block = []; $this->block++; $unit_order=0;
                 }
             }
         unset($spreadsheet);
@@ -348,14 +359,42 @@ class ClusterBHaulageInfo extends Controller
         }
     }
 
-    public function update_block(Request $rq)
+    // public function allocate(Request $rq)
+    // {
+    //     try{
+    //         DB::beginTransaction();
+    //         $id = Crypt::decrypt($rq->id);
+
+    //         DB::commit();
+    //         return response()->json(['status' => 'success', 'message' => 'Updated Successfully']);
+
+    //     }catch(Exception $e){
+    //         return response()->json(['status'=>400,'message' =>$e->getMessage()]);
+    //     }
+    // }
+
+    public function add_block_unit(Request $rq)
     {
         try{
             DB::beginTransaction();
             $id = Crypt::decrypt($rq->id);
+            $dealer_id = Crypt::decrypt($rq->dealer);
+            $car_model_id = Crypt::decrypt($rq->model);
+            TmsHaulageBlockUnit::create([
+                'haulage_id'=>$id,
+                'dealer_id'=>$dealer_id,
+                'car_model_id'=>$car_model_id,
+                'cs_no'=>$rq->cs_no,
+                'color_description'=>$rq->color_description,
+                'updated_location'=>$rq->location,
+                'hub'=>$rq->hub,
+                'remarks'=>$rq->remarks,
+                'invoice_date'=>Carbon::createFromFormat('m-d-Y',$rq->invoice_date)->format('Y-m-d'),
+                'created_by'=>Auth::user()->emp_id
+            ]);
 
             DB::commit();
-            return response()->json(['status' => 'success', 'message' => 'Updated Successfully']);
+            return response()->json(['status' => 'success', 'message' => 'Added Successfully']);
 
         }catch(Exception $e){
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);
@@ -366,12 +405,60 @@ class ClusterBHaulageInfo extends Controller
     {
         try{
             DB::beginTransaction();
-            $id = Crypt::decrypt($rq->id);
 
+            $haulage_id = Crypt::decrypt($rq->haulage_id);
+            $block_id = $rq->block_id!=null?Crypt::decrypt($rq->block_id):null;
+            $unit_id = Crypt::decrypt($rq->unit_id);
+            $status = $rq->status;
+            $user_id = Auth::user()->emp_id;
+            $query = TmsHaulageBlockUnit::find($unit_id);
+
+            $query->block_id = $block_id;
+            $query->haulage_id = $haulage_id;
+            $query->status = $status;
+            $query->updated_by = $user_id;
+            $query->unit_order = isset($rq->unit_order)?$rq->unit_order:null;
+
+            $query->save();
             DB::commit();
-            return response()->json(['status' => 'success', 'message' => 'success']);
+
+            $payload = base64_encode(json_encode([
+                'dealer_code'=>$query->dealer->code,
+                'inspection_time'=>$query->inspected_start?date('m/d/Y',strtotime($query->inspected_start)):'--',
+                'hub'=>$query->hub,
+                'remarks'=>$query->remarks??'--',
+            ]));
+            return response()->json(['status' => 'success', 'message' => 'success', 'payload'=>$payload]);
 
         }catch(Exception $e){
+            return response()->json(['status'=>400,'message' =>$e->getMessage()]);
+        }
+    }
+
+    public function finalize_plan(Request $rq)
+    {
+        try{
+            DB::beginTransaction();
+            $haulage_id = Crypt::decrypt($rq->id);
+            $user_id = Auth::user()->emp_id;
+
+            TmsHaulageBlock::where([['haulage_id',$haulage_id],['is_deleted',null],['status',null]])
+            ->update([
+                'status'=>2,
+                'updated_by'=>$user_id,
+                'updated_at'=>Carbon::now()
+            ]);
+
+            TmsHaulageBlockUnit::where([['haulage_id',$haulage_id],['is_deleted',null],['status',1]])->update([
+                'status'=>2,
+                'updated_by'=>$user_id,
+                'updated_at'=>Carbon::now()
+            ]);
+
+            DB::commit();
+            return response()->json(['status' => 'success', 'message' => 'Hauling Plan is Saved']);
+        }catch(Exception $e){
+            DB::rollback();
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);
         }
     }

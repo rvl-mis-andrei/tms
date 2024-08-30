@@ -49,12 +49,12 @@
                                     </div>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3 save" data-status="2">
-                                        Save Progress
+                                    <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#modal_add_dealer_unit">
+                                        Add New Unit
                                     </a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3 save" data-status="1">
+                                    <a href="#" class="menu-link px-3 finalize-plan" data-status="1" rq-url="/tms/cco-b/planner/haulage_info/finalize_plan">
                                         Finalize Planning
                                     </a>
                                 </div>

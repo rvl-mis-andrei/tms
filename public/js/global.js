@@ -106,7 +106,7 @@ export function construct_url(url) {
 
 export function data_bs_components()
 {
-    let formSelect = $('.form-select').not('.modal-select');
+    let formSelect = $('.form-select').not('.modal-select, .ajax-select');
     if (formSelect.length > 0) {
         formSelect.select2();
     }

@@ -16,6 +16,7 @@ class TmsHaulageBlock extends Model
         'tractor_id',
         'trailer_id',
         'pdriver',
+        'status',
         'sdriver',
         'created_by',
         'updated_by',

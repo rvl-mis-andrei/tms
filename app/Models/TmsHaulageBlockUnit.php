@@ -11,6 +11,7 @@ class TmsHaulageBlockUnit extends Model
     protected $fillable = [
         'haulage_id',
         'block_id',
+        'unit_order',
         'dealer_id',
         'car_model_id',
         'cs_no',
@@ -19,6 +20,7 @@ class TmsHaulageBlockUnit extends Model
         'updated_location',
         'invoice_date',
         'inspected_start',
+        'status',
         'inspected_end',
         'cs_no',
         'remarks',

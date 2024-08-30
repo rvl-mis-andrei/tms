@@ -17,7 +17,7 @@ export class Alert {
         });
     }
 
-    static alert(status, message, option) {
+    static alert(status, message, option=false) {
         Swal.fire({
             icon: status,
             title:'Oops',

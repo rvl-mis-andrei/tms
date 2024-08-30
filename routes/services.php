@@ -1,10 +1,12 @@
 <?php
 
 use App\Controllers\ClusterBController\Planner\ClusterBHaulageInfo;
+use App\Services\CarModelOption;
 use App\Services\DealershipLocation;
 use App\Services\Dispatcher\ClientDealershipList;
 use App\Services\Dispatcher\ClusterClientList;
 use App\Services\ClusterDriverOption;
+use App\Services\DealerOption;
 use App\Services\Dispatcher\ClusterDriverList;
 use App\Services\Dispatcher\TractorList;
 use App\Services\Dispatcher\TractorTrailerList;
@@ -87,7 +89,8 @@ Route::group(['prefix'=>'services'], function() {
         Route::post('/tractor', [TractorOption::class, 'list']);
         Route::post('/trailer', [TrailerOption::class, 'list']);
         Route::post('/cluster_drivers', [ClusterDriverOption::class, 'list']);
-
+        Route::post('/dealer', [DealerOption::class, 'list']);
+        Route::post('/car_model', [CarModelOption::class, 'list']);
     });
 
 });

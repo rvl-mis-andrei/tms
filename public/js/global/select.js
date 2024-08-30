@@ -118,3 +118,68 @@ export async function cluster_driver(param='') {
             });
     });
 }
+
+export async function dealer(param='') {
+    return new Promise((resolve, reject) => {
+        let element = $(`select[name="dealer"]`);
+        element.attr('disabled', true);
+
+        let formData = new FormData();
+        formData.append('id', param);
+        formData.append('type', 'options');
+
+        (new RequestHandler).post("/services/select/dealer", formData)
+            .then((res) => {
+                element.empty().append(res);
+                resolve(true);
+            })
+            .catch((error) => {
+                console.error(error);
+                resolve(false);
+            })
+            .finally(() => {
+                element.attr('disabled', false);
+            });
+    });
+}
+
+export async function car_model(param='') {
+    return new Promise((resolve, reject) => {
+        let element = $(`select[name="model"]`);
+        element.attr('disabled', true);
+
+        let formData = new FormData();
+        formData.append('id', param);
+        formData.append('type', 'options');
+
+        element.select2({
+            ajax: {
+                url: '/services/select/car_model', // Replace with your API endpoint
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function(params) {
+                    return {
+                        search: params.term, // The search term entered by the user
+                        page: params.page || 1 // Pagination page, if you want to handle pagination
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: $.map(data, function (item) {
+                            return {
+                                id: item.id,
+                                text: item.name // Adjust this to your data structure
+                            };
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Search for an option',
+            minimumInputLength: 3,
+            dropdownParent: $('.modal')
+        });
+        element.attr('disabled', false);
+    });
+}
