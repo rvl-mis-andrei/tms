@@ -42,6 +42,7 @@ export function fvHaulingPlan(){
                         }
                     },
                     status: fv_validator(),
+                    'plan_type': fv_validator(),
                 },
                 plugins: {
                 trigger: new FormValidation.plugins.Trigger(),
@@ -84,7 +85,7 @@ export function fvHaulingPlan(){
                             onConfirm: function() {
                                 let formData = new FormData(form);
                                 if(btn_submit.attr('data-id').length > 0) {
-                                    formData.append('id',btn_submit.attr('data-id'))
+                                    formData.append('id',btn_submit.attr('data-id'));
                                 }
                                 (new RequestHandler).post(form_url,formData).then((res) => {
                                     Alert.toast(res.status,res.message);

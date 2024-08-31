@@ -11,6 +11,23 @@
                 </div>
             </div>
             <div class="modal-body">
+            <div class="alert alert-dismissible bg-light-primary d-flex flex-column flex-sm-row p-5 mb-5">
+                <i class="ki-duotone ki-notification-bing fs-2hx text-primary me-4 mb-5 mb-sm-0">
+                    <span class="path1"></span>
+                    <span class="path2"></span>
+                    <span class="path3"></span>
+                </i>
+                <div class="d-flex flex-column pe-0 pe-sm-10">
+                    <h4 class="fw-semibold">Gentle Reminder</h4>
+                    <span>You're uploading the hauling plan in this batch</span>
+                </div>
+                <button type="button" class="position-absolute position-sm-relative m-2 m-sm-0 top-0 end-0 btn btn-icon ms-sm-auto" data-bs-dismiss="alert">
+                    <i class="ki-duotone ki-cross fs-1 text-primary">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                </button>
+            </div>
                 <form id="form_hauling_plan" modal-id="#modal_fhauling_plan" class="form fv-plugins-bootstrap5 fv-plugins-framework" action="/tms/cco-b/planner/haulage_info/hauling_plan">
                     <div class="custom-file-upload">
                         <div class="upload-area uploadArea" id="">
@@ -85,7 +102,7 @@
 
 {{-- MODAL NEW DEALER UNIT --}}
 <div class="modal fade" id="modal_add_dealer_unit" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered mw-550px">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered mw-600px">
         <div class="modal-content">
             <div class="modal-header justify-content-center" id="kt_modal_add_user_header">
                 <div class="text-center">
@@ -95,24 +112,20 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-body px-5 my-7">
+            <div class="modal-body my-7 pt-0">
                 <form id="form_new_unit" modal-id="#modal_add_dealer_unit" class="form fv-plugins-bootstrap5 fv-plugins-framework" action="/tms/cco-b/planner/haulage_info/add_block_unit">
-                    <div class="d-flex flex-column px-5 px-lg-10" id="kt_modal_add_user_scroll" data-kt-scroll="true" data-kt-scroll-activate="true"
-                     data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_modal_add_user_header" data-kt-scroll-wrappers="#kt_modal_add_user_scroll" data-kt-scroll-offset="300px" style="max-height: 670px;">
-                        <div class="fv-row mb-10 fv-plugins-icon-container">
+                    <div class="d-flex flex-column px-5 px-lg-10" style="max-height: 670px;">
+                        <div class="fv-row mb-7 fv-plugins-icon-container">
                             <label class="required fs-6 fw-semibold form-label mb-2">Dealer:</label>
-                            <select name="dealer" data-control="select2" data-placeholder="Select dealer" data-hide-search="false"
-                            class="form-select form-select-solid fw-bold select2-hidden-accessible modal-select"
-                            data-select2-id="select2-data-15-mta8" tabindex="-1" aria-hidden="true" data-kt-initialized="1">
+                            <select name="dealer" data-control="select2" data-placeholder="Select dealer" data-hide-search="false"  class="form-select form-select-solid fw-bold">
                                 <option></option>
                                 <option value="2" selected>On-Going</option>
                                 <option value="1">Completed</option>
                             </select>
                             <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                         </div>
-
                         <div class="row">
-                            <div class="fv-row mb-10 fv-plugins-icon-container col-7">
+                            <div class="fv-row mb-7 fv-plugins-icon-container col-7">
                                 <label class="required fs-6 fw-semibold form-label mb-2">Model:</label>
                                 <select name="model" data-control="select2" class="form-select ajax-select form-select-solid fw-bold" >
                                     <option></option>
@@ -121,14 +134,18 @@
                             </div>
                             <div class="fv-row mb-7 fv-plugins-icon-container col-5">
                                 <label class="required fw-semibold fs-6 mb-2">CS No.</label>
-                                <input type="text" name="cs_no" class="form-control form-control-solid mb-3 mb-lg-0" placeholder="Name">
+                                <input type="text" name="cs_no" class="form-control form-control-solid mb-3 mb-lg-0" placeholder="CS No.">
                                 <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                             </div>
                         </div>
-
+                        <div class="fv-row mb-7 fv-plugins-icon-container">
+                            <label class="required fw-semibold fs-6 mb-2">Color Description</label>
+                            <input type="text" name="color_description" class="form-control form-control-solid mb-3 mb-lg-0" placeholder="Color Description">
+                            <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+                        </div>
                         <div class="fv-row mb-7 fv-plugins-icon-container">
                             <label class="required fw-semibold fs-6 mb-2">Location</label>
-                            <input type="text" name="location" class="form-control form-control-solid mb-3 mb-lg-0" placeholder="Name">
+                            <input type="text" name="location" class="form-control form-control-solid mb-3 mb-lg-0" placeholder="Location">
                             <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                         </div>
                         <div class="fv-row mb-7 fv-plugins-icon-container">
@@ -138,7 +155,7 @@
                                 <input class="form-control form-control-solid ps-12" input-control="flatpicker" placeholder="Select a date" id="planning_date" name="invoice_date" type="text">
                             </div>
                         </div>
-                        <div class="fv-row mb-10 fv-plugins-icon-container">
+                        <div class="fv-row mb-7 fv-plugins-icon-container">
                             <label class="required fs-6 fw-semibold form-label mb-2">Hub:</label>
                             <select name="hub" data-control="select2" data-placeholder="Select a hub" data-hide-search="false" data-minimum-results-for-search="Infinity"
                             class="form-select form-select-solid fw-bold select2-hidden-accessible"

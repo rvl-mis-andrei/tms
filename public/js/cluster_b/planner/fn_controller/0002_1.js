@@ -329,6 +329,7 @@ export function HaulingPlanInfoController(page,param){
                         })
                         $(`.${hub}_content`).removeClass('d-none');
                         $(`.empty_${hub}`).addClass('d-none');
+                        $(`.${hub}-count`).text(Object.keys(payload).length);
                     }else{
                         $(`.${hub}_content`).addClass('d-none').empty();
                         $(`.empty_${hub}`).removeClass('d-none');
@@ -574,6 +575,20 @@ export function HaulingPlanInfoController(page,param){
                     btn_submit.attr("disabled",false);
                 }
             });
+        })
+
+        _page.on('click','.reupload',function(e){
+            e.preventDefault()
+            e.stopImmediatePropagation()
+
+            let modal_id = $(this).attr('modal-id');
+            let modal_title = $(this).attr('modal-title');
+            let rq_url = $(this).attr('rq-url');
+
+            $('#form').attr('action',rq_url);
+            $('.modal_title').text(modal_title);
+
+            modal_state(modal_id,'show');
         })
 
     })

@@ -234,6 +234,7 @@ export function fvHaulingPlanInfo(param){
                     'location': fv_validator(),
                     'hub': fv_validator(),
                     'cs_no': fv_validator(),
+                    'color_description': fv_validator(),
                 },
                 plugins: {
                 trigger: new FormValidation.plugins.Trigger(),
@@ -253,9 +254,8 @@ export function fvHaulingPlanInfo(param){
                         modal_state(modal_id);
                         fvNewUnit.resetForm();
                         form.reset();
-                        $('#form').attr('action','/services/haulage/create');
-                        $('.submit').attr('data-id','');
-                        $('.modal_title').text('New Hauling Plan');
+                        $('#form').attr('action','/tms/cco-b/planner/haulage_info/add_block_unit');
+                        $('.modal_title').text('Add New Unit');
                     }
                 })
             })
@@ -290,7 +290,6 @@ export function fvHaulingPlanInfo(param){
                                 .finally(() => {
                                     btn_submit.attr("data-kt-indicator","off");
                                     btn_submit.attr("disabled",false);
-                                    $("#hauling_plan_table").DataTable().ajax.reload(null, false);
                                 });
                             },
                             onCancel: () => {

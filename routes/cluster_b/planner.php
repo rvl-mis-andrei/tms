@@ -39,6 +39,8 @@ Route::group(['prefix'=>'tms/cco-b/planner'], function() {
             Route::post('/add_block_unit', 'add_block_unit');
             Route::post('/update_block_units', 'update_block_units');
             Route::post('/finalize_plan', 'finalize_plan');
+            Route::post('/reupload_hauling_plan', 'reupload_hauling_plan');
+            Route::post('/reupload_masterlist', 'reupload_masterlist');
 
             Route::post('/create', 'create');
             Route::post('/update', 'update');

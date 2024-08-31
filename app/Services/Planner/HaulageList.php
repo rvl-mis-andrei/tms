@@ -12,6 +12,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class HaulageList
 {
@@ -59,10 +61,13 @@ class HaulageList
         try{
             $id = Crypt::decrypt($rq->id);
             $query = TmsHaulage::findorFail($id);
+            $query->filenames = json_decode($query->filenames,true) ?? [];
             $payload = base64_encode(json_encode([
                 'name' =>$query->name,
                 'remarks' =>$query->remarks,
                 'status' =>$query->status,
+                'plan_type'=>$query->plan_type,
+                'filenames'=>$query->filenames,
                 'planning_date' =>$query->planning_date,
                 'created_by'=>$query->employee->fullname ?? 'No record found',
                 'created_at'=>Carbon::parse($query->created_at)->format('F j, Y'),
@@ -87,6 +92,7 @@ class HaulageList
                 'name' => $rq->name,
                 'cluster_id' => $cluster_id,
                 'remarks' => $rq->remarks,
+                'plan_type' => $rq->plan_type,
                 'status' => $rq->status,
                 'planning_date' => Carbon::createFromFormat('m-d-Y',$rq->planning_date)->format('Y-m-d'),
                 'created_by' => Auth::user()->emp_id,
@@ -143,4 +149,34 @@ class HaulageList
             return response()->json([ 'status' => 400,  'message' =>  $e->getMessage() ]);
         }
     }
+
+    public function move_file($rq,$folder='hauling_plan')
+    {
+        try{
+            DB::beginTransaction();
+            $filename = Str::random(10) . '.' . $rq->file($folder)->getClientOriginalExtension();
+            $filePath = $rq->file($folder)->storeAs($folder, $filename, 'public');
+
+            if (Storage::disk('public')->exists($filePath)) {
+                $id    = Crypt::decrypt($rq->id);
+                $query = TmsHaulage::find($id);
+                $files = json_decode($query->filenames,true) ??[];
+                if($folder=='masterlist' && count($files) >= 1){
+                    return ['status'=>'error','message' =>'You already uploaded a masterlist'];
+                }
+                if(count($files) >= 2 && $folder == 'hauling_plan') {
+                    return ['status'=>'error','message' =>'You already uploaded 2 hauling plan'];
+                }
+                $files[] = $filename;
+                $query->filenames = json_encode($files);
+                $query->save();
+                DB::commit();
+                return ['status'=>'success','message' =>'Hauling plan is removed'];
+            }
+        }catch(Exception $e){
+            DB::rollback();
+            return response()->json([ 'status' => 400,  'message' =>  $e->getMessage() ]);
+        }
+    }
+
 }

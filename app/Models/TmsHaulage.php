@@ -12,6 +12,7 @@ class TmsHaulage extends Model
         'name',
         'remarks',
         'status',
+        'plan_type',
         'planning_date',
         'cluster_id',
         'created_by',
