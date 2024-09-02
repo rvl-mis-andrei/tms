@@ -584,8 +584,9 @@ export function HaulingPlanInfoController(page,param){
             let modal_id = $(this).attr('modal-id');
             let modal_title = $(this).attr('modal-title');
             let rq_url = $(this).attr('rq-url');
+            let form_id = $(this).attr('form_id');
 
-            $('#form').attr('action',rq_url);
+            $(`#${form_id}`).attr('action',rq_url);
             $('.modal_title').text(modal_title);
 
             modal_state(modal_id,'show');

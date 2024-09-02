@@ -71,7 +71,7 @@ export function fvHaulingPlanInfo(param){
 
                 let btn_submit = $(this);
                 let form_url = form.getAttribute('action');
-
+                console.log(form_url)
                 fvMasterPlan && fvMasterPlan.validate().then(function (v) {
                     if(v == "Valid"){
                         Alert.confirm("question","Submit this form?", {

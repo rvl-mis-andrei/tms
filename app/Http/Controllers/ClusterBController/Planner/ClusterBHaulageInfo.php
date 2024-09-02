@@ -479,6 +479,8 @@ class ClusterBHaulageInfo extends Controller
                 'deleted_at' => Carbon::now(),
                 'deleted_by' => Auth::user()->emp_id,
             ]);
+            $result = (new HaulageList)->reupload_hauling_plan($rq);
+            if ($result['status'] != 'success') {  return response()->json($result); }
             DB::commit();
             return self::hauling_plan($rq);
         }catch(Exception $e){
@@ -496,6 +498,9 @@ class ClusterBHaulageInfo extends Controller
                 'deleted_at' => Carbon::now(),
                 'deleted_by' => Auth::user()->emp_id,
             ]);
+            $result = (new HaulageList)->reupload_masterlist($rq);
+            // dd($result);
+            if ($result['status'] != 'success') {  return response()->json($result); }
             DB::commit();
             return self::masterlist($rq);
         }catch(Exception $e){

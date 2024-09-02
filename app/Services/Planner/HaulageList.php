@@ -179,4 +179,42 @@ class HaulageList
         }
     }
 
+    public function reupload_masterlist(Request $rq)
+    {
+        try{
+            DB::beginTransaction();
+            $id    = Crypt::decrypt($rq->id);
+            $query = TmsHaulage::find($id);
+            $query->filenames = null;
+            $query->save();
+            dd($query);
+
+            DB::commit();
+            return ['status'=>'success','message' =>'Masterlist is removed'];
+        }catch(Exception $e){
+            DB::rollback();
+            return ['status'=>400,'message' =>$e->getMessage()];
+        }
+    }
+
+    public function reupload_hauling_plan(Request $rq)
+    {
+        try{
+            DB::beginTransaction();
+            $id    = Crypt::decrypt($rq->id);
+            $query = TmsHaulage::find($id);
+            $files = json_encode($query->filenames,true);
+            $index = $rq->batch-1;
+            unset($files[$index]);
+            $query->filenames = json_encode($files);
+            $query->save();
+
+            DB::commit();
+            return ['status'=>'success','message' =>'Hauling plan is removed'];
+        }catch(Exception $e){
+            DB::rollback();
+            return ['status'=>400,'message' =>$e->getMessage()];
+        }
+    }
+
 }

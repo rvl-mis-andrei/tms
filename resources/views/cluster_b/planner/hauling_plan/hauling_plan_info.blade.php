@@ -108,7 +108,7 @@
                                 @elseif ($data['plan_type'] == 2 && count($data['filenames']) >=2)
                                     <div class="separator mt-3 opacity-75"></div>
                                     <div class="menu-item px-3 mt-2">
-                                        <a href="#" class="menu-link px-3 reupload" modal-title="Re-Upload Hauling Plan" modal-id="#modal_fhauling_plan" rq-url="/tms/cco-b/planner/haulage_info/reupload_hauling_plan">
+                                        <a href="#" class="menu-link px-3 reupload" form_id="form_hauling_plan" modal-title="Re-Upload Hauling Plan" modal-id="#modal_fhauling_plan" rq-url="/tms/cco-b/planner/haulage_info/reupload_hauling_plan">
                                             Re-Upload Hauling Plan
                                         </a>
                                     </div>
@@ -122,7 +122,7 @@
                                 @elseif($data['plan_type'] == 1 && count($data['filenames']) >=1)
                                     <div class="separator mt-3 opacity-75"></div>
                                     <div class="menu-item px-3 mt-2">
-                                        <a href="#" class="menu-link px-3 reupload" modal-title="Re-Upload Masterlist" modal-id="#modal_upload_masterlist" rq-url="/tms/cco-b/planner/haulage_info/reupload_masterlist">
+                                        <a href="#" class="menu-link px-3 reupload" form_id="form_masterlist" modal-title="Re-Upload Masterlist" modal-id="#modal_upload_masterlist" rq-url="/tms/cco-b/planner/haulage_info/reupload_masterlist">
                                             Re-Upload Masterlist
                                         </a>
                                     </div>
