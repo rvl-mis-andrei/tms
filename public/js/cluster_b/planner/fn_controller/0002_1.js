@@ -24,13 +24,13 @@ export function HaulingPlanInfoController(page,param){
             (new RequestHandler).post('/tms/cco-b/planner/haulage_info/tripblock',formData).then((res) => {
                 if(res.status == 'success'){
                     let payload = JSON.parse(window.atob(res.payload));
-                    let html = '',tbody='';
+                    let html = '',tbody='', isAllBlockFinal = false,tripBlockCount=0,trpBlockUnit=0;
                     hauling_list.empty();
                     if(payload.length >0){
                         payload.forEach(function(item,key) {
                             tbody = '';
                             item.block_units.forEach(function(units) {
-                                tbody+=`<tr data-original-table="tbl_${units.dealer_code}" data-type="forAllocation" data-id="${units.encrypted_id}">
+                                tbody+=`<tr data-original-table="tbl_${units.dealer_code}_${units.hub}" data-type="forAllocation" data-id="${units.encrypted_id}">
                                         <td class="remove-cell">${units.dealer_code}</td>
                                         <td>${units.cs_no}</td>
                                         <td>${units.model}</td>
@@ -41,6 +41,7 @@ export function HaulingPlanInfoController(page,param){
                                         <td class="remove-cell">${units.hub}</td>
                                         <td class="remove-cell">${units.remarks}</td>
                                     </tr>`;
+                                    trpBlockUnit++;
                             });
                             html=`
                             <div class="card mb-10">
@@ -109,16 +110,36 @@ export function HaulingPlanInfoController(page,param){
                                 </div>
                             `;
                             block_number = item.block_number;
-                            hauling_list.append(html)
-                            if(item.status !=2){  initSortableTribBlock(`tbl_block_${item.block_number}`)  }
+                            hauling_list.append(html);
+                            tripBlockCount++;
+                            if(item.status !=2){
+                                initSortableTribBlock(`tbl_block_${item.block_number}`)
+                                isAllBlockFinal=false;
+                            }else{
+                                isAllBlockFinal=true;
+                            }
                         })
+                        if(isAllBlockFinal){
+                            $('.finalize-plan').addClass('d-none');
+                            $('.add-block').addClass('d-none');
+                            $('.more-actions').addClass('d-none');
+                        }else{
+                            $('.finalize-plan').removeClass('d-none');
+                            $('.add-block').removeClass('d-none');
+                            $('.more-actions').removeClass('d-none');
+                        }
                         hauling_list.removeClass('d-none')
                         empty_hauling_list.addClass('d-none')
                     }else{
                         hauling_list.addClass('d-none')
                         empty_hauling_list.removeClass('d-none')
+                        $('.finalize-plan').removeClass('d-none');
+                        $('.add-block').removeClass('d-none');
+                        $('.more-actions').removeClass('d-none');
                     }
                     $('.haulage_info_page').removeClass('d-none')
+                    $('.unit-count').text(trpBlockUnit)
+                    $('.trip-count').text(tripBlockCount)
                     KTComponents.init()
                     data_bs_components()
                     resolve(true);
@@ -205,7 +226,7 @@ export function HaulingPlanInfoController(page,param){
                                                             <th class="">Remarks</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody class="fs-7 fw-semibold text-gray-600" data-type="planning">
+                                                    <tbody class="fs-8 fw-semibold text-gray-600" data-type="planning" data-id="${item.encrypted_id}">
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -274,14 +295,15 @@ export function HaulingPlanInfoController(page,param){
             (new RequestHandler).post('/tms/cco-b/planner/haulage_info/for_allocation',formData).then((res) => {
                 if(res.status == 'success'){
                     let payload = JSON.parse(window.atob(res.payload));
-                    let html = '',accordion=0;
+                    let html = '',accordion=0, isFinal=false;
+
                     if(Object.keys(payload).length){
                         $(`.${hub}_content`).empty();
                         $(`.for_allocation`).empty();
                         Object.keys(payload).forEach(function(key) {
                             let tbody = '';
                             accordion++;
-                            payload[key].forEach(function(item) {
+                            payload[key].unit.forEach(function(item) {
                                 if(item.encrypted_id){
                                     tbody+=`<tr data-id="${item.encrypted_id}">
                                         <td>${item.cs_no}</td>
@@ -298,14 +320,14 @@ export function HaulingPlanInfoController(page,param){
                                             <button class="accordion-button fs-4 fw-semibold rounded-0 collapsed" type="button"
                                                 data-bs-toggle="collapse" data-bs-target="#kt_accordion_${accordion}_body_${accordion}"
                                                 aria-expanded="true" aria-controls="kt_accordion_${accordion}_body_${accordion}">
-                                                ${key} Units : ${payload[key].length}
+                                                ${key} Units : ${payload[key].unit.length}
                                             </button>
                                         </h2>
                                         <div id="kt_accordion_${accordion}_body_${accordion}" class="accordion-collapse collapse"
                                             aria-labelledby="accordion_${key}" data-bs-parent="#kt_accordion_${accordion}">
                                             <div class="accordion-body">
                                                 <div class="table-responsive">
-                                                    <table class="table align-middle gy-5 table-sm" id="tbl_${key}" data-type="forAllocation">
+                                                    <table class="table align-middle gy-5 table-sm" id="tbl_${key}_${payload[key].hub}" data-type="forAllocation">
                                                         <thead class="">
                                                             <tr class=" fw-bold fs-8 text-uppercase gs-0">
                                                                 <th class="">Cs No.</th>
@@ -325,7 +347,7 @@ export function HaulingPlanInfoController(page,param){
                                     </div>
                                 </div>`;
                             $(`.${hub}_content`).append(html);
-                            initSortableAllocation(`tbl_${key}`)
+                            initSortableAllocation(`tbl_${key}_${payload[key].hub}`)
                         })
                         $(`.${hub}_content`).removeClass('d-none');
                         $(`.empty_${hub}`).addClass('d-none');
@@ -364,62 +386,69 @@ export function HaulingPlanInfoController(page,param){
             selectedClass: 'selected',
             onEnd: function(evt) {
                 let selectedItems = evt.items.length > 0 ? evt.items : [evt.item];
+                let currentTable = evt.to.closest('table');
+                let formDataArray = [];
                 selectedItems.forEach(function(item) {
                     let originalTableId = item.getAttribute('data-original-table');
                     let currentTableId = evt.to.closest('table').id;
+
                     let cells = item.getElementsByClassName('remove-cell');
+                    if (evt.to.getAttribute('data-type') === 'planning' && item.getAttribute('data-type') === 'forAllocation') {
+                        let itemData = {
+                            haulage_id: param,
+                            block_id: evt.to.getAttribute('data-id'),
+                            unit_id: item.getAttribute('data-id'),
+                            batch: $('select[name="batch"]').val(),
+                            status: 1,
+                            unit_order: Array.from(currentTable.querySelectorAll('tbody tr')).indexOf(item) + 1
+                        };
+                        formDataArray.push(itemData);
+                        while (cells.length > 0) {
+                            cells[0].parentNode.removeChild(cells[0]);
+                        }
+                    }
+                });
+                if (formDataArray.length > 0) {
+                    let formData = new FormData();
+                    formData.append('units', JSON.stringify(formDataArray));
+                    (new RequestHandler).post('/tms/cco-b/planner/haulage_info/update_block_units', formData).then((res) => {
+                        if (res.status === 'success') {
+                            let payloadArray = JSON.parse(window.atob(res.payload));
+                            payloadArray.forEach((payload, index) => {
+                                let item = selectedItems[index];
 
-                    if(evt.to.getAttribute('data-type') === 'planning' && item.getAttribute('data-type') === 'forAllocation'){
-                        let formData = new FormData();
-                        formData.append('haulage_id',param);
-                        formData.append('block_id',evt.to.getAttribute('data-id'));
-                        formData.append('unit_id',item.getAttribute('data-id'));
-                        formData.append('batch',$('select[name="batch"]').val());
-                        formData.append('status',1);
-
-                        (new RequestHandler).post('/tms/cco-b/planner/haulage_info/update_block_units',formData).then((res) => {
-                            if(res.status == 'success'){
-                                let payload = JSON.parse(window.atob(res.payload));
-
-                                while (cells.length > 0) {
-                                    cells[0].parentNode.removeChild(cells[0]);
-                                }
-
+                                // Add new cells with the received data
                                 let dealerCodeCell = document.createElement('td');
                                 dealerCodeCell.classList.add('remove-cell');
-
                                 dealerCodeCell.textContent = payload.dealer_code;
                                 item.insertBefore(dealerCodeCell, item.firstChild);
 
                                 let inspectionTimeCell = document.createElement('td');
                                 inspectionTimeCell.classList.add('remove-cell');
-
                                 inspectionTimeCell.textContent = payload.inspection_time;
                                 item.appendChild(inspectionTimeCell);
 
                                 let hubCell = document.createElement('td');
                                 hubCell.classList.add('remove-cell');
-
                                 hubCell.textContent = payload.hub;
                                 item.appendChild(hubCell);
 
                                 let remarksCell = document.createElement('td');
                                 remarksCell.classList.add('remove-cell');
-
                                 remarksCell.textContent = payload.remarks;
                                 item.appendChild(remarksCell);
-                            }else{
-                                Alert.alert('error',res.message)
-                            }
-                        })
-                    }
-
-                    // if (item.getAttribute('data-type') === 'forAllocation') {
-                    //     if (currentTableId !== originalTableId && evt.to.getAttribute('data-type') === 'forAllocation') {
-                    //         document.getElementById(originalTableId).getElementsByTagName('tbody')[0].appendChild(item);
-                    //     }
-                    // }
-                });
+                            });
+                        } else {
+                            Alert.alert('error', res.message);
+                        }
+                    }).catch((error) => {
+                        console.error(error);
+                        Alert.alert('error', "Something went wrong. Try again later", false);
+                    });
+                } else {
+                    console.log("No items to send.");
+                    Alert.alert('info', "No items selected.");
+                }
             },
             onStart: function(evt) {
                 evt.item.setAttribute('data-original-table', evt.from.closest('table').id);
@@ -448,47 +477,54 @@ export function HaulingPlanInfoController(page,param){
             onEnd: function(evt) {
                 let selectedItems = evt.items.length > 0 ? evt.items : [evt.item];
                 let currentTable = evt.to.closest('table');
-
+                let formData = new FormData();
+                let selectedItemsData = [];
                 selectedItems.forEach(function(item) {
                     let originalTableId = item.getAttribute('data-original-table');
                     let currentTableId = evt.to.closest('table').id;
                     let tableToType = evt.to.getAttribute('data-type');
                     let cells = item.getElementsByClassName('remove-cell');
-                    let formData = new FormData();
-
-                    formData.append('haulage_id',param);
-                    formData.append('block_id',tableToType === 'forAllocation'?'':evt.to.getAttribute('data-id'));
-                    formData.append('unit_id',item.getAttribute('data-id'));
-                    formData.append('batch',$('select[name="batch"]').val());
-                    formData.append('status',tableToType === 'forAllocation'?0:1);
-                    formData.append('unit_order',Array.from(currentTable.querySelectorAll('tbody tr')).indexOf(item) + 1);
-
-                    (new RequestHandler).post('/tms/cco-b/planner/haulage_info/update_block_units',formData).then((res) => {
-                        if(res.status == 'success'){
-                            if (item.getAttribute('data-type') === 'forAllocation' && tableToType === "forAllocation") {
-                                while (cells.length > 0) {
-                                    cells[0].parentNode.removeChild(cells[0]);
-                                }
-                                if (currentTableId !== originalTableId) {
-                                    document.getElementById(originalTableId).getElementsByTagName("tbody")[0].appendChild(item);
-                                }
+                    let itemData = {
+                        haulage_id: param,
+                        block_id: tableToType === 'forAllocation' ? '' : evt.to.getAttribute('data-id'),
+                        unit_id: item.getAttribute('data-id'),
+                        batch: $('select[name="batch"]').val(),
+                        status: tableToType === 'forAllocation' ? 0 : 1,
+                        unit_order: Array.from(currentTable.querySelectorAll('tbody tr')).indexOf(item) + 1
+                    };
+                    let ispushData = true;
+                    if (item.getAttribute('data-type') === 'forAllocation' && tableToType === "forAllocation") {
+                        let originalTable = document.getElementById(originalTableId);
+                        if(originalTable){
+                            while (cells.length > 0) {
+                                cells[0].parentNode.removeChild(cells[0]);
                             }
-                        }else{
-                            Alert.alert('error',res.message)
+                        }
+                        if (currentTableId !== originalTableId && originalTable) {
+                            originalTable.getElementsByTagName("tbody")[0].appendChild(item);
+                        } else if (!originalTable) {
+                            evt.from.appendChild(item);
+                            ispushData = false;
+                        }
+                    }
+                    if(ispushData){ selectedItemsData.push(itemData) }
+                });
+                if (selectedItemsData.length > 0) {
+                    formData.append('units', JSON.stringify(selectedItemsData));
+                    (new RequestHandler).post('/tms/cco-b/planner/haulage_info/update_block_units', formData).then((res) => {
+                        if (res.status == 'success') {
+                        } else {
+                            Alert.alert('error', res.message);
                         }
                     }).catch((error) => {
-                        console.log(error)
-                        Alert.alert('error',"Something went wrong. Try again later", false)
-                    })
-                    .finally(() => {
-                        // code here
+                        console.log(error);
+                        Alert.alert('error', "Something went wrong. Try again later", false);
+                    }).finally(() => {
                     });
-                });
+                }
             },
             onStart: function(evt) {
-                // if (!evt.item.getAttribute('data-original-table')) {
-                //     evt.item.setAttribute('data-original-table', evt.from.closest('table').id);
-                // }
+                //code here
             },
         });
     }
@@ -548,16 +584,19 @@ export function HaulingPlanInfoController(page,param){
 
             let btn_submit = $(this);
             let rq_url = $(this).attr('rq-url');
+            let batch = $('select[name="batch"]').val();
 
-            Alert.confirm("question","Finalize Hauling Plan?", {
+            Alert.confirm(`question`,`Finalize Hauling Plan Batch ${batch}?`, {
                 onConfirm: function() {
                     btn_submit.attr("data-kt-indicator","on");
                     btn_submit.attr("disabled",true);
                     let formData = new FormData();
                     formData.append('id',param);
+                    formData.append('batch',batch);
                     (new RequestHandler).post(rq_url,formData).then((res) => {
                         Alert.toast(res.status,res.message);
                         if(res.status == 'success'){
+                            loadTripBlock(batch);
                         }
                     })
                     .catch((error) => {

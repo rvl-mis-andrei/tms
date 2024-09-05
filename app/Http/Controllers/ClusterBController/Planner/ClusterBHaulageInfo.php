@@ -30,7 +30,9 @@ class ClusterBHaulageInfo extends Controller
     {
         try{
             $id = Crypt::decrypt($rq->id);
-            $query = TmsHaulageBlock::with('block_unit')->where([['batch',$rq->batch],['haulage_id',$id],['is_deleted',null]])->get();
+            $query = TmsHaulageBlock::with(['block_unit'=> function($query) {
+                $query->orderBy('unit_order', 'asc');
+            }])->where([['batch',$rq->batch],['haulage_id',$id],['is_deleted',null]])->get();
             $array = [];
             if($query){
                 foreach($query as $data){
@@ -103,7 +105,9 @@ class ClusterBHaulageInfo extends Controller
                             'status'=>$data->status,
                         ];
                     }
-                    $array[$dealer->code][]=$unit;
+                    // $array[$dealer->code][]=$unit;
+                    $array[$dealer->code]['unit'][] = $unit;
+                    $array[$dealer->code]['hub'] = $data->hub;
                 }
             }
             $payload = base64_encode(json_encode($array));
@@ -318,28 +322,44 @@ class ClusterBHaulageInfo extends Controller
     {
         try{
             DB::beginTransaction();
-
-            $haulage_id = Crypt::decrypt($rq->haulage_id);
-            $block_id = $rq->block_id!=null?Crypt::decrypt($rq->block_id):null;
-            $unit_id = Crypt::decrypt($rq->unit_id);
-            $status = $rq->status;
             $user_id = Auth::user()->emp_id;
+            $units = json_decode($rq->units,true);
+            $units_arr = [];
 
-            $query = TmsHaulageBlockUnit::find($unit_id);
-            $query->block_id = $block_id;
-            $query->haulage_id = $haulage_id;
-            $query->status = $status;
-            $query->updated_by = $user_id;
-            $query->unit_order = isset($rq->unit_order)?$rq->unit_order:null;
-            $query->save();
+            foreach($units as $data){
+                $haulage_id = Crypt::decrypt($data['haulage_id']);
+                $block_id = $data['block_id']!=null?Crypt::decrypt($data['block_id']):null;
+                $car_model_id = Crypt::decrypt($data['unit_id']);
+                $status = $data['status'];
+                $unit_order = isset($data['unit_order'])?$data['unit_order']:null;
 
-            $payload = base64_encode(json_encode([
-                'dealer_code'=>$query->dealer->code,
-                'inspection_time'=>$query->inspected_start?date('m/d/Y',strtotime($query->inspected_start)):'--',
-                'hub'=>$query->hub,
-                'remarks'=>$query->remarks??'--',
-            ]));
+                $query = TmsHaulageBlockUnit::find($car_model_id);
 
+                // Re-assign unit order
+                if($unit_order){
+                    $temp_query = TmsHaulageBlockUnit::where([['block_id',$block_id],['unit_order',$unit_order],['car_model_id','!=',$car_model_id]])->first();
+                    if($temp_query){
+                        $temp_query->unit_order = $query->unit_order;
+                        $temp_query->save();
+                    }
+                }
+
+                $query->block_id = $block_id;
+                $query->haulage_id = $haulage_id;
+                $query->status = $status;
+                $query->updated_by = $user_id;
+                $query->unit_order = $unit_order;
+                $query->save();
+
+                $units_arr[]=[
+                    'dealer_code'=>$query->dealer->code,
+                    'inspection_time'=>$query->inspected_start?date('m/d/Y',strtotime($query->inspected_start)):'--',
+                    'hub'=>$query->hub,
+                    'remarks'=>$query->remarks??'--',
+                ];
+            }
+
+            $payload = base64_encode(json_encode($units_arr));
             DB::commit();
             return response()->json([
                 'status' => 'success',
@@ -361,7 +381,7 @@ class ClusterBHaulageInfo extends Controller
             $haulage_id = Crypt::decrypt($rq->id);
             $user_id = Auth::user()->emp_id;
 
-            TmsHaulageBlock::where([['haulage_id',$haulage_id],['is_deleted',null],['status',1]])
+            TmsHaulageBlock::where([['haulage_id',$haulage_id],['is_deleted',null],['status',1],['batch',$rq->batch]])
             ->update([
                 'status'=>2,
                 'updated_by'=>$user_id,
@@ -448,7 +468,6 @@ class ClusterBHaulageInfo extends Controller
             $haulage_id = Crypt::decrypt($rq->id);
             $block_id = Crypt::decrypt($rq->block_id);
             $user_id = Auth::user()->emp_id;
-            // dd($block_id,$haulage_id,$rq->batch);
             TmsHaulageBlock::where([['batch',$rq->batch],['haulage_id',$haulage_id],['id',$block_id]])->update([
                 'is_deleted'=>1,
                 'deleted_by'=>$user_id,
@@ -499,7 +518,6 @@ class ClusterBHaulageInfo extends Controller
                 'deleted_by' => Auth::user()->emp_id,
             ]);
             $result = (new HaulageList)->reupload_masterlist($rq);
-            // dd($result);
             if ($result['status'] != 'success') {  return response()->json($result); }
             DB::commit();
             return self::masterlist($rq);

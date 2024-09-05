@@ -177,7 +177,7 @@
                                             <li class="breadcrumb-item text-gray-500 mx-n1">
                                                 Overview </li>
                                         </ul>
-                                        <h1 class="page-heading d-flex flex-column justify-content-center text-dark fw-bolder fs-3 m-0">
+                                        <h1 class="page-heading d-flex flex-column justify-content-center text-dark fw-bolder fs-3 m-0 page_title text-capitalize">
                                             eCommerce Dashboard
                                         </h1>
                                     </div>

@@ -10,13 +10,13 @@
                                 <span class="menu-bullet d-flex align-items-center me-2">
                                     <span class="bullet bg-success"></span>
                                 </span>
-                                Units : 250
+                                Units : <span class="unit-count">0</span>
                             </div>
                             <div class="d-flex align-items-center">
                                 <span class="menu-bullet d-flex align-items-center me-2">
                                     <span class="bullet bg-primary"></span>
                                 </span>
-                                Trips : 50
+                                Trips : <span class="trip-count">0</span>
                             </div>
                         </div>
                     </div>
@@ -82,11 +82,11 @@
                         </li>
                     </ul>
                     <div class="card-toolbar">
-                        <button class="btn btn-sm btn-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                        <button class="btn btn-sm btn-light-primary more-actions" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
                             Actions
                             <i class="ki-duotone ki-down ms-1"></i>
                         </button>
-                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-4"
+                        <div class="menu menu-sub  more-actions-menu menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-4"
                             data-kt-menu="true">
                             <div class="menu-item px-3">
                                 <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
@@ -127,12 +127,6 @@
                                         </a>
                                     </div>
                                 @endif
-                            @else
-                                <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#modal_add_dealer_unit">
-                                        Export Hauling Plan
-                                    </a>
-                                </div>
                             @endif
                         </div>
                     </div>
