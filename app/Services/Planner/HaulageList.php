@@ -156,7 +156,6 @@ class HaulageList
             DB::beginTransaction();
             $filename = Str::random(10) . '.' . $rq->file($folder)->getClientOriginalExtension();
             $filePath = $rq->file($folder)->storeAs($folder, $filename, 'public');
-            dd(Storage::disk('public')->exists($filePath));
             if (Storage::disk('public')->exists($filePath)) {
                 $id    = Crypt::decrypt($rq->id);
                 $query = TmsHaulage::find($id);

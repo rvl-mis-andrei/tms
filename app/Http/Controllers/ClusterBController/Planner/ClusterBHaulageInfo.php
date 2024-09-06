@@ -134,6 +134,7 @@ class ClusterBHaulageInfo extends Controller
 
             $class         = new Phpspreadsheet;
             [$sheet,$highestRow] = $class->read($rq->file('masterlist')->getRealPath(),true,true,'RVL');
+            dd($sheet);
             $cluster_id    = Auth::user()->emp_cluster->cluster_id;
             $dealer_arr    = TmsClientDealership::all()->pluck('id', 'code')->toArray();
             $car_model_arr = TmsClusterCarModel::where('cluster_id',$cluster_id)->get()->pluck('id', 'car_model')->toArray();
