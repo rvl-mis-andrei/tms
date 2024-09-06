@@ -55,7 +55,7 @@ class DispatcherPageController extends Controller
         $page = new DispatcherPage;
         $rq->session()->put("clusterb_page",$rq->page);
         $view = $rq->session()->get("clusterb_page", "dashboard");
-        $role    = Auth::user()->user_roles->role->name;
+        $role    = strtolower(Auth::user()->user_roles->role->name);
 
         switch($view){
 

@@ -12,6 +12,7 @@ use App\Services\Dispatcher\ClientList;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix'=>'cco-b/dispatcher'], function() {
+    // Route::group(['prefix'=>'tms/cco-b/dispatcher'], function() {
 
     Route::middleware('auth')->group(function () {
 
