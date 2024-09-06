@@ -55,7 +55,7 @@ class PlannerPageController extends Controller
         $page = new PlannerPage;
         $rq->session()->put("clusterb_page",$rq->page);
         $view = $rq->session()->get("clusterb_page", "dashboard");
-        $role    = Auth::user()->user_roles->role->name;
+        $role    = strtolower(Auth::user()->user_roles->role->name);
         switch($view){
 
             case 'hauling_plan_info':
