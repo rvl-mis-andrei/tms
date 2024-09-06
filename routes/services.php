@@ -16,7 +16,7 @@ use App\Services\TractorOption;
 use App\Services\TrailerOption;
 use Illuminate\Support\Facades\Route;
 
-Route::group(['prefix'=>'tms/services'], function() {
+Route::group(['prefix'=>'services'], function() {
 
     Route::controller(ClusterClientList::class)->prefix('client')->group(function() {
         Route::post('/datatable', 'datatable');
