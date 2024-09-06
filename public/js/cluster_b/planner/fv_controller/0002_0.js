@@ -90,6 +90,7 @@ export function fvHaulingPlan(){
                                 (new RequestHandler).post(form_url,formData).then((res) => {
                                     Alert.toast(res.status,res.message);
                                     if(res.status == 'success' && form_url!='/services/haulage/create'){
+                                        modal_state(modal_id)
                                         form.reset();
                                     }
                                     fvHaulingPlan.resetForm();

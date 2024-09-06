@@ -142,7 +142,8 @@ export async function HaulingPlanDT() {
             $('input[name="name"]').val(data.name);
             $('textarea[name="remarks"]').val(data.remarks);
             $('select[name="status"]').val(data.status).trigger('change');
-
+            $('select[name="plan_type"]').val(data.plan_type).trigger('change');
+           
             document.querySelector("#planning_date")._flatpickr.setDate(new Date(data.planning_date),true);
 
             $('.modal_title').text('Edit Hauling Plan Details');
