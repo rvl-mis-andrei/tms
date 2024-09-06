@@ -187,7 +187,6 @@ class HaulageList
             $query = TmsHaulage::find($id);
             $query->filenames = null;
             $query->save();
-            dd($query);
 
             DB::commit();
             return ['status'=>'success','message' =>'Masterlist is removed'];
