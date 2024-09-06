@@ -9,8 +9,8 @@ export class DataTableHelper {
         this.wrapper = wrapper;
         this.table = null;
     }
-
     initTable(url, parameters, columns, columnDefs, orderByColumn) {
+
         $.fn.dataTable.Api.register('column().title()', function() {
             return $(this.header()).text().trim();
         });

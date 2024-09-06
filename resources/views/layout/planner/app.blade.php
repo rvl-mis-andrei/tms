@@ -202,6 +202,7 @@
             var asset_url = $('meta[name="asset-url"]').attr("content");
             var csrf_token = $('meta[name="csrf-token"]').attr("content");
             var app = $("#Page");
+            var BASE_URL = window.location.host;
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }});
         </script><script src="{{ asset('assets/plugins/custom/formrepeater/formrepeater.bundle.js') }}"></script>
         <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
