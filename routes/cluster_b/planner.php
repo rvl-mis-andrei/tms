@@ -6,7 +6,7 @@ use App\Http\Controllers\ClusterBController\Planner\ClusterBHaulageInfo;
 use App\Http\Controllers\ClusterBController\PlannerPageController;
 use Illuminate\Support\Facades\Route;
 
-Route::group(['prefix'=>'tms/cco-b/planner'], function() {
+Route::group(['prefix'=>'cco-b/planner'], function() {
 
     Route::middleware('auth')->group(function () {
 
