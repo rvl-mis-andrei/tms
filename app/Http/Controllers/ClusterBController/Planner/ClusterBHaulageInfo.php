@@ -18,6 +18,7 @@ use App\Models\TmsHaulageBlockUnit;
 use App\Services\Phpspreadsheet;
 use App\Services\Planner\HaulageList;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class ClusterBHaulageInfo extends Controller
 {
@@ -130,11 +131,11 @@ class ClusterBHaulageInfo extends Controller
             $haulage_id = Crypt::decrypt($rq->id);
 
             $result = (new HaulageList)->move_file($rq,'masterlist');
-            if ($result['status'] != 'success') {  return response()->json($result); }
+            if ($result['status'] != 'success' && $result['payload']) {  return response()->json($result); }
 
             $class         = new Phpspreadsheet;
-            [$sheet,$highestRow] = $class->read($rq->file('masterlist')->getRealPath(),true,true,'RVL');
-            dd($sheet);
+            [$sheet,$highestRow] = $class->read($result['payload'],true,true,'RVL');
+
             $cluster_id    = Auth::user()->emp_cluster->cluster_id;
             $dealer_arr    = TmsClientDealership::all()->pluck('id', 'code')->toArray();
             $car_model_arr = TmsClusterCarModel::where('cluster_id',$cluster_id)->get()->pluck('id', 'car_model')->toArray();
@@ -201,10 +202,10 @@ class ClusterBHaulageInfo extends Controller
             DB::beginTransaction();
 
             $result = (new HaulageList)->move_file($rq);
-            if ($result['status'] != 'success') {  return response()->json($result); }
+            if ($result['status'] != 'success' && $result['payload']) {  return response()->json($result); }
 
             $class  = new Phpspreadsheet;
-            [$sheet,$highestRow] = $class->read($rq->file('hauling_plan')->getRealPath(),false,true,'PDI');
+            [$sheet,$highestRow] = $class->read($result['payload'],false,true,'PDI');
 
             $haulage_id    = Crypt::decrypt($rq->id);
             $cluster_id    = Auth::user()->emp_cluster->cluster_id;

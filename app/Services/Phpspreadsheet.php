@@ -3,18 +3,21 @@
 namespace App\Services;
 
 use DateTime;
+use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 class Phpspreadsheet
 {
     public function read($filePath,$is_readonly,$is_reademptycells,$sheet)
     {
-        $file_type = \PhpOffice\PhpSpreadsheet\IOFactory::identify($filePath);
+        $fullPath = Storage::disk('public')->path($filePath);
+        $file_type = \PhpOffice\PhpSpreadsheet\IOFactory::identify($fullPath);
+
         $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($file_type);
-        $reader = self::validate_sheets($reader,$sheet,$filePath,$file_type);
+        $reader = self::validate_sheets($reader,$sheet,$fullPath,$file_type);
         $reader->setReadDataOnly($is_readonly);
         $reader->setReadEmptyCells($is_reademptycells);
-        $spreadsheet = $reader->load($filePath);
+        $spreadsheet = $reader->load($fullPath);
         $spreadsheet->getCalculationEngine()->setCalculationCacheEnabled(false);
         unset($reader);
         $spreadsheet = $spreadsheet->getActiveSheet();

@@ -156,6 +156,7 @@ class HaulageList
             DB::beginTransaction();
             $filename = Str::random(10) . '.' . $rq->file($folder)->getClientOriginalExtension();
             $filePath = $rq->file($folder)->storeAs($folder, $filename, 'public');
+
             if (Storage::disk('public')->exists($filePath)) {
                 $id    = Crypt::decrypt($rq->id);
                 $query = TmsHaulage::find($id);
@@ -170,7 +171,7 @@ class HaulageList
                 $query->filenames = json_encode($files);
                 $query->save();
                 DB::commit();
-                return ['status'=>'success','message' =>'success'];
+                return ['status'=>'success','message' =>'success','payload'=>$filePath];
             }else{
 
             }
