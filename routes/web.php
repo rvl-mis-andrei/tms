@@ -6,7 +6,8 @@ use App\Http\Controllers\DispatcherController\Login\Auth as DispatcherLoginContr
 
 //CCO-B ACCESS ROUTE
 Route::get('/', function(){
-    return asset('assets');
+    echo asset('assets');
+    echo url('assets');
 });
 
 Route::group(['prefix'=>'cco-b'], function() {
