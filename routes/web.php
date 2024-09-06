@@ -5,11 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DispatcherController\Login\Auth as DispatcherLoginController;
 
 //CCO-B ACCESS ROUTE
-Route::get('/', function(){
-    echo asset('assets');
-    echo url('assets');
-});
-
 Route::group(['prefix'=>'cco-b'], function() {
 
     Route::controller(AccessController::class)->group(function () {
