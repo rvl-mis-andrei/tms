@@ -14,9 +14,14 @@ export function HaulingPlanInfoController(page,param){
     var block_number = 0;
     var hauling_list = $('.hauling_list');
     var empty_hauling_list = $('.empty_hauling_list');
+    let blockUicard = document.querySelector(`#Page`);
+    let blockUI = new KTBlockUI(blockUicard, {
+        message: '<div class="blockui-message"><span class="spinner-border text-primary"></span> Loading...</div>',
+    });
 
     function loadTripBlock(batch=1)
     {
+        blockUI.block();
         let formData = new FormData();
         formData.append('id',param)
         formData.append('batch',batch)
@@ -29,7 +34,6 @@ export function HaulingPlanInfoController(page,param){
                     $('.finalize-notif').empty().addClass('d-none');
                     if(payload.length >0){
                         payload.forEach(function(item,key) {
-                            console.log(item)
                             tbody = '';
                             item.block_units.forEach(function(units) {
                                 tbody+=`<tr data-original-table="tbl_${units.dealer_code}_${units.hub}" data-type="forAllocation" data-id="${units.encrypted_id}">
@@ -159,7 +163,9 @@ export function HaulingPlanInfoController(page,param){
                 Alert.alert('error',"Something went wrong. Try again later", false);
             })
             .finally(() => {
-                // code here
+                setTimeout(function() {
+                    blockUI.release();
+                }, 500);
             });
         })
     }
@@ -277,7 +283,6 @@ export function HaulingPlanInfoController(page,param){
                     let payload = JSON.parse(window.atob(res.payload));
                     if(payload.length >0){
                         payload.forEach(function(item) {
-                            console.log(payload.length)
                             let html =`<div class="card mb-10" data-block="${item.block_number}">
                                     <div class="card-header collapsible">
                                         <span class="card-title"><h6>Trip Block #${item.block_number}</h6></span>
@@ -405,7 +410,6 @@ export function HaulingPlanInfoController(page,param){
                     let currentTableId = evt.to.closest('table').id;
 
                     let cells = item.getElementsByClassName('remove-cell');
-                    console.log(item)
                     if (evt.to.getAttribute('data-type') === 'planning' && item.getAttribute('data-type') === 'forAllocation') {
                         let itemData = {
                             haulage_id: param,
@@ -556,6 +560,7 @@ export function HaulingPlanInfoController(page,param){
 
     $(document).ready(function(e){
 
+
         loadTripBlock().then(()=>{
             fvHaulingPlanInfo(param)
             loadForAllocation('svc')
@@ -569,7 +574,6 @@ export function HaulingPlanInfoController(page,param){
             e.stopImmediatePropagation()
             let tab = $(this);
             let hub = tab.attr('data-hub');
-            loadForAllocation(hub)
         })
 
         _page.on('change','select[name="batch"]',function(e){
@@ -683,7 +687,6 @@ export function HaulingPlanInfoController(page,param){
                 },
             });
         })
-
 
     })
 

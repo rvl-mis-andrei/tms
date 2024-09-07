@@ -11,6 +11,11 @@ export function fvHaulingPlanInfo(param){
         var _handlefvMasterList = function(){
             let form = document.querySelector("#form_masterlist");
             let modal_id = form.getAttribute('modal-id');
+            let modalContent = document.querySelector(`${modal_id} .modal-content`);
+            let blockUI = new KTBlockUI(modalContent, {
+                message: '<div class="blockui-message"><span class="spinner-border text-primary"></span> Loading...</div>',
+            });
+
             let fvMasterPlan = FormValidation.formValidation(form, {
                 fields: {
                     masterlist: {
@@ -71,20 +76,25 @@ export function fvHaulingPlanInfo(param){
 
                 let btn_submit = $(this);
                 let form_url = form.getAttribute('action');
+
                 fvMasterPlan && fvMasterPlan.validate().then(function (v) {
                     if(v == "Valid"){
                         Alert.confirm("question","Submit this form?", {
                             onConfirm: function() {
+
+                                blockUI.block();
+
                                 let formData = new FormData(form);
                                 btn_submit.attr("data-kt-indicator","on");
                                 btn_submit.attr("disabled",true);
                                 formData.append('batch',$('select[name="batch"]').val())
                                 if(param) { formData.append('id',param) }
                                 (new RequestHandler).post(form_url,formData,true).then((res) => {
+                                    Alert.toast(res.status,res.message)
                                     if(res.status == 'success'){
-                                        Alert.toast(res.status,res.message)
                                         form.reset()
                                         fvMasterPlan.resetForm()
+                                        $('.nav-tab.active').click()
                                         modal_state(modal_id)
                                     }else {
                                         Alert.alert('error',res.message, false)
@@ -97,6 +107,7 @@ export function fvHaulingPlanInfo(param){
                                 .finally(() => {
                                     btn_submit.attr("data-kt-indicator","off");
                                     btn_submit.attr("disabled",false);
+                                    blockUI.release();
                                 });
                             },
                             onCancel: () => {
@@ -112,6 +123,12 @@ export function fvHaulingPlanInfo(param){
         var _handlefvHaulingPlan = function(){
             let form = document.querySelector("#form_hauling_plan");
             let modal_id = form.getAttribute('modal-id');
+
+            let modalContent = document.querySelector(`${modal_id} .modal-content`);
+            let blockUI = new KTBlockUI(modalContent, {
+                message: '<div class="blockui-message"><span class="spinner-border text-primary"></span> Loading...</div>',
+            });
+
             let fvFinalHaulingPlan = FormValidation.formValidation(form, {
                 fields: {
                     hauling_plan: {
@@ -177,6 +194,7 @@ export function fvHaulingPlanInfo(param){
                     if(v == "Valid"){
                         Alert.confirm("question","Submit this form?", {
                             onConfirm: function() {
+                                blockUI.block();
                                 let formData = new FormData(form);
                                 formData.append('batch',$('select[name="batch"]').val())
                                 btn_submit.attr("data-kt-indicator","on")
@@ -185,10 +203,12 @@ export function fvHaulingPlanInfo(param){
                                     formData.append('id',param)
                                 }
                                 (new RequestHandler).post(form_url,formData,true).then((res) => {
+                                    Alert.toast(res.status,res.message)
                                     if(res.status == 'success'){
-                                        Alert.toast(res.status,res.message)
                                         form.reset()
                                         fvFinalHaulingPlan.resetForm()
+                                        $('select[name="batch"]').trigger('change');
+                                        $('.nav-tab.active').click()
                                         modal_state(modal_id)
                                     }else {
                                         Alert.alert('error',res.message, false)
@@ -201,6 +221,7 @@ export function fvHaulingPlanInfo(param){
                                 .finally(() => {
                                     btn_submit.attr("data-kt-indicator","off")
                                     btn_submit.attr("disabled",false)
+                                    blockUI.release();
                                 });
                             },
                             onCancel: () => {
@@ -216,6 +237,12 @@ export function fvHaulingPlanInfo(param){
         var _handlefvNewUnit = function(){
             let form = document.querySelector("#form_new_unit");
             let modal_id = form.getAttribute('modal-id');
+
+            let modalContent = document.querySelector(`${modal_id} .modal-content`);
+            let blockUI = new KTBlockUI(modalContent, {
+                message: '<div class="blockui-message"><span class="spinner-border text-primary"></span> Loading...</div>',
+            });
+
             let fvNewUnit = FormValidation.formValidation(form, {
                 fields: {
                     'invoice_date': {
@@ -270,6 +297,7 @@ export function fvHaulingPlanInfo(param){
                     if(v == "Valid"){
                         Alert.confirm("question","Submit this form?", {
                             onConfirm: function() {
+                                blockUI.block();
                                 btn_submit.attr("data-kt-indicator","on");
                                 btn_submit.attr("disabled",true);
                                 let formData = new FormData(form);
@@ -289,6 +317,7 @@ export function fvHaulingPlanInfo(param){
                                 .finally(() => {
                                     btn_submit.attr("data-kt-indicator","off");
                                     btn_submit.attr("disabled",false);
+                                    blockUI.release();
                                 });
                             },
                             onCancel: () => {

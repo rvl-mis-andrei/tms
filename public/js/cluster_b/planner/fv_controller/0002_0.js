@@ -12,6 +12,11 @@ export function fvHaulingPlan(){
             let page = $('.hauling_plan');
             let form = document.querySelector("#form");
             let modal_id = form.getAttribute('modal-id');
+            let modalContent = document.querySelector(`${modal_id} .modal-content`);
+            let blockUI = new KTBlockUI(modalContent, {
+                message: '<div class="blockui-message"><span class="spinner-border text-primary"></span> Loading...</div>',
+            });
+
             let fvHaulingPlan = FormValidation.formValidation(form, {
                 fields: {
                     'name': {
@@ -85,6 +90,7 @@ export function fvHaulingPlan(){
                     if(v == "Valid"){
                         Alert.confirm("question","Submit this form?", {
                             onConfirm: function() {
+                                blockUI.block();
                                 let formData = new FormData(form);
                                 if(btn_submit.attr('data-id').length > 0) {
                                     formData.append('id',btn_submit.attr('data-id'));
@@ -105,6 +111,7 @@ export function fvHaulingPlan(){
                                     btn_submit.attr("data-kt-indicator","off");
                                     btn_submit.attr("disabled",false);
                                     $("#hauling_plan_table").DataTable().ajax.reload(null, false);
+                                    blockUI.release();
                                 });
                             },
                             onCancel: () => {
