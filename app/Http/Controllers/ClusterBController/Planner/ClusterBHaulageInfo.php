@@ -504,10 +504,10 @@ class ClusterBHaulageInfo extends Controller
     public function remove_unit(Request $rq)
     {
         try{
+            $id = Crypt::decrypt($rq->unit_id);
             $haulage_id = Crypt::decrypt($rq->id);
-            $unit_id = Crypt::decrypt($rq->unit_id);
             $user_id = Auth::user()->emp_id;
-            TmsHaulageBlockUnit::where([['car_model_id',$unit_id],['haulage_id',$haulage_id]])->update([
+            TmsHaulageBlockUnit::where([['id',$id],['haulage_id',$haulage_id]])->update([
                 'is_deleted'=>1,
                 'deleted_by'=>$user_id,
                 'deleted_at'=>Carbon::now()
