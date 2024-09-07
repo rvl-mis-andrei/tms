@@ -574,6 +574,7 @@ export function HaulingPlanInfoController(page,param){
             e.stopImmediatePropagation()
             let tab = $(this);
             let hub = tab.attr('data-hub');
+            loadForAllocation(hub)
         })
 
         _page.on('change','select[name="batch"]',function(e){
