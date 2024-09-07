@@ -133,6 +133,24 @@ class HaulageList
         }
     }
 
+    public function update_status(Request $rq)
+    {
+        try{
+            DB::beginTransaction();
+            $id = Crypt::decrypt($rq->haulage_id);
+            $query = TmsHaulage::find($id);
+            $query->status = $rq->status;
+            $query->updated_by = Auth::user()->emp_id;
+            $query->save();
+
+            DB::commit();
+            return ['status'=>'success','message' =>'Hauling plan details is updated'];
+        }catch(Exception $e){
+            DB::rollback();
+            return response()->json([ 'status' => 400,  'message' =>  $e->getMessage() ]);
+        }
+    }
+
     public function delete(Request $rq)
     {
         try{

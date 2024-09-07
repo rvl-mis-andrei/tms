@@ -82,6 +82,7 @@ Route::group(['prefix'=>'services'], function() {
         Route::post('/validate','validate');
 
         Route::post('/info','info');
+        Route::post('/update_status','update_status');
     });
 
 

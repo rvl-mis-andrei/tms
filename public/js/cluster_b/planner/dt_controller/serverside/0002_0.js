@@ -69,7 +69,7 @@ export async function HaulingPlanDT() {
                             <div class="menu-item px-3">
                                 <label class="form-check form-switch form-check-custom form-check-solid">
                                     <span class="form-check-label fw-bold text-muted me-2">Status</span>
-                                    <input class="form-check-input group_status" type="checkbox" data-id="${data}">
+                                    <input class="form-check-input update_status" type="checkbox" data-id="${data}" rq-url="/services/haulage/update_status">
                                 </label>
                             </div>`:''
                             }
@@ -171,6 +171,28 @@ export async function HaulingPlanDT() {
         })
         .finally(() => {
             modal_state(modal_id,'show');
+        });
+    })
+
+    page.on('change','.update_status',function(e){
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        let formData = new FormData();
+        let data_id = $(this).attr('data-id');
+        let url = $(this).attr('rq-url');
+        let status = $(this).is(':checked')?1:2;
+        formData.append('haulage_id',data_id);
+        formData.append('status',status);
+
+        (new RequestHandler).post(url,formData).then((res) => {
+            Alert.toast(res.status,res.message);
+        })
+        .catch((error) => {
+            console.log(error)
+            Alert.alert('error',"Something went wrong. Try again later", false);
+        })
+        .finally(() => {
+            $("#hauling_plan_table").DataTable().ajax.reload(null, false);
         });
     })
 
