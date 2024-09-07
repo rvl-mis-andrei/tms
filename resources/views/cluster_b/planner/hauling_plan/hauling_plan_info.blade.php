@@ -103,7 +103,7 @@
                         <li class="nav-item" role="presentation">
                             <a class="nav-link btn btn-color-muted border-0 h-100 px-0 active nav-tab" data-bs-toggle="pill" data-hub="svc" href="#tab_content_1" aria-selected="true" role="tab">
                                 <span class="nav-text fw-bold fs-4 mb-3">
-                                    SVC (<span class="svc-count">0</span>)
+                                    SVC <span class="svc-count d-none">0</span>
                                 </span>
                                 <span class="bullet-custom position-absolute z-index-2 w-100 h-2px top-100 bottom-n100 bg-primary rounded"></span>
                             </a>
@@ -111,7 +111,7 @@
                         <li class="nav-item " role="presentation">
                             <a class="nav-link btn btn-color-muted border-0 h-100 px-0 nav-tab"  data-hub="bvc"  data-bs-toggle="pill" href="#tab_content_2" aria-selected="false" role="tab" tabindex="-1">
                                 <span class="nav-text fw-bold fs-4 mb-3">
-                                    BVC (<span class="bvc-count">0</span>)
+                                    BVC <span class="bvc-count d-none">0</span>
                                 </span>
                                 <span class="bullet-custom position-absolute z-index-2 w-100 h-2px top-100 bottom-n100 bg-primary rounded"></span>
                             </a>

@@ -242,7 +242,7 @@ export function HaulingPlanInfoController(page,param){
                         })
                         $(`.${hub}_content`).removeClass('d-none');
                         $(`.empty_${hub}`).addClass('d-none');
-                        $(`.${hub}-count`).text(Object.keys(payload).length);
+                        $(`.${hub}-count`).text('('+Object.keys(payload).length+')').removeClass('d-none');
                     }else{
                         $(`.${hub}_content`).addClass('d-none').empty();
                         $(`.empty_${hub}`).removeClass('d-none');
