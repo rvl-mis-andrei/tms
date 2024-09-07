@@ -65,6 +65,8 @@ export function fvHaulingPlan(){
                         $('#form').attr('action','/services/haulage/create');
                         $('.submit').attr('data-id','');
                         $('.modal_title').text('New Hauling Plan');
+                        $('select[name="plan_type"]').prop('disabled',false);
+                        $('input[name="planning_date"]').prop('disabled',false);
                     }
                 })
             })

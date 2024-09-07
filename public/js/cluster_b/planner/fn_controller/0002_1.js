@@ -26,8 +26,10 @@ export function HaulingPlanInfoController(page,param){
                     let payload = JSON.parse(window.atob(res.payload));
                     let html = '',tbody='', isAllBlockFinal = false,tripBlockCount=0,trpBlockUnit=0;
                     hauling_list.empty();
+                    $('.finalize-notif').empty().addClass('d-none');
                     if(payload.length >0){
                         payload.forEach(function(item,key) {
+                            console.log(item)
                             tbody = '';
                             item.block_units.forEach(function(units) {
                                 tbody+=`<tr data-original-table="tbl_${units.dealer_code}_${units.hub}" data-type="forAllocation" data-id="${units.encrypted_id}">
@@ -60,17 +62,7 @@ export function HaulingPlanInfoController(page,param){
                                                             More Actions
                                                         </div>
                                                     </div>
-
-                                                    <div class="menu-item px-3">
-                                                        <a href="#" class="menu-link px-3 add-row">
-                                                            Add Rows
-                                                        </a>
-                                                    </div>
-                                                    <div class="menu-item px-3">
-                                                        <a href="#" class="menu-link px-3 delete-row">
-                                                            Delete Rows
-                                                        </a>
-                                                    </div>
+                                                    <div class="separator my-2 opacity-75"></div>
                                                     <div class="menu-item px-3">
                                                         <a href="#" class="menu-link px-3 text-danger remove-block" data-id="${item.encrypted_id}">
                                                             Remove Block
@@ -86,7 +78,7 @@ export function HaulingPlanInfoController(page,param){
                                     <div id="trip_block_${item.block_number}" class="collapse show">
                                         <div class="card-body pt-0">
                                             <div class="table-responsive">
-                                                <table class="table align-middle gy-5 table-sm" id="tbl_block_${item.block_number}" data-type="planning" data-id="${item.encrypted_id}">
+                                                <table class="table table-row-bordered align-middle gy-5 table-sm" id="tbl_block_${item.block_number}" data-type="planning" data-id="${item.encrypted_id}">
                                                     <thead>
                                                         <tr class=" fw-bold fs-8 text-uppercase gs-0">
                                                             <th>Dealer</th>
@@ -123,6 +115,22 @@ export function HaulingPlanInfoController(page,param){
                             $('.finalize-plan').addClass('d-none');
                             $('.add-block').addClass('d-none');
                             $('.more-actions').addClass('d-none');
+                            if($('.complete-haulage').length <= 0){
+                                $('.complete-haulage').remove();
+                                $('.finalize-notif').html(
+                                    `<div class="alert alert-dismissible bg-light-primary d-flex flex-column flex-sm-row p-5 mb-5 complete-haulage">
+                                        <i class="ki-duotone ki-notification-bing fs-2hx text-primary me-4 mb-5 mb-sm-0"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                                        <div class="d-flex flex-column pe-0 pe-sm-10">
+                                            <h4 class="fw-semibold">Batch ${batch} Finalize</h4>
+                                            <span>This is to notify you that the hauling plan batch ${batch} is finalize.</span>
+                                        </div>
+
+                                        <button type="button" class="position-absolute position-sm-relative m-2 m-sm-0 top-0 end-0 btn btn-icon ms-sm-auto" data-bs-dismiss="alert">
+                                            <i class="ki-duotone ki-cross fs-1 text-primary"><span class="path1"></span><span class="path2"></span></i>
+                                        </button>
+                                    </div>`
+                                ).removeClass('d-none');
+                            }
                         }else{
                             $('.finalize-plan').removeClass('d-none');
                             $('.add-block').removeClass('d-none');
@@ -140,6 +148,106 @@ export function HaulingPlanInfoController(page,param){
                     $('.haulage_info_page').removeClass('d-none')
                     $('.unit-count').text(trpBlockUnit)
                     $('.trip-count').text(tripBlockCount)
+                    KTComponents.init()
+                    data_bs_components()
+                    resolve(true);
+                }
+            })
+            .catch((error) => {
+                console.log(error)
+                resolve(false);
+                Alert.alert('error',"Something went wrong. Try again later", false);
+            })
+            .finally(() => {
+                // code here
+            });
+        })
+    }
+
+    function loadForAllocation(hub='svc'){
+        let formData = new FormData();
+        formData.append('id',param)
+        formData.append('hub',hub)
+        return new Promise((resolve, reject) => {
+            (new RequestHandler).post('/tms/cco-b/planner/haulage_info/for_allocation',formData).then((res) => {
+                if(res.status == 'success'){
+                    let payload = JSON.parse(window.atob(res.payload));
+                    let html = '',accordion=0, isFinal=false;
+
+                    if(Object.keys(payload).length){
+                        $(`.${hub}_content`).empty();
+                        $(`.for_allocation`).empty();
+                        Object.keys(payload).forEach(function(key) {
+                            let tbody = '';
+                            accordion++;
+                            payload[key].unit.forEach(function(item) {
+                                if(item.encrypted_id){
+                                    tbody+=`<tr data-id="${item.encrypted_id}">
+                                        <td>${item.cs_no}</td>
+                                        <td>${item.model}</td>
+                                        <td>${item.color_description}</td>
+                                        <td>${item.invoice_date}</td>
+                                        <td>${item.updated_location}</td>
+                                        <td class="remove-cell">
+                                           <a href="javascript:;" class="btn btn-icon btn-color-gray-500 btn-active-color-danger justify-content-end remove-unit"
+                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Remove unit" data-id="${item.encrypted_id}" rq-url="/tms/cco-b/planner/haulage_info/remove_unit">
+					                            <i class="ki-duotone ki-trash-square fs-1">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                    <span class="path4"></span>
+                                                </i>
+                                            </a>
+                                        </td>
+                                    </tr>`;
+                                }
+                            })
+                            html=`<div class="accordion" id="kt_accordion_${accordion}">
+                                    <div class="accordion-item rounded-0">
+                                        <h2 class="accordion-header rounded-0" id="accordion_${key}">
+                                            <button class="accordion-button fs-4 fw-semibold rounded-0 collapsed" type="button"
+                                                data-bs-toggle="collapse" data-bs-target="#kt_accordion_${accordion}_body_${accordion}"
+                                                aria-expanded="true" aria-controls="kt_accordion_${accordion}_body_${accordion}">
+                                                ${key}
+                                                <span class="badge badge-light-success ms-2">Allocated : ${payload[key].allocated}</span>
+                                                <span class="badge badge-light-primary ms-2">Unallocated : ${payload[key].unallocated}</span>
+                                            </button>
+                                        </h2>
+                                        <div id="kt_accordion_${accordion}_body_${accordion}" class="accordion-collapse collapse"
+                                            aria-labelledby="accordion_${key}" data-bs-parent="#kt_accordion_${accordion}">
+                                            <div class="accordion-body">
+                                                <div class="table-responsive">
+                                                    <table class="table table-row-bordered align-middle gy-5 table-sm" id="tbl_${key}_${payload[key].hub}" data-type="forAllocation">
+                                                        <thead class="">
+                                                            <tr class=" fw-bold fs-8 text-uppercase gs-0">
+                                                                <th class="">Cs No.</th>
+                                                                <th class="">Model</th>
+                                                                <th class="">Color</th>
+                                                                <th class="">Invoice</th>
+                                                                <th class="">Location</th>
+                                                                <th class="">Action</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="fs-8 fw-semibold text-gray-600 cursor-pointer" data-type="forAllocation">
+                                                            ${tbody}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>`;
+                            $(`.${hub}_content`).append(html);
+                            initSortableAllocation(`tbl_${key}_${payload[key].hub}`)
+                        })
+                        $(`.${hub}_content`).removeClass('d-none');
+                        $(`.empty_${hub}`).addClass('d-none');
+                        $(`.${hub}-count`).text(Object.keys(payload).length);
+                    }else{
+                        $(`.${hub}_content`).addClass('d-none').empty();
+                        $(`.empty_${hub}`).removeClass('d-none');
+                    }
+
                     KTComponents.init()
                     data_bs_components()
                     resolve(true);
@@ -186,17 +294,7 @@ export function HaulingPlanInfoController(page,param){
                                                             More Actions
                                                         </div>
                                                     </div>
-
-                                                    <div class="menu-item px-3">
-                                                        <a href="#" class="menu-link px-3 add-rows">
-                                                            Add Rows
-                                                        </a>
-                                                    </div>
-                                                    <div class="menu-item px-3">
-                                                        <a href="#" class="menu-link px-3 remove-rows">
-                                                            Remove Rows
-                                                        </a>
-                                                    </div>
+                                                    <div class="separator my-2 opacity-75"></div>
                                                     <div class="menu-item px-3">
                                                         <a href="#" class="menu-link px-3 text-danger remove-block" data-id="${item.encrypted_id}">
                                                             Delete Block
@@ -287,92 +385,6 @@ export function HaulingPlanInfoController(page,param){
         })
     }
 
-    function loadForAllocation(hub='svc'){
-        let formData = new FormData();
-        formData.append('id',param)
-        formData.append('hub',hub)
-        return new Promise((resolve, reject) => {
-            (new RequestHandler).post('/tms/cco-b/planner/haulage_info/for_allocation',formData).then((res) => {
-                if(res.status == 'success'){
-                    let payload = JSON.parse(window.atob(res.payload));
-                    let html = '',accordion=0, isFinal=false;
-
-                    if(Object.keys(payload).length){
-                        $(`.${hub}_content`).empty();
-                        $(`.for_allocation`).empty();
-                        Object.keys(payload).forEach(function(key) {
-                            let tbody = '';
-                            accordion++;
-                            payload[key].unit.forEach(function(item) {
-                                if(item.encrypted_id){
-                                    tbody+=`<tr data-id="${item.encrypted_id}">
-                                        <td>${item.cs_no}</td>
-                                        <td>${item.model}</td>
-                                        <td>${item.color_description}</td>
-                                        <td>${item.invoice_date}</td>
-                                        <td>${item.updated_location}</td>
-                                    </tr>`;
-                                }
-                            })
-                            html=`<div class="accordion" id="kt_accordion_${accordion}">
-                                    <div class="accordion-item rounded-0">
-                                        <h2 class="accordion-header rounded-0" id="accordion_${key}">
-                                            <button class="accordion-button fs-4 fw-semibold rounded-0 collapsed" type="button"
-                                                data-bs-toggle="collapse" data-bs-target="#kt_accordion_${accordion}_body_${accordion}"
-                                                aria-expanded="true" aria-controls="kt_accordion_${accordion}_body_${accordion}">
-                                                ${key} Units : ${payload[key].unit.length}
-                                            </button>
-                                        </h2>
-                                        <div id="kt_accordion_${accordion}_body_${accordion}" class="accordion-collapse collapse"
-                                            aria-labelledby="accordion_${key}" data-bs-parent="#kt_accordion_${accordion}">
-                                            <div class="accordion-body">
-                                                <div class="table-responsive">
-                                                    <table class="table align-middle gy-5 table-sm" id="tbl_${key}_${payload[key].hub}" data-type="forAllocation">
-                                                        <thead class="">
-                                                            <tr class=" fw-bold fs-8 text-uppercase gs-0">
-                                                                <th class="">Cs No.</th>
-                                                                <th class="">Model</th>
-                                                                <th class="">Color</th>
-                                                                <th class="">Invoice</th>
-                                                                <th class="">Location</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody class="fs-8 fw-semibold text-gray-600 cursor-pointer" data-type="forAllocation">
-                                                            ${tbody}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>`;
-                            $(`.${hub}_content`).append(html);
-                            initSortableAllocation(`tbl_${key}_${payload[key].hub}`)
-                        })
-                        $(`.${hub}_content`).removeClass('d-none');
-                        $(`.empty_${hub}`).addClass('d-none');
-                        $(`.${hub}-count`).text(Object.keys(payload).length);
-                    }else{
-                        $(`.${hub}_content`).addClass('d-none').empty();
-                        $(`.empty_${hub}`).removeClass('d-none');
-                    }
-
-                    KTComponents.init()
-                    data_bs_components()
-                    resolve(true);
-                }
-            })
-            .catch((error) => {
-                console.log(error)
-                resolve(false);
-                Alert.alert('error',"Something went wrong. Try again later", false);
-            })
-            .finally(() => {
-                // code here
-            });
-        })
-    }
-
     function initSortableAllocation(id)
     {
         new Sortable(document.getElementById(id).getElementsByTagName('tbody')[0], {
@@ -393,6 +405,7 @@ export function HaulingPlanInfoController(page,param){
                     let currentTableId = evt.to.closest('table').id;
 
                     let cells = item.getElementsByClassName('remove-cell');
+                    console.log(item)
                     if (evt.to.getAttribute('data-type') === 'planning' && item.getAttribute('data-type') === 'forAllocation') {
                         let itemData = {
                             haulage_id: param,
@@ -445,9 +458,6 @@ export function HaulingPlanInfoController(page,param){
                         console.error(error);
                         Alert.alert('error', "Something went wrong. Try again later", false);
                     });
-                } else {
-                    console.log("No items to send.");
-                    Alert.alert('info', "No items selected.");
                 }
             },
             onStart: function(evt) {
@@ -500,6 +510,21 @@ export function HaulingPlanInfoController(page,param){
                                 cells[0].parentNode.removeChild(cells[0]);
                             }
                         }
+                        let inspectionTimeCell = document.createElement('td');
+                        inspectionTimeCell.classList.add('remove-cell');
+                        inspectionTimeCell.innerHTML =`
+                            <td class="remove-cell">
+                                <a href="javascript:;" class="btn btn-icon btn-color-gray-500 btn-active-color-danger justify-content-end remove-unit"
+                                data-bs-toggle="tooltip" data-bs-placement="top" title="Remove unit" data-id="${item.getAttribute('data-id')}" rq-url="/tms/cco-b/planner/haulage_info/remove_unit">
+                                    <i class="ki-duotone ki-trash-square fs-1">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                        <span class="path4"></span>
+                                    </i>
+                                </a>
+                            </td>`;
+                        item.appendChild(inspectionTimeCell);
                         if (currentTableId !== originalTableId && originalTable) {
                             originalTable.getElementsByTagName("tbody")[0].appendChild(item);
                         } else if (!originalTable) {
@@ -630,6 +655,35 @@ export function HaulingPlanInfoController(page,param){
 
             modal_state(modal_id,'show');
         })
+
+        _page.on('click','.remove-unit',function(e){
+            e.preventDefault()
+            e.stopImmediatePropagation()
+
+            let _this = $(this);
+            let unit_id = _this.attr('data-id');
+            let url = _this.attr('rq-url');
+            Alert.confirm(`question`,`Remove this unit?`, {
+                onConfirm: function() {
+                    let formData = new FormData();
+                    formData.append('id',param);
+                    formData.append('unit_id',unit_id);
+                    (new RequestHandler).post(url,formData).then((res) => {
+                        Alert.toast(res.status,res.message);
+                        if(res.status == 'success'){
+                            _this.closest('tr').remove();
+                        }
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                        Alert.alert('error',"Something went wrong. Try again later", false);
+                    })
+                    .finally(() => {
+                    });
+                },
+            });
+        })
+
 
     })
 

@@ -38,6 +38,7 @@ Route::group(['prefix'=>'cco-b/planner'], function() {
             Route::post('/for_allocation', 'for_allocation');
             Route::post('/add_tripblock', 'add_tripblock');
             Route::post('/remove_tripblock', 'remove_tripblock');
+            Route::post('/remove_unit', 'remove_unit');
             Route::post('/add_block_unit', 'add_block_unit');
             Route::post('/update_block_units', 'update_block_units');
             Route::post('/finalize_plan', 'finalize_plan');

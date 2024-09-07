@@ -1,4 +1,18 @@
 <div class="haulage_info_page d-none">
+    @if ($data['status'] ==1)
+        <div class="alert alert-dismissible bg-light-primary d-flex flex-column flex-sm-row p-5 mb-5 complete-haulage">
+            <i class="ki-duotone ki-notification-bing fs-2hx text-primary me-4 mb-5 mb-sm-0"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+            <div class="d-flex flex-column pe-0 pe-sm-10">
+                <h4 class="fw-semibold">Hauling Plan Complete</h4>
+                <span>This is to notify you that '{{ $data['updated_by'] }}' set the status of hauling plan as complete.</span>
+            </div>
+
+            <button type="button" class="position-absolute position-sm-relative m-2 m-sm-0 top-0 end-0 btn btn-icon ms-sm-auto" data-bs-dismiss="alert">
+                <i class="ki-duotone ki-cross fs-1 text-primary"><span class="path1"></span><span class="path2"></span></i>
+            </button>
+        </div>
+    @endif
+    <div class="finalize-notif"></div>
     <div class="row">
         <div class="col-lg-12 col-xl-9">
             <div class="card pt-0 mb-6 mb-xl-9 ">
@@ -32,13 +46,35 @@
                                 </select>
 
                             </div>
-                            <button class="btn btn-sm btn-light-info add-block">
-                                Add Block
-                                <i class="ki-duotone ki-plus ms-1"></i>
-                            </button>
-                            <button class="btn btn-sm btn-light-success finalize-plan" data-status="1" rq-url="/tms/cco-b/planner/haulage_info/finalize_plan">
-                                Finalize Hauling Plan
-                            </button>
+                            @if ($data['status'] ==2)
+                                <button class="btn btn-sm btn-light-info add-block">
+                                    Add Block
+                                    <i class="ki-duotone ki-plus ms-1"></i>
+                                </button>
+                                <button class="btn btn-sm btn-light-success finalize-plan" data-status="1" rq-url="/tms/cco-b/planner/haulage_info/finalize_plan">
+                                    Finalize Hauling Plan
+                                </button>
+                             @elseif ($data['status'] ==1)
+                                <div class="card-toolbar">
+                                    <button class="btn btn-sm btn-light-primary more-actions" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                        More Actions
+                                        <i class="ki-duotone ki-down ms-1"></i>
+                                    </button>
+                                    <div class="menu menu-sub  more-actions-menu menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-4"
+                                        data-kt-menu="true">
+                                        <div class="menu-item px-3">
+                                            <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
+                                                More Actions
+                                            </div>
+                                        </div>
+                                        <div class="menu-item px-3">
+                                            <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#">
+                                                Print Report
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -81,6 +117,7 @@
                             </a>
                         </li>
                     </ul>
+                @if ($data['status'] ==2)
                     <div class="card-toolbar">
                         <button class="btn btn-sm btn-light-primary more-actions" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
                             Actions
@@ -93,6 +130,7 @@
                                     More Actions
                                 </div>
                             </div>
+
                             @if ($data['status'] ==2)
                                 <div class="menu-item px-3">
                                     <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#modal_add_dealer_unit">
@@ -130,6 +168,7 @@
                             @endif
                         </div>
                     </div>
+                @endif
                 </div>
                 <div class="card-body card-scroll h-1000px p-0 rounded-0 bg-light-secondary">
 

@@ -30,4 +30,19 @@ class TmsHaulageBlock extends Model
     {
         return $this->hasMany(TmsHaulageBlockUnit::class,'block_id');
     }
+
+    public function created_by_emp()
+    {
+        return $this->belongsTo(Employee::class,'created_by');
+    }
+
+    public function deleted_by_emp()
+    {
+        return $this->belongsTo(Employee::class,'deleted_by');
+    }
+
+    public function updated_by_emp()
+    {
+        return $this->belongsTo(Employee::class,'updated_by');
+    }
 }

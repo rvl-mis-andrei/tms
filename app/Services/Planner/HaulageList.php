@@ -69,7 +69,8 @@ class HaulageList
                 'plan_type'=>$query->plan_type,
                 'filenames'=>$query->filenames,
                 'planning_date' =>$query->planning_date,
-                'created_by'=>$query->employee->fullname ?? 'No record found',
+                'created_by'=>optional($query->created_by_emp)->fullname() ?? 'No record found',
+                'updated_by'=>optional($query->updated_by_emp)->fullname() ?? 'No record found',
                 'created_at'=>Carbon::parse($query->created_at)->format('F j, Y'),
             ]));
             return ['status'=>'success','message' =>'success', 'payload' => $payload];
@@ -120,7 +121,7 @@ class HaulageList
             $query->name = $rq->name;
             $query->remarks = $rq->remarks;
             $query->status = $rq->status;
-            $query->planning_date = Carbon::createFromFormat('m-d-Y',$rq->planning_date)->format('Y-m-d');
+            // $query->planning_date = Carbon::createFromFormat('m-d-Y',$rq->planning_date)->format('Y-m-d');
             $query->updated_by = Auth::user()->emp_id;
             $query->save();
 

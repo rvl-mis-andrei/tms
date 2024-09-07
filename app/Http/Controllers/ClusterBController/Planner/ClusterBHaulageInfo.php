@@ -66,6 +66,10 @@ class ClusterBHaulageInfo extends Controller
                         'dealer'=>$dealer_arr?implode(', ', $dealer_arr):null,
                         'block_units'=>$block_unit,
                         'status'=>$data->status,
+                        'created_by'=>$data->status,
+                        'status'=>$data->status,
+                        'created_by'=>optional($data->created_by_emp)->fullname() ?? 'No record found',
+                        'updated_by'=>optional($data->updated_by_emp)->fullname() ?? 'No record found',
                     ];
                 }
             }
@@ -85,11 +89,13 @@ class ClusterBHaulageInfo extends Controller
     {
         try{
             $id = Crypt::decrypt($rq->id);
-            $query = TmsHaulageBlockUnit::where('hub', 'LIKE', "%$rq->hub%")->where([['haulage_id',$id]])->get();
+            $query = TmsHaulageBlockUnit::where('hub', 'LIKE', "%$rq->hub%")->where([['haulage_id',$id],['is_deleted',null]])->get();
             $array = [];
             if($query){
                 foreach($query as $data){
                     $dealer = $data->dealer;
+                    $allocated = 0;
+                    $unallocated = 0;
                     $unit=[];
                     if($data->status == 0){
                         $unit=[
@@ -105,10 +111,15 @@ class ClusterBHaulageInfo extends Controller
                             'remarks'=>$data->remarks ?? '--',
                             'status'=>$data->status,
                         ];
+                        $unallocated++;
+                    }else{
+                        $allocated++;
                     }
                     // $array[$dealer->code][]=$unit;
                     $array[$dealer->code]['unit'][] = $unit;
                     $array[$dealer->code]['hub'] = $data->hub;
+                    $array[$dealer->code]['allocated'] = ($array[$dealer->code]['allocated'] ?? 0) + $allocated;
+                    $array[$dealer->code]['unallocated'] = ($array[$dealer->code]['unallocated'] ?? 0) + $unallocated;
                 }
             }
             $payload = base64_encode(json_encode($array));
@@ -481,6 +492,27 @@ class ClusterBHaulageInfo extends Controller
                 'deleted_at'=>Carbon::now()
             ]);
             return ['status'=>'success','message' =>'success'];
+        }catch(Exception $e) {
+            return response()->json([
+                'status' => 400,
+                // 'message' =>  'Something went wrong. try again later'
+                'message' =>  $e->getMessage()
+            ]);
+        }
+    }
+
+    public function remove_unit(Request $rq)
+    {
+        try{
+            $haulage_id = Crypt::decrypt($rq->id);
+            $unit_id = Crypt::decrypt($rq->unit_id);
+            $user_id = Auth::user()->emp_id;
+            TmsHaulageBlockUnit::where([['car_model_id',$unit_id],['haulage_id',$haulage_id]])->update([
+                'is_deleted'=>1,
+                'deleted_by'=>$user_id,
+                'deleted_at'=>Carbon::now()
+            ]);
+            return ['status'=>'success','message' =>'Unit remove successfully'];
         }catch(Exception $e) {
             return response()->json([
                 'status' => 400,

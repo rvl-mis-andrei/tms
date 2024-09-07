@@ -44,6 +44,8 @@ export async function HaulingPlanDT() {
                 className: "text-center",
                 responsivePriority: -1,
                 render: function (data, type, row) {
+                    let status = row.status[0];
+                    console.log(status)
                     return `<div class="d-flex justify-content-center flex-shrink-0">
                         <a href="#" class="btn btn-icon btn-light-primary btn-sm me-1 hover-elevate-up" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
                             <i class="ki-duotone ki-pencil fs-2x">
@@ -57,10 +59,22 @@ export async function HaulingPlanDT() {
                             <div class="menu-item px-3">
                                 <a href="/tms/cco-b/planner/hauling_plan_info/${data}" class="menu-link px-3">View</a>
                             </div>
+                            ${
+                                status == 'On-Going' ?`<div class="menu-item px-3">
+                                    <a href="javascript:;" class="menu-link px-3 edit" id="" data-id="${data}" url="/services/haulage/info" modal-id="#modal_add_hauling_plan">Edit Details</a>
+                                </div>` : ''
+                            }
+                            ${
+                                status == 'On-Going' ?`<div class="separator my-2 opacity-75"></div>
                             <div class="menu-item px-3">
-                                <a href="javascript:;" class="menu-link px-3 edit" id="" data-id="${data}" url="/services/haulage/info" modal-id="#modal_add_hauling_plan">Edit Details</a>
-                            </div>
+                                <label class="form-check form-switch form-check-custom form-check-solid">
+                                    <span class="form-check-label fw-bold text-muted me-2">Status</span>
+                                    <input class="form-check-input group_status" type="checkbox" data-id="${data}">
+                                </label>
+                            </div>`:''
+                            }
                         </div>
+
                         <a class="btn btn-icon btn-icon btn-light-danger btn-sm me-1 hover-elevate-up delete" data-id="${data}" url="/services/haulage/delete"
                         id="" data-bs-toggle="tooltip" title="Delete this record">
                             <i class="ki-duotone ki-trash fs-2x">
@@ -142,9 +156,10 @@ export async function HaulingPlanDT() {
             $('input[name="name"]').val(data.name);
             $('textarea[name="remarks"]').val(data.remarks);
             $('select[name="status"]').val(data.status).trigger('change');
-            $('select[name="plan_type"]').val(data.plan_type).trigger('change');
-           
+            $('select[name="plan_type"]').val(data.plan_type).trigger('change').prop('disabled',true);
+
             document.querySelector("#planning_date")._flatpickr.setDate(new Date(data.planning_date),true);
+            $('input[name="planning_date"]').prop('disabled',true);
 
             $('.modal_title').text('Edit Hauling Plan Details');
             $('#form').attr('action','/services/haulage/update');

@@ -117,7 +117,7 @@
                     <div class="d-flex flex-column px-5 px-lg-10" style="max-height: 670px;">
                         <div class="fv-row mb-7 fv-plugins-icon-container">
                             <label class="required fs-6 fw-semibold form-label mb-2">Dealer:</label>
-                            <select name="dealer" data-control="select2" data-placeholder="Select dealer" data-hide-search="false"  class="form-select form-select-solid fw-bold">
+                            <select name="dealer" data-control="select2" data-placeholder="Select dealer" data-hide-search="false"  class="form-select modal-select form-select-solid fw-bold">
                                 <option></option>
                                 <option value="2" selected>On-Going</option>
                                 <option value="1">Completed</option>
