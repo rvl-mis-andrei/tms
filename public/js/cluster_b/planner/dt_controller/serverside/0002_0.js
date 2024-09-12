@@ -33,6 +33,7 @@ export async function HaulingPlanDT() {
                 data: "status",
                 name: "status",
                 title: "Status",
+                searchable:false,
                 render: function (data, type, row) {
                     return `<span class="badge badge-${data[1]}">${data[0]}</span>`;
                 },
@@ -45,7 +46,6 @@ export async function HaulingPlanDT() {
                 responsivePriority: -1,
                 render: function (data, type, row) {
                     let status = row.status[0];
-                    console.log(status)
                     return `<div class="d-flex justify-content-center flex-shrink-0">
                         <a href="#" class="btn btn-icon btn-light-primary btn-sm me-1 hover-elevate-up" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
                             <i class="ki-duotone ki-pencil fs-2x">
@@ -92,11 +92,18 @@ export async function HaulingPlanDT() {
         1
     );
 
-    page.on('keydown','.search',function(e){
-        e.stopImmediatePropagation()
+    page.on('keydown', '.search', function(e) {
+        e.stopImmediatePropagation();
+        let searchTerm = $(this).val();
         if (e.key === 'Enter' || e.keyCode === 13) {
-            const searchTerm = $(this).val();
-            dataTableHelper.search(searchTerm)
+            dataTableHelper.search(searchTerm);
+        } else if (e.keyCode === 8 || e.key === 'Backspace') {
+            setTimeout(() => {
+                let updatedSearchTerm = $(this).val();
+                if (updatedSearchTerm === '') {
+                    dataTableHelper.search('');
+                }
+            }, 0);
         }
     });
 
@@ -181,7 +188,7 @@ export async function HaulingPlanDT() {
         let data_id = $(this).attr('data-id');
         let url = $(this).attr('rq-url');
         let status = $(this).is(':checked')?1:2;
-        formData.append('haulage_id',data_id);
+        formData.append('id',data_id);
         formData.append('status',status);
 
         (new RequestHandler).post(url,formData).then((res) => {

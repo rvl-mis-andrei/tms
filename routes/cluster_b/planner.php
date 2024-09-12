@@ -1,14 +1,15 @@
 <?php
 
+use App\Http\Controllers\ClusterBController\Planner\Dashboard;
 use App\Services\WebRoute as SystemRoute;
-use App\Http\Controllers\ClusterBController\Planner\ClusterBHaulageInfo;
+use App\Http\Controllers\ClusterBController\Planner\HaulageInfo;
 
 use App\Http\Controllers\ClusterBController\PlannerPageController;
 use Illuminate\Support\Facades\Route;
 
 //remove tms
-// Route::group(['prefix'=>'tms/cco-b/planner'], function() {
-Route::group(['prefix'=>'cco-b/planner'], function() {
+Route::group(['prefix'=>'tms/cco-b/planner'], function() {
+// Route::group(['prefix'=>'cco-b/planner'], function() {
 
     Route::middleware('auth')->group(function () {
 
@@ -33,7 +34,7 @@ Route::group(['prefix'=>'cco-b/planner'], function() {
             }
         });
 
-        Route::controller(ClusterBHaulageInfo::class)->prefix('haulage_info')->group(function() {
+        Route::controller(HaulageInfo::class)->prefix('haulage_info')->group(function() {
             Route::post('/tripblock', 'tripblock');
             Route::post('/for_allocation', 'for_allocation');
             Route::post('/add_tripblock', 'add_tripblock');
@@ -54,6 +55,10 @@ Route::group(['prefix'=>'cco-b/planner'], function() {
             Route::post('/hauling_plan','hauling_plan');
 
             Route::post('/info','info');
+        });
+
+        Route::controller(Dashboard::class)->prefix('dashboard')->group(function() {
+            Route::post('/','index');
         });
 
     });

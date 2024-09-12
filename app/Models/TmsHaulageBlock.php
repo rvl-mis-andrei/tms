@@ -31,6 +31,16 @@ class TmsHaulageBlock extends Model
         return $this->hasMany(TmsHaulageBlockUnit::class,'block_id');
     }
 
+    public function tractor()
+    {
+        return $this->belongsTo(Tractor::class,'tractor_id');
+    }
+
+    public function trailer()
+    {
+        return $this->belongsTo(Trailer::class,'trailer_id');
+    }
+
     public function created_by_emp()
     {
         return $this->belongsTo(Employee::class,'created_by');

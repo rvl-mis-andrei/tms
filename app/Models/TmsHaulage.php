@@ -37,5 +37,10 @@ class TmsHaulage extends Model
         return $this->belongsTo(Employee::class,'updated_by');
     }
 
+    public function blocks()
+    {
+        return $this->hasMany(TmsHaulageBlock::class,'haulage_id');
+    }
+
 
 }

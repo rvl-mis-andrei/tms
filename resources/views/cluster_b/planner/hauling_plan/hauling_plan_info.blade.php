@@ -15,7 +15,7 @@
     <div class="finalize-notif"></div>
     <div class="row">
         <div class="col-lg-12 col-xl-9">
-            <div class="card pt-0 mb-6 mb-xl-9 ">
+            <div class="card pt-0 mb-6 mb-xl-9 hauling_list_card">
                 <div class="card-header border-0 ">
                     <div class="card-title flex-column">
                         <h3 class="fw-bold mb-1">Hauling Plan</h3>
@@ -30,7 +30,7 @@
                                 <span class="menu-bullet d-flex align-items-center me-2">
                                     <span class="bullet bg-primary"></span>
                                 </span>
-                                Trips : <span class="trip-count">0</span>
+                                Blocks : <span class="trip-count">0</span>
                             </div>
                         </div>
                     </div>
@@ -56,7 +56,7 @@
                                 </button>
                              @elseif ($data['status'] ==1)
                                 <div class="card-toolbar">
-                                    <button class="btn btn-sm btn-light-primary more-actions" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                    <button class="btn btn-sm btn-light-primary export-menu" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
                                         More Actions
                                         <i class="ki-duotone ki-down ms-1"></i>
                                     </button>
@@ -78,7 +78,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body card-scroll h-1000px bg-light-secondary">
+                <div class="card-body card-scroll h-1000px bg-light-secondary p-5">
                     <div class="hauling_list d-none">
                     </div>
                     <div class="empty_hauling_list d-none">
@@ -97,7 +97,7 @@
             </div>
         </div>
         <div class="col-lg-12 col-xl-3">
-            <div class="card pt-0 mb-6 mb-xl-9">
+            <div class="card pt-0 mb-6 mb-xl-9 for_allocation_card">
                 <div class="card-header position-relative min-h-50px border-bottom-2 py-3">
                     <ul class="nav nav-pills nav-pills-custom gap-7" role="tablist">
                         <li class="nav-item" role="presentation">
@@ -171,9 +171,8 @@
                 @endif
                 </div>
                 <div class="card-body card-scroll h-1000px p-0 rounded-0 bg-light-secondary">
-
-                    <div class="tab-content">
-                        <div class="tab-pane blockui active show" id="tab_content_1" role="tabpanel">
+                    <div class="tab-content ">
+                        <div class="tab-pane active show" id="tab_content_1" role="tabpanel">
                             <div class="table-responsive pb-10">
                                 <div class="svc_content for_allocation d-none">
 
@@ -188,7 +187,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="tab-pane blockui" id="tab_content_2" role="tabpanel">
+                        <div class="tab-pane" id="tab_content_2" role="tabpanel">
                             <div class="table-responsive pb-10">
                                 <div class="bvc_content for_allocation d-none">
 
@@ -197,7 +196,7 @@
                                     <div class="card-px text-center pt-20 pb-15">
                                         <h2 class="fs-5 mb-0">No Units Found</h2>
                                         <p class="text-gray-500 fs-6 fw-semibold py-7">
-                                            <em> Click the button <span class="text-primary">Actions</span> and select Upload @if ($data['plan_type'] == 2) Hauling Plan @else Masterlist @endif</em>
+                                            <em> Click the button <span class="text-primary">Actions</span> and <br> select Upload @if ($data['plan_type'] == 2) Hauling Plan @else Masterlist @endif</em>
                                         </p>
                                     </div>
                                 </div>

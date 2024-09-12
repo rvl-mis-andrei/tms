@@ -152,7 +152,7 @@
     data-kt-app-sidebar-fixed="false" data-kt-app-sidebar-push-header="true" data-kt-app-sidebar-push-toolbar="true"
     data-kt-app-sidebar-push-footer="true" data-kt-app-toolbar-enabled="true" class="app-default">
     <div class="d-flex flex-column flex-root app-root" id="kt_app_root">
-        <div class="app-page  flex-column flex-column-fluid " id="kt_app_page">
+        <div class="app-page flex-column flex-column-fluid " id="kt_app_page">
            @include('layout.planner.navbar')
             <div class="app-wrapper d-flex " id="kt_app_wrapper">
                 <div class="app-container  container-fluid d-flex ">
@@ -178,7 +178,7 @@
                                                 Overview </li>
                                         </ul>
                                         <h1 class="page-heading d-flex flex-column justify-content-center text-dark fw-bolder fs-3 m-0 page_title text-capitalize">
-                                            eCommerce Dashboard
+
                                         </h1>
                                     </div>
                                 </div>
@@ -204,7 +204,11 @@
             var app = $("#Page");
             var BASE_URL = window.location.host;
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }});
-        </script><script src="{{ asset('assets/plugins/custom/formrepeater/formrepeater.bundle.js') }}"></script>
+            var page_block = new KTBlockUI(document.querySelector('.app-page'), {
+                message: `<div class="blockui-message"><span class="spinner-border text-primary"></span>Loading. . .</div>`,
+            });
+        </script>
+        <script src="{{ asset('assets/plugins/custom/formrepeater/formrepeater.bundle.js') }}"></script>
         <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
         <script src="{{ asset('js/cluster_b/planner/navbar.js') }}" type="module"></script>

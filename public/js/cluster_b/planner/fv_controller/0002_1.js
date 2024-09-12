@@ -92,10 +92,21 @@ export function fvHaulingPlanInfo(param){
                                 (new RequestHandler).post(form_url,formData,true).then((res) => {
                                     Alert.toast(res.status,res.message)
                                     if(res.status == 'success'){
-                                        form.reset()
-                                        fvMasterPlan.resetForm()
-                                        $('.nav-tab.active').click()
-                                        modal_state(modal_id)
+                                        if(res.payload >= 1){
+                                            Alert.loading("Page is refreshing . . .",{
+                                                didOpen:function(){
+                                                    setTimeout(function() {
+                                                        window.location.reload();
+                                                    }, 300);
+                                                }
+                                            });
+                                        }else{
+
+                                        }
+                                        // form.reset()
+                                        // fvMasterPlan.resetForm()
+                                        // $('.nav-tab.active').click()
+                                        // modal_state(modal_id)
                                     }else {
                                         Alert.alert('error',res.message, false)
                                     }
@@ -203,13 +214,23 @@ export function fvHaulingPlanInfo(param){
                                     formData.append('id',param)
                                 }
                                 (new RequestHandler).post(form_url,formData,true).then((res) => {
-                                    Alert.toast(res.status,res.message)
                                     if(res.status == 'success'){
-                                        form.reset()
-                                        fvFinalHaulingPlan.resetForm()
-                                        $('select[name="batch"]').trigger('change');
-                                        $('.nav-tab.active').click()
-                                        modal_state(modal_id)
+                                        if(res.payload >= 2){
+                                            Alert.loading("Page is refreshing . . .",{
+                                                didOpen:function(){
+                                                    setTimeout(function() {
+                                                        window.location.reload();
+                                                    }, 300);
+                                                }
+                                            });
+                                        }else{
+                                            Alert.toast(res.status,res.message)
+                                            form.reset()
+                                            fvFinalHaulingPlan.resetForm()
+                                            $('select[name="batch"]').trigger('change');
+                                            $('.nav-tab.active').click()
+                                            modal_state(modal_id)
+                                        }
                                     }else {
                                         Alert.alert('error',res.message, false)
                                     }

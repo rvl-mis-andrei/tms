@@ -5,10 +5,6 @@ import { DashboardController } from './fn_controller/0001.js';
 import { HaulingPlanController } from './fn_controller/0002_0.js';
 import { HaulingPlanInfoController } from './fn_controller/0002_1.js';
 
-
-
-
-
 async function init_page() {
     let pathname = window.location.pathname;
     let page = pathname.split("/")[4];
@@ -19,26 +15,32 @@ async function init_page() {
     }
     load_page(page, param).then((res) => {
         if (res) {
-            //validation
+            $(`.navbar[data-page='${page}']`).addClass('active');
         }
     })
 }
 
 export async function load_page(page, param=null){
-    return page_content(page,param).then((res) => {
-        if (res) {
-            page_handler(page,param).then(() => {
-                KTComponents.init()
-            })
+    try {
+        const contentResult = await page_content(page, param);
+        if (contentResult) {
+            await page_handler(page, param);
+            KTComponents.init();
+            return true;
+        } else {
+            return false;
         }
-    })
+    } catch (error) {
+        console.error('Error in load_page:', error);
+        return false;
+    }
 }
 
 export async function page_handler(page,param=null){
     switch (page) {
 
         case 'dashboard':
-            DashboardController(page,param);
+            DashboardController(page,param).init();
         break;
 
         case 'hauling_plan':
@@ -62,10 +64,18 @@ $(document).ready(function(e){
         e.preventDefault();
         e.stopImmediatePropagation();
 
-        let page = $(this).data('page');
-        let link = $(this).data('link');
-        let title = $(this).find('.menu-title').text();
-        load_page(page);
+        let _this = $(this);
+        let page = _this.data('page');
+        let link = _this.data('link');
+        let title = _this.find('.menu-title').text();
+        load_page(page).then((res) => {
+            if (res) {
+                $('.navbar').removeClass('active');
+                _this.addClass('active');
+            }else{
+
+            }
+        })
         // let breadecrumbs_menu = [{'link': link,'page': page,'title':title}]
         // sessionStorage.setItem("breadecrumbs", JSON.stringify(breadecrumbs_menu));
     })

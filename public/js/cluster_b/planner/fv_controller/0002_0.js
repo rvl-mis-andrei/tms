@@ -2,7 +2,7 @@
 import {Alert} from "../../../global/alert.js"
 import {RequestHandler} from "../../../global/request.js"
 import {modal_state,fv_validator} from "../../../global.js"
-
+import {HaulingPlanDT} from '../dt_controller/serverside/0002_0.js';
 
 export function fvHaulingPlan(){
 
@@ -110,7 +110,11 @@ export function fvHaulingPlan(){
                                 .finally(() => {
                                     btn_submit.attr("data-kt-indicator","off");
                                     btn_submit.attr("disabled",false);
-                                    $("#hauling_plan_table").DataTable().ajax.reload(null, false);
+                                    if ($('#hauling_plan_table').length === 0) {
+                                        HaulingPlanDT();
+                                    } else {
+                                        $('#hauling_plan_table').DataTable().ajax.reload(null, false);
+                                    }
                                     blockUI.release();
                                 });
                             },

@@ -44,4 +44,8 @@ class TmsHaulageBlockUnit extends Model
     public function car(){
         return $this->belongsTo(TmsClusterCarModel::class,'car_model_id');
     }
+
+    public function block(){
+        return $this->belongsTo(TmsHaulageBlock::class,'block_id','id');
+    }
 }

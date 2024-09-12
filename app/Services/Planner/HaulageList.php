@@ -2,6 +2,7 @@
 
 namespace App\Services\Planner;
 
+use App\Http\Controllers\ClusterBController\Planner\HaulageInfo;
 use App\Models\TmsClusterClient;
 use App\Models\TmsHaulage;
 use App\Services\DTServerSide;
@@ -20,12 +21,16 @@ class HaulageList
     public function datatable(Request $rq)
     {
         $status = $rq->filter;
+        $search = $rq->get('search')['value'];
         $cluster_id = Auth::user()->emp_cluster->cluster_id;
         $data = TmsHaulage::when($status!="all", function ($q) use ($status) {
             return $q->where('status',$status);
-        })->where(function ($query) {
+        })
+        ->where(function ($query) {
             $query->where('is_deleted','!=',1)->orWhereNull('is_deleted');
-        })->where('cluster_id',$cluster_id)->get();
+        })
+        ->where('cluster_id',$cluster_id)->get();
+
         $data->transform(function ($item,$key){
             $item->count = $key+1;
             $item->status = config('value.haulage_status.'.$item->status);
@@ -34,6 +39,7 @@ class HaulageList
             $item->encrypt_id = Crypt::encrypt($item->id);
             return $item;
         });
+
         $table = new DTServerSide($rq, $data);
         $table->renderTable();
         return response()->json([
@@ -116,12 +122,22 @@ class HaulageList
     {
         try{
             DB::beginTransaction();
+
+            if($rq->status == 2){
+                $res = (new HaulageInfo)->update_block_status($rq);
+                if($res['status'] == '400'){
+                    return response()->json([
+                        'status' => $res['status'],
+                        'message' =>  'Something went wrong. Try again later'
+                    ]);
+                }
+            }
+
             $id = Crypt::decrypt($rq->id);
             $query = TmsHaulage::find($id);
             $query->name = $rq->name;
             $query->remarks = $rq->remarks;
             $query->status = $rq->status;
-            // $query->planning_date = Carbon::createFromFormat('m-d-Y',$rq->planning_date)->format('Y-m-d');
             $query->updated_by = Auth::user()->emp_id;
             $query->save();
 
@@ -137,7 +153,17 @@ class HaulageList
     {
         try{
             DB::beginTransaction();
-            $id = Crypt::decrypt($rq->haulage_id);
+            if($rq->status == 1){
+                $res = (new HaulageInfo)->update_block_status($rq);
+                if($res['status'] == '400'){
+                    return response()->json([
+                        'status' => $res['status'],
+                        'message' =>  'Something went wrong. Try again later'
+                    ]);
+                }
+            }
+
+            $id = Crypt::decrypt($rq->id);
             $query = TmsHaulage::find($id);
             $query->status = $rq->status;
             $query->updated_by = Auth::user()->emp_id;
@@ -181,16 +207,16 @@ class HaulageList
                 $query = TmsHaulage::find($id);
                 $files = json_decode($query->filenames,true) ??[];
                 if($folder=='masterlist' && count($files) >= 1){
-                    return ['status'=>'error','message' =>'You already uploaded a masterlist'];
+                    return ['status'=>'error','message' =>'You already uploaded a masterlist','payload'=>false];
                 }
                 if(count($files) >= 2 && $folder == 'hauling_plan') {
-                    return ['status'=>'error','message' =>'You already uploaded 2 hauling plan'];
+                    return ['status'=>'error','message' =>'You already uploaded 2 hauling plan','payload'=>false];
                 }
                 $files[] = $filename;
                 $query->filenames = json_encode($files);
                 $query->save();
                 DB::commit();
-                return ['status'=>'success','message' =>'success','payload'=>$filePath];
+                return ['status'=>'success','message' =>'success','payload'=>$filePath, 'upload_count'=>count($files)];
             }else{
 
             }
@@ -207,11 +233,17 @@ class HaulageList
             DB::beginTransaction();
             $id    = Crypt::decrypt($rq->id);
             $query = TmsHaulage::find($id);
-            $query->filenames = null;
-            $query->save();
+            $files = json_decode($query->filenames,true);
+            $filePath = 'masterlist/'.$files[0];
+            if (Storage::disk('public')->exists($filePath)) {
+                if(Storage::disk('public')->delete($filePath)){
+                    $query->filenames = null;
+                    $query->save();
+                    DB::commit();
+                    return ['status'=>'success','message' =>'Masterlist re-upload success'];
+                }
+            }
 
-            DB::commit();
-            return ['status'=>'success','message' =>'Masterlist re-upload success'];
         }catch(Exception $e){
             DB::rollback();
             return ['status'=>400,'message' =>$e->getMessage()];
@@ -224,14 +256,18 @@ class HaulageList
             DB::beginTransaction();
             $id    = Crypt::decrypt($rq->id);
             $query = TmsHaulage::find($id);
-            $files = json_encode($query->filenames,true);
+            $files = json_decode($query->filenames,true);
             $index = $rq->batch-1;
-            unset($files[$index]);
-            $query->filenames = json_encode($files);
-            $query->save();
-
-            DB::commit();
-            return ['status'=>'success','message' =>'Hauling plan re-upload success'];
+            $filePath = 'hauling_plan/'.$files[$index];
+                if (Storage::disk('public')->exists($filePath)) {
+                if (Storage::disk('public')->delete($filePath)) {
+                    unset($files[$index]);
+                    $query->filenames = json_encode($files);
+                    $query->save();
+                    DB::commit();
+                    return ['status'=>'success','message' =>'Hauling plan re-upload success'];
+                }
+            }
         }catch(Exception $e){
             DB::rollback();
             return ['status'=>400,'message' =>$e->getMessage()];

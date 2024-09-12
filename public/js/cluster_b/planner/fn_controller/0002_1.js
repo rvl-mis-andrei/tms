@@ -3,25 +3,22 @@
 import {Alert} from "../../../global/alert.js"
 import {RequestHandler,} from "../../../global/request.js"
 import {dealer,car_model} from "../../../global/select.js"
-import {data_bs_components,modal_state,page_state,custom_upload} from "../../../global.js";
+import {data_bs_components,modal_state,page_state,custom_upload,createBlockUI} from "../../../global.js";
 import {fvHaulingPlanInfo} from '../fv_controller/0002_1.js';
 
 
 
 export function HaulingPlanInfoController(page,param){
-
-    let _page = $('.haulage_info_page');
     var block_number = 0;
-    var hauling_list = $('.hauling_list');
-    var empty_hauling_list = $('.empty_hauling_list');
-    let blockUicard = document.querySelector(`#Page`);
-    let blockUI = new KTBlockUI(blockUicard, {
-        message: '<div class="blockui-message"><span class="spinner-border text-primary"></span> Loading...</div>',
-    });
+    const hauling_list = $('.hauling_list');
+    const empty_hauling_list = $('.empty_hauling_list');
+    const _page = $('.haulage_info_page');
+    const HaulagePage = createBlockUI('#Page', 'Loading...');
+    const HaulingCard = createBlockUI('.hauling_list_card', 'Loading...');
+    const AllocationCard = createBlockUI('.for_allocation_card', 'Loading...');
 
     function loadTripBlock(batch=1)
     {
-        blockUI.block();
         let formData = new FormData();
         formData.append('id',param)
         formData.append('batch',batch)
@@ -50,10 +47,11 @@ export function HaulingPlanInfoController(page,param){
                                     trpBlockUnit++;
                             });
                             html=`
-                            <div class="card mb-10">
+                            <div class="card mb-5">
                                     <div class="card-header collapsible">
-                                        <span class="card-title"><h6>${item.dealer ?? 'Trip Block #'+(key+1)}</h6></span>
+                                        <span class="card-title"><h6>${item.dealer_code ?? 'Trip Block #'+(key+1)}</h6></span>
                                         <div class="card-toolbar">
+                                            ${item.status !=2?`
                                             <div class="me-0">
                                                 <button class="btn btn-sm btn-icon btn-active-color-primary"
                                                     data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
@@ -74,6 +72,7 @@ export function HaulingPlanInfoController(page,param){
                                                     </div>
                                                 </div>
                                             </div>
+                                            `:''}
                                             <div class="rotate btn btn-icon btn-sm btn-active-color-info" data-kt-rotate="true" data-bs-toggle="collapse" data-bs-target="#trip_block_${item.block_number}">
                                                 <i class="ki-duotone ki-down fs-1  rotate-n180"></i>
                                             </div>
@@ -163,9 +162,6 @@ export function HaulingPlanInfoController(page,param){
                 Alert.alert('error',"Something went wrong. Try again later", false);
             })
             .finally(() => {
-                setTimeout(function() {
-                    blockUI.release();
-                }, 500);
             });
         })
     }
@@ -208,6 +204,7 @@ export function HaulingPlanInfoController(page,param){
                                     </tr>`;
                                 }
                             })
+                            console.log(payload[key])
                             html=`<div class="accordion" id="kt_accordion_${accordion}">
                                     <div class="accordion-item rounded-0">
                                         <h2 class="accordion-header rounded-0" id="accordion_${key}">
@@ -560,6 +557,7 @@ export function HaulingPlanInfoController(page,param){
 
     $(document).ready(function(e){
 
+        HaulagePage.block();
 
         loadTripBlock().then(()=>{
             fvHaulingPlanInfo(param)
@@ -567,6 +565,10 @@ export function HaulingPlanInfoController(page,param){
             custom_upload()
             dealer()
             car_model()
+
+            setTimeout(function() {
+                HaulagePage.release();
+            }, 500);
         })
 
         _page.on('click','.nav-tab',function(e){
@@ -574,35 +576,60 @@ export function HaulingPlanInfoController(page,param){
             e.stopImmediatePropagation()
             let tab = $(this);
             let hub = tab.attr('data-hub');
-            loadForAllocation(hub)
+
+            AllocationCard.block();
+            loadForAllocation(hub).then((res) =>{
+                setTimeout(function() {
+                    AllocationCard.release();
+                }, 500);
+            })
+
         })
 
         _page.on('change','select[name="batch"]',function(e){
             e.preventDefault()
             e.stopImmediatePropagation()
+
+            HaulingCard.block();
+
             loadTripBlock($(this).val()).then((res) =>{
+                setTimeout(function() {
+                    HaulingCard.release();
+                }, 500);
+
             })
         })
 
         _page.on('click','.add-block',function(e){
             e.preventDefault()
             e.stopImmediatePropagation()
+
+            HaulingCard.block();
+
             addTripBlock().then((res) =>{
                 if(res){
                     Alert.toast('success','Trip block added')
                 }
+                setTimeout(function() {
+                    HaulingCard.release();
+                }, 300);
             })
         })
 
         _page.on('click','.remove-block',function(e){
             e.preventDefault()
             e.stopImmediatePropagation()
+
             Alert.confirm('question',"Remove this block ?",{
                 onConfirm: () => {
+                    HaulingCard.block();
                      removeTripBlock($(this)).then((res) =>{
                         if(res){
                             Alert.toast('success','Trip block removed')
                         }
+                        setTimeout(function() {
+                            HaulingCard.release();
+                        }, 300);
                     })
                 }
             })
@@ -612,14 +639,12 @@ export function HaulingPlanInfoController(page,param){
             e.preventDefault()
             e.stopImmediatePropagation()
 
-            let btn_submit = $(this);
             let rq_url = $(this).attr('rq-url');
             let batch = $('select[name="batch"]').val();
 
             Alert.confirm(`question`,`Finalize Hauling Plan Batch ${batch}?`, {
                 onConfirm: function() {
-                    btn_submit.attr("data-kt-indicator","on");
-                    btn_submit.attr("disabled",true);
+                    HaulingCard.block();
                     let formData = new FormData();
                     formData.append('id',param);
                     formData.append('batch',batch);
@@ -628,20 +653,20 @@ export function HaulingPlanInfoController(page,param){
                         if(res.status == 'success'){
                             loadTripBlock(batch);
                         }
+                        setTimeout(function() {
+                            HaulingCard.release();
+                        }, 300);
                     })
                     .catch((error) => {
                         console.log(error)
                         Alert.alert('error',"Something went wrong. Try again later", false);
                     })
                     .finally(() => {
-                        btn_submit.attr("data-kt-indicator","off");
-                        btn_submit.attr("disabled",false);
-                        $("#hauling_plan_table").DataTable().ajax.reload(null, false);
+                        //code here
                     });
                 },
                 onCancel: () => {
-                    btn_submit.attr("data-kt-indicator","off");
-                    btn_submit.attr("disabled",false);
+                    //code here
                 }
             });
         })
@@ -670,6 +695,7 @@ export function HaulingPlanInfoController(page,param){
             let url = _this.attr('rq-url');
             Alert.confirm(`question`,`Remove this unit?`, {
                 onConfirm: function() {
+                    AllocationCard.block();
                     let formData = new FormData();
                     formData.append('id',param);
                     formData.append('unit_id',unit_id);
@@ -678,6 +704,9 @@ export function HaulingPlanInfoController(page,param){
                         if(res.status == 'success'){
                             _this.closest('tr').remove();
                         }
+                        setTimeout(function() {
+                            AllocationCard.release();
+                        }, 300);
                     })
                     .catch((error) => {
                         console.log(error)

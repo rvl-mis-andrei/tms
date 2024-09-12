@@ -20,7 +20,7 @@ use App\Services\Planner\HaulageList;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 
-class ClusterBHaulageInfo extends Controller
+class HaulageInfo extends Controller
 {
     protected $tractor_arr = [];
     protected $haulage_block = [];
@@ -39,10 +39,12 @@ class ClusterBHaulageInfo extends Controller
                 foreach($query as $data){
                     $block_unit = [];
                     $dealer_arr = [];
+                    $dealer_code_arr = [];
                     foreach($data->block_unit as $row){
                         $dealer = $row->dealer;
                         if (!in_array($dealer->name, $dealer_arr)){
                             $dealer_arr[] = $dealer->name;
+                            $dealer_code_arr[] = $dealer->code;
                         }
                         $block_unit[]=[
                             'encrypted_id'=>Crypt::encrypt($row->id),
@@ -64,6 +66,7 @@ class ClusterBHaulageInfo extends Controller
                         'batch'=>$data->batch,
                         'no_of_trips'=>$data->no_of_trips,
                         'dealer'=>$dealer_arr?implode(', ', $dealer_arr):null,
+                        'dealer_code'=>$dealer_code_arr?implode(', ', $dealer_code_arr):null,
                         'block_units'=>$block_unit,
                         'status'=>$data->status,
                         'created_by'=>$data->status,
@@ -115,7 +118,6 @@ class ClusterBHaulageInfo extends Controller
                     }else{
                         $allocated++;
                     }
-                    // $array[$dealer->code][]=$unit;
                     $array[$dealer->code]['unit'][] = $unit;
                     $array[$dealer->code]['hub'] = $data->hub;
                     $array[$dealer->code]['allocated'] = ($array[$dealer->code]['allocated'] ?? 0) + $allocated;
@@ -142,7 +144,7 @@ class ClusterBHaulageInfo extends Controller
             $haulage_id = Crypt::decrypt($rq->id);
 
             $result = (new HaulageList)->move_file($rq,'masterlist');
-            if ($result['status'] != 'success' && $result['payload']) {  return response()->json($result); }
+            if ($result['status'] != 'success' && $result['payload'] === false) {  return response()->json($result); }
 
             $class         = new Phpspreadsheet;
             [$sheet,$highestRow] = $class->read($result['payload'],true,true,'RVL');
@@ -199,13 +201,13 @@ class ClusterBHaulageInfo extends Controller
             }
 
             DB::commit();
-            return response()->json(['status' => 'success', 'message' => 'File uploaded successfully']);
+            return response()->json(['status' => 'success', 'message' => 'File uploaded successfully','payload'=>$result['upload_count']]);
         }catch(Exception $e){
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);
         }
     }
 
-    public function hauling_plan(HaulingPlanRequest $rq)
+    public function hauling_plan(Request $rq)
     {
         ini_set('memory_limit', '-1');
         set_time_limit(0);
@@ -213,7 +215,7 @@ class ClusterBHaulageInfo extends Controller
             DB::beginTransaction();
 
             $result = (new HaulageList)->move_file($rq);
-            if ($result['status'] != 'success' && $result['payload']) {  return response()->json($result); }
+            if ($result['status'] != 'success' && $result['payload'] === false) {  return response()->json($result); }
 
             $class  = new Phpspreadsheet;
             [$sheet,$highestRow] = $class->read($result['payload'],false,true,'PDI');
@@ -266,7 +268,7 @@ class ClusterBHaulageInfo extends Controller
                         'inspected_start' =>$class->excelTimeToPhpTime($sheet->getCell("J$row")->getCalculatedValue()),
                         'inspected_end' => $sheet->getCell("K$row")->getCalculatedValue(),
                         'remarks' => $sheet->getCell("O$row")->getCalculatedValue(),
-                        'hub' => $sheet->getCell("A$row")->getCalculatedValue(),
+                        'hub' => $sheet->getCell("A$row")->getCalculatedValue() ?? 'SVC',
                         'status'=>1,
                         'created_by'=>$user_id,
                     ];
@@ -324,7 +326,7 @@ class ClusterBHaulageInfo extends Controller
 
             unset($spreadsheet);
             DB::commit();
-            return response()->json(['status' => 'success', 'message' => 'File uploaded successfully']);
+            return response()->json(['status' => 'success', 'message' => 'File uploaded successfully','payload'=>$result['upload_count']]);
 
         }catch(Exception $e){
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);
@@ -393,19 +395,12 @@ class ClusterBHaulageInfo extends Controller
             DB::beginTransaction();
             $haulage_id = Crypt::decrypt($rq->id);
             $user_id = Auth::user()->emp_id;
-
             TmsHaulageBlock::where([['haulage_id',$haulage_id],['is_deleted',null],['status',1],['batch',$rq->batch]])
             ->update([
                 'status'=>2,
                 'updated_by'=>$user_id,
                 'updated_at'=>Carbon::now()
             ]);
-
-            // TmsHaulageBlockUnit::where([['haulage_id',$haulage_id],['is_deleted',null],['status',1]])->update([
-            //     'status'=>2,
-            //     'updated_by'=>$user_id,
-            //     'updated_at'=>Carbon::now()
-            // ]);
 
             DB::commit();
             return response()->json(['status' => 'success', 'message' => 'Hauling Plan is Saved']);
@@ -527,7 +522,8 @@ class ClusterBHaulageInfo extends Controller
         try{
             DB::beginTransaction();
             $haulage_id = Crypt::decrypt($rq->id);
-            TmsHaulageBlockUnit::where([['haulage_id',$haulage_id],['batch',$rq->batch]])->update([
+            $block_ids = TmsHaulageBlock::where([['haulage_id',$haulage_id],['batch',$rq->batch]])->pluck('id');
+            TmsHaulageBlockUnit::whereIn('block_id',$block_ids)->update([
                 'is_deleted' => 1,
                 'deleted_at' => Carbon::now(),
                 'deleted_by' => Auth::user()->emp_id,
@@ -557,6 +553,24 @@ class ClusterBHaulageInfo extends Controller
             return self::masterlist($rq);
         }catch(Exception $e){
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);
+        }
+    }
+
+    public function update_block_status(Request $rq)
+    {
+        if($rq->status == 1){
+            for($i=1;$i<=2;$i++){
+                $newRequest = $rq->merge(['batch' => $i]);
+                $response = self::finalize_plan($newRequest);
+                $decodedResponse = json_decode($response->getContent(), true);
+                if($decodedResponse['status'] == '400'){
+                    return response()->json([
+                        'status' => '400',
+                        'message' =>  'Something went wrong. Try again later'
+                    ]);
+                }
+            }
+            return ['status'=>'success','message' =>'success'];
         }
     }
 
