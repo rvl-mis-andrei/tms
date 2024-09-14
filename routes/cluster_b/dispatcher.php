@@ -6,6 +6,7 @@ use App\Http\Controllers\ClusterBController\AccessController;
 use App\Http\Controllers\ClusterBController\Dispatcher\ClientListing;
 use App\Http\Controllers\ClusterBController\Dispatcher\Dashboard;
 use App\Http\Controllers\ClusterBController\Dispatcher\DriverListing;
+use App\Http\Controllers\ClusterBController\Dispatcher\HaulageInfo;
 use App\Http\Controllers\ClusterBController\Dispatcher\TractorTrailerDriverListing;
 use App\Http\Controllers\ClusterBController\DispatcherPageController;
 use App\Services\Dispatcher\ClientList;
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\Route;
 
             Route::get('/client_info/{id}','system_file');
             Route::get('/tractor_trailer_info/{id}','system_file');
+            Route::get('/hauling_plan_info/{id}', 'system_file');
 
             $routes = (new SystemRoute())->getDispatcherRoutes();
             if ($routes) {
@@ -36,6 +38,11 @@ use Illuminate\Support\Facades\Route;
                     }
                 }
             }
+        });
+
+        Route::controller(HaulageInfo::class)->prefix('haulage_info')->group(function() {
+            Route::post('/tripblock', 'tripblock');
+
         });
 
     });

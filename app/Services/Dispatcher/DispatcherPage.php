@@ -3,6 +3,7 @@
 namespace App\Services\Dispatcher;
 
 use App\Models\TmsClusterClient;
+use App\Services\Planner\HaulageList;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -33,6 +34,21 @@ class DispatcherPage
             $data = (new TractorTrailerList)->info($rq);
             $data = json_decode(base64_decode($data['payload']),true);
             return view('layout.dispatcher.shared.resources.tractor_trailer_info', compact('data'))->render();
+        } catch(Exception $e) {
+            return response()->json([
+                'status' => 400,
+                // 'message' =>  'Something went wrong. try again later'
+                'message' =>  $e->getMessage()
+            ]);
+        }
+    }
+
+    public function haulage_info($rq)
+    {
+        try{
+            $data = (new HaulageList)->info($rq);
+            $data = json_decode(base64_decode($data['payload']),true);
+            return view('cluster_b.dispatcher.dispatch.hauling_plan_info', compact('data'))->render();
         } catch(Exception $e) {
             return response()->json([
                 'status' => 400,

@@ -14,6 +14,8 @@ export function page_content(page, param=null) {
                     let tt = page.replace(/[^A-Z0-9]+/ig, " ");
                     let url = window.location.pathname;
                     $("head > title").empty().append("Trip Monitoring | " + (tt.charAt(0).toUpperCase() + tt.slice(1)).split('/')[0]);
+                    $('.page-heading').text((tt.charAt(0).toUpperCase() + tt.slice(1)).split('/')[0]);
+
                     if (param !== null && param !== false) {
                         if (url.split('/')[4] !== page) {
                             window.history.pushState(null, null, page + '/' + param);

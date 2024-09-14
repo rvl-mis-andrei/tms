@@ -91,8 +91,8 @@
                                             <li class="breadcrumb-item text-gray-500 mx-n1">
                                                 Overview </li>
                                         </ul>
-                                        <h1 class="page-heading d-flex flex-column justify-content-center text-dark fw-bolder fs-3 m-0">
-                                            eCommerce Dashboard
+                                        <h1 class="page-heading  d-flex flex-column justify-content-center text-dark fw-bolder fs-3 m-0">
+
                                         </h1>
                                     </div>
                                 </div>
@@ -115,7 +115,11 @@
             var csrf_token = $('meta[name="csrf-token"]').attr("content");
             var app = $("#Page");
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }});
-        </script><script src="{{ asset('assets/plugins/custom/formrepeater/formrepeater.bundle.js') }}"></script>
+            var page_block = new KTBlockUI(document.querySelector('.app-page'), {
+                message: `<div class="blockui-message"><span class="spinner-border text-primary"></span>Loading. . .</div>`,
+            });
+        </script>
+        <script src="{{ asset('assets/plugins/custom/formrepeater/formrepeater.bundle.js') }}"></script>
         <script src="{{ asset('js/cluster_b/dispatcher/navbar.js') }}" type="module"></script>
 </body>
 </html>

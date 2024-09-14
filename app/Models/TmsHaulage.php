@@ -27,6 +27,11 @@ class TmsHaulage extends Model
         return $this->belongsTo(Employee::class,'created_by');
     }
 
+    public function created_by_role()
+    {
+        return $this->belongsTo(TmsUserRole::class,'created_by','emp_id');
+    }
+
     public function deleted_by_emp()
     {
         return $this->belongsTo(Employee::class,'deleted_by');

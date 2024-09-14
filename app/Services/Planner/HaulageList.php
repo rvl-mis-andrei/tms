@@ -21,8 +21,8 @@ class HaulageList
     public function datatable(Request $rq)
     {
         $status = $rq->filter;
-        $search = $rq->get('search')['value'];
         $cluster_id = Auth::user()->emp_cluster->cluster_id;
+        $user_role = Auth::user()->user_roles->role_id;
         $data = TmsHaulage::when($status!="all", function ($q) use ($status) {
             return $q->where('status',$status);
         })
@@ -31,12 +31,17 @@ class HaulageList
         })
         ->where('cluster_id',$cluster_id)->get();
 
-        $data->transform(function ($item,$key){
+        $data->transform(function ($item,$key) use ($user_role) {
             $item->count = $key+1;
             $item->status = config('value.haulage_status.'.$item->status);
             $item->name = $item->name;
             $item->remarks = $item->remarks ?? '--';
+            $item->file_type = $item->plan_type == 1 ? 'Masterlist' : 'Hauling Plan';
+            $item->created_date = Carbon::parse($item->created_at)->format('m/d/y');
             $item->encrypt_id = Crypt::encrypt($item->id);
+            $item->creator = optional($item->created_by_emp)->fullname() ?? 'No record found';
+            $item->creator_role = optional($item->created_by_role->role)->name ?? 'No record found';
+            $item->view_url = ($user_role == 2 ? '/tms/cco-b/planner/hauling_plan_info/' :'/tms/cco-b/dispatcher/hauling_plan_info/').$item->encrypt_id;
             return $item;
         });
 
@@ -122,8 +127,7 @@ class HaulageList
     {
         try{
             DB::beginTransaction();
-
-            if($rq->status == 2){
+            if($rq->status == 1){
                 $res = (new HaulageInfo)->update_block_status($rq);
                 if($res['status'] == '400'){
                     return response()->json([
@@ -132,7 +136,6 @@ class HaulageList
                     ]);
                 }
             }
-
             $id = Crypt::decrypt($rq->id);
             $query = TmsHaulage::find($id);
             $query->name = $rq->name;

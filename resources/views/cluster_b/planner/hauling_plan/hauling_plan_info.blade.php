@@ -52,7 +52,7 @@
                                     <i class="ki-duotone ki-plus ms-1"></i>
                                 </button>
                                 <button class="btn btn-sm btn-light-success finalize-plan" data-status="1" rq-url="/tms/cco-b/planner/haulage_info/finalize_plan">
-                                    Finalize Hauling Plan
+                                    Finalize Trip Block
                                 </button>
                              @elseif ($data['status'] ==1)
                                 <div class="card-toolbar">

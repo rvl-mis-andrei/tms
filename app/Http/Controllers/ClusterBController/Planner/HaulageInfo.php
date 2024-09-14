@@ -91,9 +91,10 @@ class HaulageInfo extends Controller
     public function for_allocation(Request $rq)
     {
         try{
-            $id = Crypt::decrypt($rq->id);
-            $query = TmsHaulageBlockUnit::where('hub', 'LIKE', "%$rq->hub%")->where([['haulage_id',$id],['is_deleted',null]])->get();
-            $array = [];
+            $id      = Crypt::decrypt($rq->id);
+            $haulage = TmsHaulage::find($id);
+            $query   = TmsHaulageBlockUnit::where('hub', 'LIKE', "%$rq->hub%")->where([['haulage_id',$id],['is_deleted',null]])->get();
+            $array   = [];
             if($query){
                 foreach($query as $data){
                     $dealer = $data->dealer;
@@ -124,7 +125,12 @@ class HaulageInfo extends Controller
                     $array[$dealer->code]['unallocated'] = ($array[$dealer->code]['unallocated'] ?? 0) + $unallocated;
                 }
             }
-            $payload = base64_encode(json_encode($array));
+            $payload = base64_encode(json_encode(
+                [
+                    'data'=>$array,
+                    'status'=>$haulage->status
+                ]
+            ));
             return ['status'=>'success','message' =>'success', 'payload' => $payload];
         }catch(Exception $e) {
             return response()->json([

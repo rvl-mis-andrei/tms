@@ -24,10 +24,43 @@ export async function HaulingPlanDT() {
                 title: "No.",
                 responsivePriority: -3,
             },
-            { data: "name", name: "name", title: "Name" },
+            {
+                data: "name", name: "name", title: "Name",
+                render: function (data, type, row) {
+                    return `<div class="d-flex flex-column">
+                        <a href="javscript:;" class="text-gray-800 text-hover-primary mb-1">${data}</a>
+                        <span class="text-muted">${row.file_type}</span>
+                    </div>`;
+                },
+            },
             {
                 data: "remarks", name: "remarks", title: "Remarks",
                 className:'',
+            },
+            {
+                data: "creator", name: "creator", title: "Created By",
+                render: function (data, type, row) {
+                    return `<div class="d-flex flex-column">
+                        <a href="javscript:;" class="text-gray-800 text-hover-primary mb-1">${data}</a>
+                        <span class="text-muted">${row.creator_role}</span>
+                    </div>`;
+                },
+            },
+            {
+                data: "creator_role", name: "creator_role", title: "Created By",
+                className:'',
+                visible:false,
+                searchable:false,
+            },
+            {
+                data: "created_date", name: "created_date", title: "Created Date",
+                className:'',
+            },
+            {
+                data: "file_type", name: "file_type", title: "Plan Type",
+                className:'',
+                visible:false,
+                searchable:false,
             },
             {
                 data: "status",
@@ -37,6 +70,13 @@ export async function HaulingPlanDT() {
                 render: function (data, type, row) {
                     return `<span class="badge badge-${data[1]}">${data[0]}</span>`;
                 },
+            },
+            {
+                data: "view_url",
+                name: "view_url",
+                title: "view_url",
+                searchable:false,
+                visible:false,
             },
             {
                 data: "encrypt_id",
@@ -57,7 +97,7 @@ export async function HaulingPlanDT() {
                         </a>
                         <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-125px py-4" data-kt-menu="true">
                             <div class="menu-item px-3">
-                                <a href="/tms/cco-b/planner/hauling_plan_info/${data}" class="menu-link px-3">View</a>
+                                <a href="${row.view_url}" class="menu-link px-3">View</a>
                             </div>
                             ${
                                 status == 'On-Going' ?`<div class="menu-item px-3">

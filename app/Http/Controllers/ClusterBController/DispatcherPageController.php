@@ -67,6 +67,10 @@ class DispatcherPageController extends Controller
                 return response([ 'page' => $page->tractor_trailer_info($rq)], 200);
             break;
 
+            case 'hauling_plan_info':
+                return response([ 'page' => $page->haulage_info($rq)], 200);
+            break;
+
             default :
                 $row = SystemFile::with(["file_layer" => function($q) use($view) {
                     $q->where([["status", 1], ["href", $view]]);

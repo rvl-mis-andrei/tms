@@ -174,15 +174,16 @@ export function HaulingPlanInfoController(page,param){
             (new RequestHandler).post('/tms/cco-b/planner/haulage_info/for_allocation',formData).then((res) => {
                 if(res.status == 'success'){
                     let payload = JSON.parse(window.atob(res.payload));
+                    let data = payload.data;
+                    let status = payload.status;
                     let html = '',accordion=0, isFinal=false;
-
-                    if(Object.keys(payload).length){
+                    if(Object.keys(data).length){
                         $(`.${hub}_content`).empty();
                         $(`.for_allocation`).empty();
-                        Object.keys(payload).forEach(function(key) {
+                        Object.keys(data).forEach(function(key) {
                             let tbody = '';
                             accordion++;
-                            payload[key].unit.forEach(function(item) {
+                            data[key].unit.forEach(function(item) {
                                 if(item.encrypted_id){
                                     tbody+=`<tr data-id="${item.encrypted_id}">
                                         <td>${item.cs_no}</td>
@@ -190,7 +191,7 @@ export function HaulingPlanInfoController(page,param){
                                         <td>${item.color_description}</td>
                                         <td>${item.invoice_date}</td>
                                         <td>${item.updated_location}</td>
-                                        <td class="remove-cell">
+                                        ${status ==2 ? `<td class="remove-cell">
                                            <a href="javascript:;" class="btn btn-icon btn-color-gray-500 btn-active-color-danger justify-content-end remove-unit"
                                             data-bs-toggle="tooltip" data-bs-placement="top" title="Remove unit" data-id="${item.encrypted_id}" rq-url="/tms/cco-b/planner/haulage_info/remove_unit">
 					                            <i class="ki-duotone ki-trash-square fs-1">
@@ -200,11 +201,10 @@ export function HaulingPlanInfoController(page,param){
                                                     <span class="path4"></span>
                                                 </i>
                                             </a>
-                                        </td>
+                                        </td>`:''}
                                     </tr>`;
                                 }
                             })
-                            console.log(payload[key])
                             html=`<div class="accordion" id="kt_accordion_${accordion}">
                                     <div class="accordion-item rounded-0">
                                         <h2 class="accordion-header rounded-0" id="accordion_${key}">
@@ -212,15 +212,15 @@ export function HaulingPlanInfoController(page,param){
                                                 data-bs-toggle="collapse" data-bs-target="#kt_accordion_${accordion}_body_${accordion}"
                                                 aria-expanded="true" aria-controls="kt_accordion_${accordion}_body_${accordion}">
                                                 ${key}
-                                                <span class="badge badge-light-success ms-2">Allocated : ${payload[key].allocated}</span>
-                                                <span class="badge badge-light-primary ms-2">Unallocated : ${payload[key].unallocated}</span>
+                                                <span class="badge badge-light-success ms-2">Allocated : <span class="allocated_${accordion}">${data[key].allocated}</span></span>
+                                                <span class="badge badge-light-primary ms-2">Unallocated : <span class="unallocated_${accordion}">${data[key].unallocated}</span></span>
                                             </button>
                                         </h2>
                                         <div id="kt_accordion_${accordion}_body_${accordion}" class="accordion-collapse collapse"
                                             aria-labelledby="accordion_${key}" data-bs-parent="#kt_accordion_${accordion}">
                                             <div class="accordion-body">
                                                 <div class="table-responsive">
-                                                    <table class="table table-row-bordered align-middle gy-5 table-sm" id="tbl_${key}_${payload[key].hub}" data-type="forAllocation">
+                                                    <table class="table table-row-bordered align-middle gy-5 table-sm" id="tbl_${key}_${data[key].hub}" data-type="forAllocation">
                                                         <thead class="">
                                                             <tr class=" fw-bold fs-8 text-uppercase gs-0">
                                                                 <th class="">Cs No.</th>
@@ -228,10 +228,10 @@ export function HaulingPlanInfoController(page,param){
                                                                 <th class="">Color</th>
                                                                 <th class="">Invoice</th>
                                                                 <th class="">Location</th>
-                                                                <th class="">Action</th>
+                                                                ${status ==2 ? `<th class="">Action</th>`:''}
                                                             </tr>
                                                         </thead>
-                                                        <tbody class="fs-8 fw-semibold text-gray-600 cursor-pointer" data-type="forAllocation">
+                                                        <tbody class="fs-8 fw-semibold text-gray-600 cursor-pointer" data-type="forAllocation" data-allocated="allocated_${accordion}"" data-unallocated="unallocated_${accordion}"">
                                                             ${tbody}
                                                         </tbody>
                                                     </table>
@@ -241,11 +241,11 @@ export function HaulingPlanInfoController(page,param){
                                     </div>
                                 </div>`;
                             $(`.${hub}_content`).append(html);
-                            initSortableAllocation(`tbl_${key}_${payload[key].hub}`)
+                            initSortableAllocation(`tbl_${key}_${data[key].hub}`)
                         })
                         $(`.${hub}_content`).removeClass('d-none');
                         $(`.empty_${hub}`).addClass('d-none');
-                        $(`.${hub}-count`).text('('+Object.keys(payload).length+')').removeClass('d-none');
+                        $(`.${hub}-count`).text('('+Object.keys(data).length+')').removeClass('d-none');
                     }else{
                         $(`.${hub}_content`).addClass('d-none').empty();
                         $(`.empty_${hub}`).removeClass('d-none');
@@ -400,7 +400,13 @@ export function HaulingPlanInfoController(page,param){
             selectedClass: 'selected',
             onEnd: function(evt) {
                 let selectedItems = evt.items.length > 0 ? evt.items : [evt.item];
-                let currentTable = evt.to.closest('table');
+                let dragToNewTable = evt.to.closest('table');
+                let oldTable = evt.from.closest('table');
+
+                let allocated_badge = oldTable.querySelector('tbody').getAttribute('data-allocated');
+                let unallocated_badge = oldTable.querySelector('tbody').getAttribute('data-unallocated');
+                let allocated = 0;
+                let unallocated = 0;
                 let formDataArray = [];
                 selectedItems.forEach(function(item) {
                     let originalTableId = item.getAttribute('data-original-table');
@@ -414,14 +420,16 @@ export function HaulingPlanInfoController(page,param){
                             unit_id: item.getAttribute('data-id'),
                             batch: $('select[name="batch"]').val(),
                             status: 1,
-                            unit_order: Array.from(currentTable.querySelectorAll('tbody tr')).indexOf(item) + 1
+                            unit_order: Array.from(dragToNewTable.querySelectorAll('tbody tr')).indexOf(item) + 1
                         };
                         formDataArray.push(itemData);
                         while (cells.length > 0) {
                             cells[0].parentNode.removeChild(cells[0]);
                         }
+                        allocated++;
                     }
                 });
+
                 if (formDataArray.length > 0) {
                     let formData = new FormData();
                     formData.append('units', JSON.stringify(formDataArray));
@@ -459,6 +467,10 @@ export function HaulingPlanInfoController(page,param){
                         console.error(error);
                         Alert.alert('error', "Something went wrong. Try again later", false);
                     });
+                    unallocated = (parseInt($(`.${unallocated_badge}`).text())) - allocated;
+                    allocated = (parseInt($(`.${allocated_badge}`).text())) + allocated;
+                    $(`.${allocated_badge}`).empty().text(allocated);
+                    $(`.${unallocated_badge}`).empty().text(unallocated);
                 }
             },
             onStart: function(evt) {
@@ -490,6 +502,12 @@ export function HaulingPlanInfoController(page,param){
                 let currentTable = evt.to.closest('table');
                 let formData = new FormData();
                 let selectedItemsData = [];
+
+                let allocated_badge = currentTable.querySelector('tbody').getAttribute('data-allocated');
+                let unallocated_badge = currentTable.querySelector('tbody').getAttribute('data-unallocated');
+                let allocated = 0;
+                let unallocated = 0;
+
                 selectedItems.forEach(function(item) {
                     let originalTableId = item.getAttribute('data-original-table');
                     let currentTableId = evt.to.closest('table').id;
@@ -532,6 +550,7 @@ export function HaulingPlanInfoController(page,param){
                             evt.from.appendChild(item);
                             ispushData = false;
                         }
+                        unallocated++;
                     }
                     if(ispushData){ selectedItemsData.push(itemData) }
                 });
@@ -547,6 +566,14 @@ export function HaulingPlanInfoController(page,param){
                         Alert.alert('error', "Something went wrong. Try again later", false);
                     }).finally(() => {
                     });
+
+                    if(unallocated > 0){
+                        allocated = (parseInt($(`.${allocated_badge}`).text())) - unallocated;
+                        unallocated = (parseInt($(`.${unallocated_badge}`).text())) + unallocated;
+                        $(`.${allocated_badge}`).empty().text(allocated);
+                        $(`.${unallocated_badge}`).empty().text(unallocated);
+                    }
+
                 }
             },
             onStart: function(evt) {
@@ -651,7 +678,13 @@ export function HaulingPlanInfoController(page,param){
                     (new RequestHandler).post(rq_url,formData).then((res) => {
                         Alert.toast(res.status,res.message);
                         if(res.status == 'success'){
-                            loadTripBlock(batch);
+                            Alert.loading("Please wait while page is refreshing . . .",{
+                                didOpen:function(){
+                                    setTimeout(function() {
+                                        window.location.reload();
+                                    }, 300);
+                                }
+                            });
                         }
                         setTimeout(function() {
                             HaulingCard.release();
