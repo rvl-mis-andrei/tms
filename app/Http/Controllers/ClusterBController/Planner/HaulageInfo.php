@@ -528,7 +528,13 @@ class HaulageInfo extends Controller
         try{
             DB::beginTransaction();
             $haulage_id = Crypt::decrypt($rq->id);
-            $block_ids = TmsHaulageBlock::where([['haulage_id',$haulage_id],['batch',$rq->batch]])->pluck('id');
+            $query = TmsHaulageBlock::where([['haulage_id',$haulage_id],['batch',$rq->batch]]);
+            $block_ids = $query->pluck('id');
+            $query->update([
+                'is_deleted' => 1,
+                'deleted_at' => Carbon::now(),
+                'deleted_by' => Auth::user()->emp_id,
+            ]);
             TmsHaulageBlockUnit::whereIn('block_id',$block_ids)->update([
                 'is_deleted' => 1,
                 'deleted_at' => Carbon::now(),
@@ -548,6 +554,11 @@ class HaulageInfo extends Controller
         try{
             DB::beginTransaction();
             $haulage_id = Crypt::decrypt($rq->id);
+            TmsHaulageBlock::where([['haulage_id',$haulage_id],['batch',$rq->batch]])->update([
+                'is_deleted' => 1,
+                'deleted_at' => Carbon::now(),
+                'deleted_by' => Auth::user()->emp_id,
+            ]);
             TmsHaulageBlockUnit::where('haulage_id',$haulage_id)->update([
                 'is_deleted' => 1,
                 'deleted_at' => Carbon::now(),
