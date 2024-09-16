@@ -37,7 +37,7 @@ class HaulageList
             $item->name = $item->name;
             $item->remarks = $item->remarks ?? '--';
             $item->file_type = $item->plan_type == 1 ? 'Masterlist' : 'Hauling Plan';
-            $item->created_date = Carbon::parse($item->created_at)->format('m/d/y');
+            $item->created_date = Carbon::parse($item->created_at)->format('m-d-Y');
             $item->encrypt_id = Crypt::encrypt($item->id);
             $item->creator = optional($item->created_by_emp)->fullname() ?? 'No record found';
             $item->creator_role = optional($item->created_by_role->role)->name ?? 'No record found';
@@ -204,7 +204,6 @@ class HaulageList
             DB::beginTransaction();
             $filename = Str::random(10) . '.' . $rq->file($folder)->getClientOriginalExtension();
             $filePath = $rq->file($folder)->storeAs($folder, $filename, 'public');
-
             if (Storage::disk('public')->exists($filePath)) {
                 $id    = Crypt::decrypt($rq->id);
                 $query = TmsHaulage::find($id);
@@ -212,7 +211,7 @@ class HaulageList
                 if($folder=='masterlist' && count($files) >= 1){
                     return ['status'=>'error','message' =>'You already uploaded a masterlist','payload'=>false];
                 }
-                if(count($files) >= 2 && $folder == 'hauling_plan') {
+                if(count($files) >= 2 && $folder == 'hauling_plan' && !isset($rq->reupload_haulage)) {
                     return ['status'=>'error','message' =>'You already uploaded 2 hauling plan','payload'=>false];
                 }
                 $files[] = $filename;
@@ -220,12 +219,9 @@ class HaulageList
                 $query->save();
                 DB::commit();
                 return ['status'=>'success','message' =>'success','payload'=>$filePath, 'upload_count'=>count($files)];
-            }else{
-
             }
         }catch(Exception $e){
             DB::rollback();
-
             return response()->json([ 'status' => 400,  'message' =>  $e->getMessage() ]);
         }
     }
@@ -260,11 +256,16 @@ class HaulageList
             $id    = Crypt::decrypt($rq->id);
             $query = TmsHaulage::find($id);
             $files = json_decode($query->filenames,true);
-            $index = $rq->batch-1;
+
+            $index = $rq->upload_batch-1;
             $filePath = 'hauling_plan/'.$files[$index];
                 if (Storage::disk('public')->exists($filePath)) {
                 if (Storage::disk('public')->delete($filePath)) {
-                    unset($files[$index]);
+
+                    $filename = Str::random(10) . '.' . $rq->file('hauling_plan')->getClientOriginalExtension();
+                    $filePath = $rq->file('hauling_plan')->storeAs('hauling_plan', $filename, 'public');
+                    
+                    $files[$index] = $filename;
                     $query->filenames = json_encode($files);
                     $query->save();
                     DB::commit();

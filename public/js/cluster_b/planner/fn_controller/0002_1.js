@@ -585,14 +585,15 @@ export function HaulingPlanInfoController(page,param){
     $(document).ready(function(e){
 
         HaulagePage.block();
+        let sess_batch =localStorage.getItem("sess_batch") || 1;
 
-        loadTripBlock().then(()=>{
+        loadTripBlock(sess_batch).then(()=>{
             fvHaulingPlanInfo(param)
             loadForAllocation('svc')
             custom_upload()
             dealer()
             car_model()
-
+            $('select[name="batch"]').val(sess_batch).trigger('change', false);
             setTimeout(function() {
                 HaulagePage.release();
             }, 500);
@@ -618,12 +619,12 @@ export function HaulingPlanInfoController(page,param){
             e.stopImmediatePropagation()
 
             HaulingCard.block();
-
-            loadTripBlock($(this).val()).then((res) =>{
+            let batch = $(this).val();
+            loadTripBlock(batch).then((res) =>{
                 setTimeout(function() {
                     HaulingCard.release();
                 }, 500);
-
+                localStorage.setItem("sess_batch",$(this).val())
             })
         })
 
@@ -665,10 +666,20 @@ export function HaulingPlanInfoController(page,param){
         _page.on('click','.finalize-plan',function(e){
             e.preventDefault()
             e.stopImmediatePropagation()
-
             let rq_url = $(this).attr('rq-url');
             let batch = $('select[name="batch"]').val();
-
+            var hasRows = false;
+            $('.hauling_list .card').each(function() {
+                var $table = $(this).find('table');
+                if ($table.find('tbody tr').length > 0) {
+                    hasRows = true;
+                    return false;
+                }
+            });
+            if (!hasRows) {
+                Alert.alert('info','No trip blocks to finalize');
+                return;
+            }
             Alert.confirm(`question`,`Finalize Hauling Plan Batch ${batch}?`, {
                 onConfirm: function() {
                     HaulingCard.block();

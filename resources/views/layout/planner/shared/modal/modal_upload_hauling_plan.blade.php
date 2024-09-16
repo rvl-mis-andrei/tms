@@ -29,6 +29,17 @@
                 </button>
             </div>
                 <form id="form_hauling_plan" modal-id="#modal_fhauling_plan" class="form fv-plugins-bootstrap5 fv-plugins-framework" action="/tms/cco-b/planner/haulage_info/hauling_plan">
+                    <div class="fv-row mb-7 fv-plugins-icon-container">
+                        <label class="required fs-6 fw-semibold form-label mb-2">Batch:</label>
+                        <select name="upload_batch" data-control="select2" data-placeholder="Select a hub" data-hide-search="false" data-minimum-results-for-search="Infinity"
+                        class="form-select form-select-solid fw-bold select2-hidden-accessible"
+                        data-select2-id="select2-data-15-mta8" tabindex="-1" aria-hidden="true" data-kt-initialized="1">
+                            <option></option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                        <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+                    </div>
                     <div class="custom-file-upload">
                         <div class="upload-area uploadArea" id="">
                             <div class="fv-row">
@@ -57,7 +68,6 @@
     </div>
 </div>
 
-
 {{-- MODAL UPLOAD MASTER LIST --}}
 <div class="modal fade" id="modal_upload_masterlist" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg">
@@ -78,7 +88,7 @@
                                 <div class="icon" id="uploadIcon">
                                     <i class="bi bi-cloud-arrow-up-fill"></i>
                                 </div>
-                                <h3 id="" class="uploadText">Drag & Drop files here</h3>
+                                <h3 id="" class="uploadText">Click here to upload file</h3>
                                 <input type="file" class="fileInput" name="masterlist">
                                 <div id="" class="file-name fileName"></div>
                                 <a href="#" id="" class="text-active-primary mt-3 removeFile" style="display: none;">Remove File</a>

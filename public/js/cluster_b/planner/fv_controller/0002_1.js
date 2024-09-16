@@ -152,22 +152,12 @@ export function fvHaulingPlanInfo(param){
                                 message: 'Please select a valid Excel file (xls, xlsx, xlsm)'
                             },
                             fileSize: {
-                                maxSize: 20480 * 1024, // in bytes (20 MB in this example)
+                                maxSize: 20480 * 1024,
                                 message: 'The file is too large. Maximum size allowed is 20 MB.'
                             }
-                            // remote: {
-                            //     url: '/services/haulage/validate',
-                            //     method: 'POST',
-                            //     message: 'The name is not unique',
-                            //     headers: {
-                            //         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                            //     },
-                            //     data: function(){
-                            //         return {  id: $('.submit').attr('data-id')  };
-                            //     }
-                            // }
                         },
                     },
+                    upload_batch: fv_validator(),
                 },
                 plugins: {
                 trigger: new FormValidation.plugins.Trigger(),

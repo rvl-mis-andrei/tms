@@ -209,6 +209,7 @@ class HaulageInfo extends Controller
             DB::commit();
             return response()->json(['status' => 'success', 'message' => 'File uploaded successfully','payload'=>$result['upload_count']]);
         }catch(Exception $e){
+            DB::rollback();
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);
         }
     }
@@ -219,7 +220,6 @@ class HaulageInfo extends Controller
         set_time_limit(0);
         try{
             DB::beginTransaction();
-
             $result = (new HaulageList)->move_file($rq);
             if ($result['status'] != 'success' && $result['payload'] === false) {  return response()->json($result); }
 
@@ -300,7 +300,7 @@ class HaulageInfo extends Controller
                             'sdriver' =>$this->tractor_arr[$plate_no]['sdriver'],
                             'no_of_trips'=>  $no_of_trips,
                             'block_units' => [$this->haulage_block_unit],
-                            'batch'=>$rq->batch,
+                            'batch'=>$rq->upload_batch,
                             'created_by'=>$user_id,
                             'status'=>1,
                         ];
@@ -335,6 +335,7 @@ class HaulageInfo extends Controller
             return response()->json(['status' => 'success', 'message' => 'File uploaded successfully','payload'=>$result['upload_count']]);
 
         }catch(Exception $e){
+            DB::rollback();
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);
         }
     }
@@ -388,6 +389,7 @@ class HaulageInfo extends Controller
                 'payload'=>$payload
             ]);
         }catch(Exception $e){
+            DB::rollback();
             return response()->json([
                 'status'=>400,
                 'message' =>$e->getMessage()
@@ -419,6 +421,7 @@ class HaulageInfo extends Controller
     public function add_tripblock(Request $rq)
     {
         try{
+            DB::beginTransaction();
             $id = Crypt::decrypt($rq->id);
             $user_id = Auth::user()->emp_id;
             $query = TmsHaulageBlock::create([
@@ -436,9 +439,10 @@ class HaulageInfo extends Controller
                 'no_of_trips' =>$query->no_of_trips,
             ];
             $payload = base64_encode(json_encode($array));
-
+            DB::commit();
             return ['status'=>'success','message' =>'success', 'payload' => $payload];
         }catch(Exception $e) {
+            DB::rollback();
             return response()->json([
                 'status' => 400,
                 // 'message' =>  'Something went wrong. try again later'
@@ -470,8 +474,8 @@ class HaulageInfo extends Controller
 
             DB::commit();
             return response()->json(['status' => 'success', 'message' => 'Added Successfully']);
-
         }catch(Exception $e){
+            DB::rollback();
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);
         }
     }
@@ -479,6 +483,7 @@ class HaulageInfo extends Controller
     public function remove_tripblock(Request $rq)
     {
         try{
+            DB::beginTransaction();
             $haulage_id = Crypt::decrypt($rq->id);
             $block_id = Crypt::decrypt($rq->block_id);
             $user_id = Auth::user()->emp_id;
@@ -492,8 +497,10 @@ class HaulageInfo extends Controller
                 'deleted_by'=>$user_id,
                 'deleted_at'=>Carbon::now()
             ]);
+            DB::commit();
             return ['status'=>'success','message' =>'success'];
         }catch(Exception $e) {
+            DB::rollback();
             return response()->json([
                 'status' => 400,
                 // 'message' =>  'Something went wrong. try again later'
@@ -505,6 +512,7 @@ class HaulageInfo extends Controller
     public function remove_unit(Request $rq)
     {
         try{
+            DB::beginTransaction();
             $id = Crypt::decrypt($rq->unit_id);
             $haulage_id = Crypt::decrypt($rq->id);
             $user_id = Auth::user()->emp_id;
@@ -513,8 +521,10 @@ class HaulageInfo extends Controller
                 'deleted_by'=>$user_id,
                 'deleted_at'=>Carbon::now()
             ]);
+            DB::commit();
             return ['status'=>'success','message' =>'Unit remove successfully'];
         }catch(Exception $e) {
+            DB::rollback();
             return response()->json([
                 'status' => 400,
                 // 'message' =>  'Something went wrong. try again later'
@@ -528,7 +538,7 @@ class HaulageInfo extends Controller
         try{
             DB::beginTransaction();
             $haulage_id = Crypt::decrypt($rq->id);
-            $query = TmsHaulageBlock::where([['haulage_id',$haulage_id],['batch',$rq->batch]]);
+            $query = TmsHaulageBlock::where([['haulage_id',$haulage_id],['batch',$rq->upload_batch]]);
             $block_ids = $query->pluck('id');
             $query->update([
                 'is_deleted' => 1,
@@ -543,8 +553,11 @@ class HaulageInfo extends Controller
             $result = (new HaulageList)->reupload_hauling_plan($rq);
             if ($result['status'] != 'success') {  return response()->json($result); }
             DB::commit();
-            return self::hauling_plan($rq);
+            return self::hauling_plan(
+                $rq->merge(['reupload_haulage' => true])
+            );
         }catch(Exception $e){
+            DB::rollback();
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);
         }
     }
@@ -569,26 +582,33 @@ class HaulageInfo extends Controller
             DB::commit();
             return self::masterlist($rq);
         }catch(Exception $e){
+            DB::rollback();
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);
         }
     }
 
     public function update_block_status(Request $rq)
     {
-        if($rq->status == 1){
-            for($i=1;$i<=2;$i++){
-                $newRequest = $rq->merge(['batch' => $i]);
-                $response = self::finalize_plan($newRequest);
-                $decodedResponse = json_decode($response->getContent(), true);
-                if($decodedResponse['status'] == '400'){
-                    return response()->json([
-                        'status' => '400',
-                        'message' =>  'Something went wrong. Try again later'
-                    ]);
+        try{
+            DB::beginTransaction();
+            if($rq->status == 1){
+                for($i=1;$i<=2;$i++){
+                    $newRequest = $rq->merge(['batch' => $i]);
+                    $response = self::finalize_plan($newRequest);
+                    $decodedResponse = json_decode($response->getContent(), true);
+                    if($decodedResponse['status'] == '400'){
+                        return response()->json([
+                            'status' => '400',
+                            'message' =>  'Something went wrong. Try again later'
+                        ]);
+                    }
                 }
+                DB::commit();
+                return ['status'=>'success','message' =>'success'];
             }
-            return ['status'=>'success','message' =>'success'];
+        }catch(Exception $e){
+            DB::rollback();
+            return response()->json(['status'=>400,'message' =>$e->getMessage()]);
         }
     }
-
 }
