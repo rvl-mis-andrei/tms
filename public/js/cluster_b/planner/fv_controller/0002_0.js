@@ -72,6 +72,7 @@ export function fvHaulingPlan(){
                         $('.modal_title').text('New Hauling Plan');
                         $('select[name="plan_type"]').prop('disabled',false);
                         $('input[name="planning_date"]').prop('disabled',false);
+                        $('.select-status').addClass('d-none');
                     }
                 })
             })

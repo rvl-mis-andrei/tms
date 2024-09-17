@@ -36,6 +36,7 @@ export async function HaulingPlanDT() {
             {
                 data: "remarks", name: "remarks", title: "Remarks",
                 className:'',
+                sortable:false,
             },
             {
                 data: "creator", name: "creator", title: "Created By",
@@ -67,6 +68,7 @@ export async function HaulingPlanDT() {
                 name: "status",
                 title: "Status",
                 searchable:false,
+                sortable:false,
                 render: function (data, type, row) {
                     return `<span class="badge badge-${data[1]}">${data[0]}</span>`;
                 },
@@ -82,6 +84,7 @@ export async function HaulingPlanDT() {
                 data: "encrypt_id",
                 name: "encrypt_id",
                 title: "Action",
+                sortable:false,
                 className: "text-center",
                 responsivePriority: -1,
                 render: function (data, type, row) {
@@ -211,6 +214,7 @@ export async function HaulingPlanDT() {
             $('.modal_title').text('Edit Hauling Plan Details');
             $('#form').attr('action','/services/haulage/update');
             $('.submit').attr('data-id',btn_data);
+            $('.select-status').removeClass('d-none');
         })
         .catch((error) => {
             console.log(error)

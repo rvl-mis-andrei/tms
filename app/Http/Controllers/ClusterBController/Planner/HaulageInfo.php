@@ -40,11 +40,14 @@ class HaulageInfo extends Controller
                     $block_unit = [];
                     $dealer_arr = [];
                     $dealer_code_arr = [];
+                    $is_multipickup = false;
+                    $units_count =0;
                     foreach($data->block_unit as $row){
                         $dealer = $row->dealer;
                         if (!in_array($dealer->name, $dealer_arr)){
                             $dealer_arr[] = $dealer->name;
                             $dealer_code_arr[] = $dealer->code;
+                            $is_multipickup = true;
                         }
                         $block_unit[]=[
                             'encrypted_id'=>Crypt::encrypt($row->id),
@@ -56,9 +59,11 @@ class HaulageInfo extends Controller
                             'updated_location'=>$row->updated_location,
                             'inspection_start'=>$row->inspected_start?date('g:i A',strtotime($row->inspected_start)):'--',
                             'hub'=>$row->hub ??'--',
-                            'remarks'=>$row->remarks ?? '--',
+                            'remarks'=>$row->vld_instruction??'-',
                             'status'=>$row->status,
+                            'is_transfer'=>$row->is_transfer,
                         ];
+                        $units_count++;
                     }
                     $array[]=[
                         'encrypted_id'=>Crypt::encrypt($data->id),
@@ -71,6 +76,9 @@ class HaulageInfo extends Controller
                         'status'=>$data->status,
                         'created_by'=>$data->status,
                         'status'=>$data->status,
+                        'is_multipickup'=>$is_multipickup,
+                        'units_count'=>$units_count,
+                        'remarks'=>$data->remarks,
                         'created_by'=>optional($data->created_by_emp)->fullname() ?? 'No record found',
                         'updated_by'=>optional($data->updated_by_emp)->fullname() ?? 'No record found',
                     ];
@@ -93,7 +101,23 @@ class HaulageInfo extends Controller
         try{
             $id      = Crypt::decrypt($rq->id);
             $haulage = TmsHaulage::find($id);
-            $query   = TmsHaulageBlockUnit::where('hub', 'LIKE', "%$rq->hub%")->where([['haulage_id',$id],['is_deleted',null]])->get();
+            $search = isset($rq->search) ? $rq->search:null;
+            $query = TmsHaulageBlockUnit::where('hub', 'LIKE', "%{$rq->hub}%")
+            ->when($search, function($query, $search) {
+                $query->where(function($query) use ($search) {
+                    // Group the conditions to ensure proper logical behavior
+                    $query->where('cs_no', 'LIKE', "%$search%")
+                        ->orWhereHas('dealer', function($q) use ($search) {
+                            $q->where('name', 'LIKE', "%$search%")
+                            ->orWhere('code', 'LIKE', "%$search%");
+                        })
+                        ->orWhereHas('car', function($q) use ($search) {
+                            $q->where('car_model', 'LIKE', "%$search%");
+                        });
+                });
+            })
+            ->where([['haulage_id', $id], ['is_deleted', null]])
+            ->get();
             $array   = [];
             if($query){
                 foreach($query as $data){
@@ -112,7 +136,7 @@ class HaulageInfo extends Controller
                             'updated_location'=>$data->updated_location,
                             'inspection_start'=>date('g:i A',strtotime($data->inspected_start)),
                             'hub'=>$data->hub ??'--',
-                            'remarks'=>$data->remarks ?? '--',
+                            'remarks'=>$data->vld_instruction ?? $data->remarks,
                             'status'=>$data->status,
                         ];
                         $unallocated++;
@@ -273,7 +297,7 @@ class HaulageInfo extends Controller
                         'invoice_date' =>$class->excelDateToPhpDate($sheet->getCell("G$row")->getCalculatedValue()),
                         'inspected_start' =>$class->excelTimeToPhpTime($sheet->getCell("J$row")->getCalculatedValue()),
                         'inspected_end' => $sheet->getCell("K$row")->getCalculatedValue(),
-                        'remarks' => $sheet->getCell("O$row")->getCalculatedValue(),
+                        'vld_instruction' => $sheet->getCell("O$row")->getCalculatedValue(),
                         'hub' => $sheet->getCell("A$row")->getCalculatedValue() ?? 'SVC',
                         'status'=>1,
                         'created_by'=>$user_id,
@@ -346,6 +370,7 @@ class HaulageInfo extends Controller
             DB::beginTransaction();
             $user_id = Auth::user()->emp_id;
             $units = json_decode($rq->units,true);
+            $haulageID = Crypt::decrypt($rq->haulage_id);
             $units_arr = [];
 
             foreach($units as $data){
@@ -353,31 +378,127 @@ class HaulageInfo extends Controller
                 $block_id = $data['block_id']!=null?Crypt::decrypt($data['block_id']):null;
                 $car_model_id = Crypt::decrypt($data['unit_id']);
                 $status = $data['status'];
-                $unit_order = isset($data['unit_order'])?$data['unit_order']:null;
+                $new_unit_order = isset($data['unit_order']) && $block_id?$data['unit_order']:0;
 
+                // Get the units in the block, excluding the current one
                 $query = TmsHaulageBlockUnit::find($car_model_id);
 
-                // Re-assign unit order
-                if($unit_order){
-                    $temp_query = TmsHaulageBlockUnit::where([['block_id',$block_id],['unit_order',$unit_order],['car_model_id','!=',$car_model_id]])->first();
-                    if($temp_query){
-                        $temp_query->unit_order = $query->unit_order;
-                        $temp_query->save();
+                if($query->haulage_id != $haulage_id && $query->haulage_id !==null){
+                    return ['status'=>'error', 'message' =>'Haulage ID Mismatch'];
+                }
+
+                //REMOVE AND RE-ORDER UNIT ORDER
+                if ($new_unit_order == 0) {
+                    // Adjust unit_order of remaining items
+                    $temp_query = TmsHaulageBlockUnit::where('block_id', $query->block_id)
+                        ->where('unit_order', '>', $query->unit_order)
+                        ->where('id', '!=', $query->id)
+                        ->orderBy('unit_order', 'asc')
+                        ->get();
+                    foreach ($temp_query as $temp) {
+                        // Shift down unit_order for items greater than the removed item's order
+                        $temp->unit_order = $temp->unit_order - 1;
+                        $temp->save();
+                    }
+                } else {
+
+                    $temp_query = TmsHaulageBlockUnit::where('block_id', $block_id)
+                    ->where('unit_order', '<=', $new_unit_order)
+                    ->where('id','!=',$query->id)
+                    ->orderBy('unit_order', 'asc')
+                    ->get();
+
+                    // Calculate the max value of unit_order
+                    $max_value = $temp_query->max('unit_order');
+                    // Ensure that new_unit_order doesn't exceed max_value
+                    $arr = [];
+                    if ($new_unit_order <= $max_value) {
+                        foreach ($temp_query as $temp) {
+                            // if ($new_unit_order == 1){
+                            //     if ($temp->unit_order >= 1) {
+                            //         $old_unit_order = $temp->unit_order;
+                            //         $temp->unit_order = $temp->unit_order + 1;
+                            //         $temp->save();
+                            //         $arr[] = [
+                            //             'unit_order' => $temp->unit_order,
+                            //             'old_unit_order' => $old_unit_order
+                            //         ];
+                            //     }
+                            // }
+                            // elseif($new_unit_order == $max_value){
+                            //     if ($temp->unit_order <= $max_value) {
+                            //         $old_unit_order = $temp->unit_order;
+                            //         $temp->unit_order = $temp->unit_order - 1;
+                            //         $temp->save();
+                            //         $arr[] = [
+                            //             'unit_order' => $temp->unit_order,
+                            //             'old_unit_order' => $old_unit_order
+                            //         ];
+                            //     }
+                            // }else{
+                            // }
+
+                                // Shift up unit_order
+                                if ($new_unit_order > $query->unit_order && $temp->unit_order > $query->unit_order && $temp->unit_order <= $new_unit_order) {
+                                    $old_unit_order = $temp->unit_order;
+                                    $temp->unit_order = $temp->unit_order - 1;
+                                    $temp->save();
+                                    $arr[] = [
+                                        'unit_order' => $temp->unit_order,
+                                        'old_unit_order' => $old_unit_order
+                                    ];
+
+                                }
+                                // Shift down unit_order
+                                elseif ($new_unit_order < $query->unit_order && $temp->unit_order >= $new_unit_order) {
+                                $old_unit_order = $temp->unit_order;
+                                    $temp->unit_order = $temp->unit_order + 1;
+                                    $temp->save();
+                                    $arr[] = [
+                                        'unit_order' => $temp->unit_order,
+                                        'old_unit_order' => $old_unit_order
+                                    ];
+                                }
+
+                            // if ($new_unit_order == 1){
+                            //     if ($temp->unit_order >= 1) {
+                            //         $temp->unit_order = $temp->unit_order + 1;
+                            //         $temp->save();
+                            //     }
+                            // }
+                            // else{
+                            //     // Shift up unit_order
+                            //     if ($new_unit_order > $query->unit_order && $temp->unit_order > $query->unit_order && $temp->unit_order <= $new_unit_order) {
+                            //         $temp->unit_order = $temp->unit_order - 1;
+                            //         $temp->save();
+                            //     }
+                            //     // Shift down unit_order
+                            //     elseif ($new_unit_order < $query->unit_order && $temp->unit_order >= $new_unit_order) {
+                            //         $temp->unit_order = $temp->unit_order + 1;
+                            //         $temp->save();
+                            //     }
+                            // }
+
+                        }
                     }
                 }
 
+                // Assign the new unit order to the current record
+                $query->unit_order = $new_unit_order;
                 $query->block_id = $block_id;
                 $query->haulage_id = $haulage_id;
                 $query->status = $status;
                 $query->updated_by = $user_id;
-                $query->unit_order = $unit_order;
                 $query->save();
 
-                $units_arr[]=[
-                    'dealer_code'=>$query->dealer->code,
-                    'inspection_time'=>$query->inspected_start?date('m/d/Y',strtotime($query->inspected_start)):'--',
-                    'hub'=>$query->hub,
-                    'remarks'=>$query->remarks??'--',
+                // Prepare the response array
+                $units_arr[] = [
+                    'dealer_code' => $query->dealer->code,
+                    'inspection_time' => $query->inspected_start ? date('m/d/Y', strtotime($query->inspected_start)) : '--',
+                    'hub' => $query->hub,
+                    'remarks' => $query->vld_instruction ?? '-',
+                    'is_transfer' =>$query->is_transfer,
+                    'encrypted_id' =>Crypt::encrypt($query->id),
                 ];
             }
 
@@ -607,6 +728,43 @@ class HaulageInfo extends Controller
                 return ['status'=>'success','message' =>'success'];
             }
         }catch(Exception $e){
+            DB::rollback();
+            return response()->json(['status'=>400,'message' =>$e->getMessage()]);
+        }
+    }
+
+    public function update_transfer(Request $rq)
+    {
+        try{
+            DB::beginTransaction();
+            $id = Crypt::decrypt($rq->id);
+            $unit_id = Crypt::decrypt($rq->unit_id);
+            $transfer = $rq->transfer;
+            TmsHaulageBlockUnit::where([['id',$unit_id],['haulage_id',$id]])->update([
+                'is_transfer' => $transfer
+            ]);
+            DB::commit();
+            return ['status'=>'success','message' =>'success'];
+        } catch(Exception $e){
+            DB::rollback();
+            return response()->json(['status'=>400,'message' =>$e->getMessage()]);
+        }
+    }
+
+    public function update_unit_remarks(Request $rq)
+    {
+        try{
+            DB::beginTransaction();
+            $id = Crypt::decrypt($rq->id);
+            $unit_id = Crypt::decrypt($rq->unit_id);
+            $remarks = $rq->remarks;
+            $query = TmsHaulageBlockUnit::where([['id',$unit_id],['haulage_id',$id]])->first();
+            $query->vld_instruction = $remarks;
+            $query->save();
+
+            DB::commit();
+            return ['status'=>'success','message' =>'Remarks updated successfully'];
+        } catch(Exception $e){
             DB::rollback();
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);
         }

@@ -82,6 +82,17 @@
             </div>
             <div class="modal-body px-5 my-7">
                 <form id="form_masterlist" modal-id="#modal_upload_masterlist" class="form fv-plugins-bootstrap5 fv-plugins-framework" action="/tms/cco-b/planner/haulage_info/masterlist">
+                    <div class="fv-row mb-7 fv-plugins-icon-container">
+                        <label class="required fs-6 fw-semibold form-label mb-2">Batch:</label>
+                        <select name="masterlist_batch" data-control="select2" data-placeholder="Select a hub" data-hide-search="false" data-minimum-results-for-search="Infinity"
+                        class="form-select form-select-solid fw-bold select2-hidden-accessible"
+                        data-select2-id="select2-data-15-mta8" tabindex="-1" aria-hidden="true" data-kt-initialized="1">
+                            <option></option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                        <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+                    </div>
                     <div class="custom-file-upload">
                         <div class="upload-area uploadArea">
                             <div class="fv-row">
@@ -173,6 +184,7 @@
                                 <option></option>
                                 <option value="SVC">SVC</option>
                                 <option value="BVC">BVC</option>
+                                <option value="OTHERS">OTHERS</option>
                             </select>
                             <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                         </div>

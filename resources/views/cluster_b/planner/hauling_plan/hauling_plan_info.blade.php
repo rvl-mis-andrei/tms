@@ -98,8 +98,8 @@
         </div>
         <div class="col-lg-12 col-xl-3">
             <div class="card pt-0 mb-6 mb-xl-9 for_allocation_card">
-                <div class="card-header position-relative min-h-50px border-bottom-2 py-3">
-                    <ul class="nav nav-pills nav-pills-custom gap-7" role="tablist">
+                <div class="card-header position-relative min-h-50px border-bottom-2 py-3 px-5">
+                    <ul class="nav nav-pills nav-pills-custom gap-3" role="tablist">
                         <li class="nav-item" role="presentation">
                             <a class="nav-link btn btn-color-muted border-0 h-100 px-0 active nav-tab" data-bs-toggle="pill" data-hub="svc" href="#tab_content_1" aria-selected="true" role="tab">
                                 <span class="nav-text fw-bold fs-4 mb-3">
@@ -112,6 +112,14 @@
                             <a class="nav-link btn btn-color-muted border-0 h-100 px-0 nav-tab"  data-hub="bvc"  data-bs-toggle="pill" href="#tab_content_2" aria-selected="false" role="tab" tabindex="-1">
                                 <span class="nav-text fw-bold fs-4 mb-3">
                                     BVC <span class="bvc-count d-none">0</span>
+                                </span>
+                                <span class="bullet-custom position-absolute z-index-2 w-100 h-2px top-100 bottom-n100 bg-primary rounded"></span>
+                            </a>
+                        </li>
+                        <li class="nav-item " role="presentation">
+                            <a class="nav-link btn btn-color-muted border-0 h-100 px-0 nav-tab"  data-hub="others"  data-bs-toggle="pill" href="#tab_content_3" aria-selected="false" role="tab" tabindex="-1">
+                                <span class="nav-text fw-bold fs-4 mb-3">
+                                    Others <span class="others-count d-none">0</span>
                                 </span>
                                 <span class="bullet-custom position-absolute z-index-2 w-100 h-2px top-100 bottom-n100 bg-primary rounded"></span>
                             </a>
@@ -151,17 +159,11 @@
                                         </a>
                                     </div>
                                 @endif
-                                @if($data['plan_type'] == 1 && count($data['filenames']) <1)
-                                    <div class="menu-item px-3">
-                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#modal_upload_masterlist">
-                                            Upload Masterlist
-                                        </a>
-                                    </div>
-                                @elseif($data['plan_type'] == 1 && count($data['filenames']) >=1)
+                                @if($data['plan_type'] == 1)
                                     <div class="separator mt-3 opacity-75"></div>
                                     <div class="menu-item px-3 mt-2">
-                                        <a href="#" class="menu-link px-3 reupload" form_id="form_masterlist" modal-title="Re-Upload Masterlist" modal-id="#modal_upload_masterlist" rq-url="/tms/cco-b/planner/haulage_info/reupload_masterlist">
-                                            Re-Upload Masterlist
+                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#modal_upload_masterlist">
+                                            Upload Masterlist
                                         </a>
                                     </div>
                                 @endif
@@ -170,8 +172,15 @@
                     </div>
                 @endif
                 </div>
-                <div class="card-body card-scroll h-1000px p-0 rounded-0 bg-light-secondary">
-                    <div class="tab-content ">
+                <div class="card-body card-scroll h-1000px p-0 px-2 rounded-0 bg-light-secondary">
+                    <div class="position-relative w-100 mb-5 mt-5">
+                        <i class="ki-duotone ki-magnifier fs-2 text-muted position-absolute top-50 translate-middle ms-8">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                        <input type="text" class="form-control fs-4 ps-14 text-gray-700 rounded-0 placeholder-gray-500 search-allocation" name="search" value="" placeholder="Search here . . .">
+                    </div>
+                    <div class="tab-content">
                         <div class="tab-pane active show" id="tab_content_1" role="tabpanel">
                             <div class="table-responsive pb-10">
                                 <div class="svc_content for_allocation d-none">
@@ -199,6 +208,19 @@
                                             <em> Click the button <span class="text-primary">Actions</span> and <br> select Upload @if ($data['plan_type'] == 2) Hauling Plan @else Masterlist @endif</em>
                                         </p>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="tab_content_3" role="tabpanel">
+                            <div class="others_content for_allocation d-none">
+
+                            </div>
+                            <div class="empty_others d-none">
+                                <div class="card-px text-center pt-20 pb-15">
+                                    <h2 class="fs-5 mb-0">No Units Found</h2>
+                                    <p class="text-gray-500 fs-6 fw-semibold py-7">
+                                        <em> Click the button <span class="text-primary">Actions</span> and <br> select <a href="javascript:;" data-bs-toggle="modal" data-bs-target="#modal_add_dealer_unit" class="text-primary"> Add New Unit </a></em>
+                                    </p>
                                 </div>
                             </div>
                         </div>

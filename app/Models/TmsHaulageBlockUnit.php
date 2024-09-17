@@ -34,7 +34,8 @@ class TmsHaulageBlockUnit extends Model
         'updated_by',
         'is_deleted',
         'deleted_at',
-        'deleted_by'
+        'deleted_by',
+        'is_transfer',
     ];
 
     public function dealer(){

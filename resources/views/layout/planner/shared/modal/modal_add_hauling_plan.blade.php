@@ -26,7 +26,7 @@
                                 <input class="form-control form-control-solid ps-12" input-control="flatpicker" placeholder="Select a date" id="planning_date" name="planning_date" type="text">
                             </div>
                         </div>
-                        <div class="fv-row mb-7 fv-plugins-icon-container">
+                        <div class="fv-row mb-7 fv-plugins-icon-container select-status d-none">
                             <label class="required fs-6 fw-semibold form-label mb-2">Status:</label>
                             <select name="status" data-control="select2" data-placeholder="Select a status" data-hide-search="false" data-minimum-results-for-search="Infinity"
                             class="form-select form-select-solid fw-bold">
@@ -36,13 +36,13 @@
                             </select>
                             <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                         </div>
-                        <div class="fv-row mb-7 fv-plugins-icon-container">
+                        <div class="fv-row mb-7 fv-plugins-icon-container select-plan-type d-none">
                             <label class="required fs-6 fw-semibold form-label mb-2">Plan Type:</label>
                             <select name="plan_type" data-control="select2" data-placeholder="Select a type" data-hide-search="false" data-minimum-results-for-search="Infinity"
                             class="form-select form-select-solid fw-bold">
                                 <option></option>
-                                <option value="1">Masterlist</option>
-                                <option value="2" selected>Hauling Plan</option>
+                                <option value="1" selected>Masterlist</option>
+                                {{-- <option value="2">Hauling Plan</option> --}}
                             </select>
                             <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                         </div>

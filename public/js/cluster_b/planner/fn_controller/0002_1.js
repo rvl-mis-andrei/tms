@@ -33,23 +33,45 @@ export function HaulingPlanInfoController(page,param){
                         payload.forEach(function(item,key) {
                             tbody = '';
                             item.block_units.forEach(function(units) {
-                                tbody+=`<tr data-original-table="tbl_${units.dealer_code}_${units.hub}" data-type="forAllocation" data-id="${units.encrypted_id}">
-                                        <td class="remove-cell">${units.dealer_code}</td>
-                                        <td>${units.cs_no}</td>
-                                        <td>${units.model}</td>
-                                        <td>${units.color_description}</td>
-                                        <td>${units.invoice_date}</td>
-                                        <td>${units.updated_location}</td>
+                                tbody+=`<tr class=" ${/priority/i.test(units.remarks) ? 'text-danger' : 'text-muted'}" data-original-table="tbl_${units.dealer_code}_${units.hub}" data-type="forAllocation" data-id="${units.encrypted_id}">
+                                        <td class="  remove-cell">${units.dealer_code}</td>
+                                        <td class="">${units.cs_no}</td>
+                                        <td class="">${units.model}</td>
+                                        <td class="">${units.color_description}</td>
+                                        <td class="">${units.invoice_date}</td>
+                                        <td class="">${units.updated_location}</td>
                                         <td class="remove-cell">${units.inspection_start}</td>
                                         <td class="remove-cell">${units.hub}</td>
-                                        <td class="remove-cell">${units.remarks}</td>
+                                        <td class="text-center exclude-filter remove-cell">
+                                            <div class="form-check form-check-custom form-check-solid form-check-sm" style="display:block;">
+                                                <input class="form-check-input cursor-pointer transfer-checkbox" type="checkbox" value="" data-id="${units.encrypted_id}"
+                                                rq-url="/tms/cco-b/planner/haulage_info/update_transfer" ${units.is_transfer ==1 ? 'checked':''} />
+                                            </div>
+                                        </td>
+                                        <td class="remove-cell exclude-filter pe-1">
+                                            <input type="text" class=" ${/priority/i.test(units.remarks) ? 'text-danger' : 'text-muted'} form-control form-control-sm form-control-solid"
+                                            name="unit_remarks" value="${units.remarks}" data-id="${units.encrypted_id}"
+                                            rq-url="/tms/cco-b/planner/haulage_info/update_unit_remarks">
+                                        </td>
                                     </tr>`;
                                     trpBlockUnit++;
                             });
                             html=`
                             <div class="card mb-5">
                                     <div class="card-header collapsible">
-                                        <span class="card-title"><h6>${item.dealer_code ?? 'Trip Block #'+(key+1)}</h6></span>
+                                        <span class="card-title">
+                                            <h6>${
+                                                item.dealer_code ?? 'Trip Block #'+(key+1)
+                                                }
+                                                ${`
+                                                    <span class="badge badge-light-success ms-2">Units : <span class="">${item.units_count}</span></span>
+                                                `}
+                                                ${item.is_multipickup ? `
+                                                    <span class="badge badge-light-success ms-2">Multi-Pickup</span>
+                                                `:''}
+
+                                            </h6>
+                                        </span>
                                         <div class="card-toolbar">
                                             ${item.status !=2?`
                                             <div class="me-0">
@@ -79,10 +101,10 @@ export function HaulingPlanInfoController(page,param){
                                         </div>
                                     </div>
                                     <div id="trip_block_${item.block_number}" class="collapse show">
-                                        <div class="card-body pt-0">
+                                        <div class="card-body ">
                                             <div class="table-responsive">
-                                                <table class="table table-row-bordered align-middle gy-5 table-sm" id="tbl_block_${item.block_number}" data-type="planning" data-id="${item.encrypted_id}">
-                                                    <thead>
+                                                <table class="table table-row-bordered align-middle table-sm gy-3" id="tbl_block_${item.block_number}" data-type="planning" data-id="${item.encrypted_id}">
+                                                    <thead class="">
                                                         <tr class=" fw-bold fs-8 text-uppercase gs-0">
                                                             <th>Dealer</th>
                                                             <th>Cs No.</th>
@@ -92,6 +114,7 @@ export function HaulingPlanInfoController(page,param){
                                                             <th>Location</th>
                                                             <th>Inspection TIme</th>
                                                             <th>Hub</th>
+                                                            <th class="text-center">Transfer ?</th>
                                                             <th>Remarks</th>
                                                         </tr>
                                                     </thead>
@@ -166,10 +189,11 @@ export function HaulingPlanInfoController(page,param){
         })
     }
 
-    function loadForAllocation(hub='svc'){
+    function loadForAllocation(hub,search=''){
         let formData = new FormData();
         formData.append('id',param)
         formData.append('hub',hub)
+        formData.append('search',search)
         return new Promise((resolve, reject) => {
             (new RequestHandler).post('/tms/cco-b/planner/haulage_info/for_allocation',formData).then((res) => {
                 if(res.status == 'success'){
@@ -185,7 +209,7 @@ export function HaulingPlanInfoController(page,param){
                             accordion++;
                             data[key].unit.forEach(function(item) {
                                 if(item.encrypted_id){
-                                    tbody+=`<tr data-id="${item.encrypted_id}">
+                                    tbody+=`<tr data-id="${item.encrypted_id}" class="${/priority/i.test(item.remarks) ? 'text-danger' : 'text-muted'}">
                                         <td>${item.cs_no}</td>
                                         <td>${item.model}</td>
                                         <td>${item.color_description}</td>
@@ -205,7 +229,7 @@ export function HaulingPlanInfoController(page,param){
                                     </tr>`;
                                 }
                             })
-                            html=`<div class="accordion" id="kt_accordion_${accordion}">
+                            html=`<div class="accordion mb-2" id="kt_accordion_${accordion}">
                                     <div class="accordion-item rounded-0">
                                         <h2 class="accordion-header rounded-0" id="accordion_${key}">
                                             <button class="accordion-button fs-4 fw-semibold rounded-0 collapsed" type="button"
@@ -216,11 +240,11 @@ export function HaulingPlanInfoController(page,param){
                                                 <span class="badge badge-light-primary ms-2">Unallocated : <span class="unallocated_${accordion}">${data[key].unallocated}</span></span>
                                             </button>
                                         </h2>
-                                        <div id="kt_accordion_${accordion}_body_${accordion}" class="accordion-collapse collapse"
+                                        <div id="kt_accordion_${accordion}_body_${accordion}" class="accordion-collapse collapse pb-5"
                                             aria-labelledby="accordion_${key}" data-bs-parent="#kt_accordion_${accordion}">
                                             <div class="accordion-body">
                                                 <div class="table-responsive">
-                                                    <table class="table table-row-bordered align-middle gy-5 table-sm" id="tbl_${key}_${data[key].hub}" data-type="forAllocation">
+                                                    <table class="table table-row-bordered align-middle gy-3 table-sm" id="tbl_${key}_${data[key].hub}" data-type="forAllocation">
                                                         <thead class="">
                                                             <tr class=" fw-bold fs-8 text-uppercase gs-0">
                                                                 <th class="">Cs No.</th>
@@ -433,6 +457,7 @@ export function HaulingPlanInfoController(page,param){
                 if (formDataArray.length > 0) {
                     let formData = new FormData();
                     formData.append('units', JSON.stringify(formDataArray));
+                    formData.append('haulage_id', param);
                     (new RequestHandler).post('/tms/cco-b/planner/haulage_info/update_block_units', formData).then((res) => {
                         if (res.status === 'success') {
                             let payloadArray = JSON.parse(window.atob(res.payload));
@@ -455,10 +480,26 @@ export function HaulingPlanInfoController(page,param){
                                 hubCell.textContent = payload.hub;
                                 item.appendChild(hubCell);
 
+                                let is_transfer = document.createElement('td');
+                                is_transfer.className = 'text-center exclude-filter remove-cell';
+                                is_transfer.innerHTML = `
+                                    <div class="form-check form-check-custom form-check-solid form-check-sm" style="display:block;">
+                                        <input class="form-check-input cursor-pointer transfer-checkbox" type="checkbox"
+                                            data-id="${payload.encrypted_id}"
+                                            rq-url="/tms/cco-b/planner/haulage_info/update_transfer"
+                                            ${payload.is_transfer == 1 ? 'checked' : ''} />
+                                    </div>`;
+
+                                // Append the <td> to the row (item)
+                                item.appendChild(is_transfer);
+
                                 let remarksCell = document.createElement('td');
-                                remarksCell.classList.add('remove-cell');
-                                remarksCell.textContent = payload.remarks;
+                                remarksCell.className = 'text-center exclude-filter remove-cell px-1';
+                                remarksCell.innerHTML = `<input type="text" class=" ${/priority/i.test(payload.remarks) ? 'text-danger' : 'text-muted'} form-control form-control-sm form-control-solid "
+                                            name="unit_remarks" value="${payload.remarks}" data-id="${payload.encrypted_id}"
+                                            rq-url="/tms/cco-b/planner/haulage_info/update_unit_remarks">`;
                                 item.appendChild(remarksCell);
+
                             });
                         } else {
                             Alert.alert('error', res.message);
@@ -492,8 +533,10 @@ export function HaulingPlanInfoController(page,param){
             group: {
                 name: 'planning',
                 pull: true,
-                put: ['planning', 'forAllocation']
+                put: ['planning', 'forAllocation'],
             },
+            filter: '.exclude-filter, input, .form-check-input', // Add input elements to filter
+            preventOnFilter: false, // Allow interaction with the filtered elements
             animation: 150,
             multiDrag: true,
             selectedClass: 'selected',
@@ -544,6 +587,7 @@ export function HaulingPlanInfoController(page,param){
                                 </a>
                             </td>`;
                         item.appendChild(inspectionTimeCell);
+
                         if (currentTableId !== originalTableId && originalTable) {
                             originalTable.getElementsByTagName("tbody")[0].appendChild(item);
                         } else if (!originalTable) {
@@ -554,8 +598,10 @@ export function HaulingPlanInfoController(page,param){
                     }
                     if(ispushData){ selectedItemsData.push(itemData) }
                 });
+
                 if (selectedItemsData.length > 0) {
                     formData.append('units', JSON.stringify(selectedItemsData));
+                    formData.append('haulage_id', param);
                     (new RequestHandler).post('/tms/cco-b/planner/haulage_info/update_block_units', formData).then((res) => {
                         if (res.status == 'success') {
                         } else {
@@ -593,10 +639,10 @@ export function HaulingPlanInfoController(page,param){
             custom_upload()
             dealer()
             car_model()
-            $('select[name="batch"]').val(sess_batch).trigger('change', false);
+            $('select[name="batch"]').val(sess_batch).select2();
             setTimeout(function() {
                 HaulagePage.release();
-            }, 500);
+            }, 200);
         })
 
         _page.on('click','.nav-tab',function(e){
@@ -606,10 +652,11 @@ export function HaulingPlanInfoController(page,param){
             let hub = tab.attr('data-hub');
 
             AllocationCard.block();
-            loadForAllocation(hub).then((res) =>{
+            let search = $('input[name="search"]').val();
+            loadForAllocation(hub,search).then((res) =>{
                 setTimeout(function() {
                     AllocationCard.release();
-                }, 500);
+                }, 200);
             })
 
         })
@@ -623,7 +670,7 @@ export function HaulingPlanInfoController(page,param){
             loadTripBlock(batch).then((res) =>{
                 setTimeout(function() {
                     HaulingCard.release();
-                }, 500);
+                }, 200);
                 localStorage.setItem("sess_batch",$(this).val())
             })
         })
@@ -761,6 +808,99 @@ export function HaulingPlanInfoController(page,param){
                 },
             });
         })
+
+        _page.on('change','.transfer-checkbox',function(e){
+            e.preventDefault()
+            e.stopImmediatePropagation()
+
+            let _this = $(this);
+            let unit_id = _this.attr('data-id');
+            let url = _this.attr('rq-url');
+            let checked = _this.is(':checked') ?1:0;
+
+            let formData = new FormData();
+
+            formData.append('id',param);
+            formData.append('unit_id',unit_id);
+            formData.append('transfer',checked);
+
+            (new RequestHandler).post(url,formData).then((res) => {
+                Alert.toast(res.status,res.message);
+            })
+            .catch((error) => {
+                console.log(error)
+                Alert.alert('error',"Something went wrong. Try again later", false);
+            })
+            .finally(() => {
+            });
+        })
+
+        _page.on('keyup','input[name="search"]',function(e){
+            e.preventDefault()
+            e.stopImmediatePropagation()
+
+            let hub = $('.nav-tab.active').attr('data-hub');
+            let searchTerm = $(this).val();
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                AllocationCard.block();
+                loadForAllocation(hub,searchTerm).then(() => {
+                    setTimeout(function() {
+                        AllocationCard.release();
+                    },200);
+                })
+            } else if (e.keyCode === 8 || e.key === 'Backspace') {
+                setTimeout(() => {
+                    let updatedSearchTerm = $(this).val();
+                    if (updatedSearchTerm === '') {
+                        AllocationCard.block();
+                        loadForAllocation(hub,updatedSearchTerm)
+                        setTimeout(function() {
+                            AllocationCard.release();
+                        },200);
+                    }
+                }, 0);
+            }
+        })
+
+        _page.on('keyup','input[name="unit_remarks"]',function(e){
+            e.preventDefault()
+            e.stopImmediatePropagation()
+
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                let _this = $(this);
+                let unit_id = _this.attr('data-id');
+                let url = _this.attr('rq-url');
+                let remarks = _this.val();
+
+                let formData = new FormData();
+                formData.append('id',param);
+                formData.append('unit_id',unit_id);
+                formData.append('remarks',remarks);
+
+                (new RequestHandler).post(url,formData).then((res) => {
+                    Alert.toast(res.status,res.message);
+                    if(/priority/i.test(remarks)){
+                        _this.closest('tr').removeClass('text-muted').addClass('text-danger');
+                        _this.removeClass('text-muted').addClass('text-danger');
+                    }else{
+                        _this.closest('tr').removeClass('text-danger').addClass('text-muted');
+                        _this.removeClass('text-danger').addClass('text-muted')
+                    }
+                })
+                .catch((error) => {
+                    console.log(error)
+                    Alert.alert('error',"Something went wrong. Try again later", false);
+                })
+                .finally(() => {
+                });
+            }
+        })
+
+
+
+
+
+
 
     })
 

@@ -28,6 +28,7 @@ return new class extends Migration
             $table->string('vld_planner_confirmation')->nullable();
             $table->string('hub')->nullable();
             $table->string('assigned_lsp')->nullable();
+            $table->tinyInteger('is_transfer')->default(0);
             $table->string('remarks')->nullable();
             $table->tinyInteger('status')->nullable();
             $table->string('inspected_start')->nullable();
