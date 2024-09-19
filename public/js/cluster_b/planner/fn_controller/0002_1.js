@@ -182,6 +182,7 @@ export function HaulingPlanInfoController(page,param){
                                 ).removeClass('d-none');
                             }
                         }else{
+                            console.log(batch)
                             if(batch == 'All Batch'){
                                 $('.add-block').addClass('d-none');
                             }else{
@@ -196,7 +197,11 @@ export function HaulingPlanInfoController(page,param){
                         hauling_list.addClass('d-none')
                         empty_hauling_list.removeClass('d-none')
                         $('.finalize-plan').removeClass('d-none');
-                        $('.add-block').removeClass('d-none');
+                        if(batch == 'All Batch'){
+                            $('.add-block').addClass('d-none');
+                        }else{
+                            $('.add-block').removeClass('d-none');
+                        }
                         $('.more-actions').removeClass('d-none');
                     }
                     $('.haulage_info_page').removeClass('d-none')
