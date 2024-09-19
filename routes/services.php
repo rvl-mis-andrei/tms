@@ -80,6 +80,7 @@ Route::group(['prefix'=>'services'], function() {
         Route::post('/update', 'update');
         Route::post('/delete', 'delete');
         Route::post('/validate','validate');
+        Route::post('/add_batch','add_batch');
 
         Route::post('/info','info');
         Route::post('/update_status','update_status');

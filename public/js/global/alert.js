@@ -6,7 +6,7 @@ export class Alert {
             toast: true,
             position: "top-end",
             icon: status,
-            title: message,
+            text: message,
             timer: 2000,
             timerProgressBar: true,
             showConfirmButton: false,

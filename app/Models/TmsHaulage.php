@@ -20,6 +20,7 @@ class TmsHaulage extends Model
         'is_deleted',
         'deleted_at',
         'deleted_by',
+        'batch_count',
     ];
 
     public function created_by_emp()

@@ -72,7 +72,7 @@
 <div class="modal fade" id="modal_upload_masterlist" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <div class="modal-header justify-content-center" id="kt_modal_add_user_header">
+            <div class="modal-header justify-content-center">
                 <div class="text-center">
                     <h1 class="mb-3 modal_title">Upload Masterlist</h1>
                     <div class="text-muted fs-5">Fill-up the form and click
@@ -82,17 +82,6 @@
             </div>
             <div class="modal-body px-5 my-7">
                 <form id="form_masterlist" modal-id="#modal_upload_masterlist" class="form fv-plugins-bootstrap5 fv-plugins-framework" action="/tms/cco-b/planner/haulage_info/masterlist">
-                    <div class="fv-row mb-7 fv-plugins-icon-container">
-                        <label class="required fs-6 fw-semibold form-label mb-2">Batch:</label>
-                        <select name="masterlist_batch" data-control="select2" data-placeholder="Select a hub" data-hide-search="false" data-minimum-results-for-search="Infinity"
-                        class="form-select form-select-solid fw-bold select2-hidden-accessible"
-                        data-select2-id="select2-data-15-mta8" tabindex="-1" aria-hidden="true" data-kt-initialized="1">
-                            <option></option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                        </select>
-                        <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
-                    </div>
                     <div class="custom-file-upload">
                         <div class="upload-area uploadArea">
                             <div class="fv-row">
@@ -121,7 +110,85 @@
     </div>
 </div>
 
-{{-- MODAL NEW DEALER UNIT --}}
+<div class="modal fade" id="modal_export_hauling_plan" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header justify-content-center">
+                <div class="text-center">
+                    <h1 class="mb-3 modal_title">Export Trip Block</h1>
+                    <div class="text-muted fs-5">Select Trip Block and click
+                        <a href="javascript:;" class="fw-bolder link-primary">Export</a>.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body py-10 px-lg-17">
+                <div class="card-body">
+                    <div class="d-flex flex-stack flex-wrap gap-4">
+                        <div class="d-flex flex-wrap gap-3 gap-xl-3 mb-0">
+                            <div class="d-flex align-items-center mb-5 mt-5 me-3">
+                                <input type="text" class="form-control form-control-sm" name="search_tripblock"
+                                    placeholder="Search here . . .">
+                            </div>
+                            <div class="d-flex align-items-center fw-bold">
+                                <div class="text-muted fs-7">Batch: </div>
+                                <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto"
+                                    data-hide-search="true" data-control="select2" data-dropdown-css-class="w-150px"
+                                    data-placeholder="Select an option" data-minimum-results-for-search="Infinity" name="export_batch">
+                                    <option value="Show All" selected>Show All</option>
+                                    @for ($i = 1; $i <= $data['batch_count']; $i++)
+                                        <option value="{{ $i }}">Batch {{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="d-flex align-items-center fw-bold">
+                                <div class="text-muted fs-7">Filter: </div>
+                                <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto"
+                                    data-hide-search="true" data-control="select2" data-dropdown-css-class="w-150px"
+                                    data-placeholder="Select an option" data-minimum-results-for-search="Infinity" name="filter_exported">
+                                    <option value="Show All" selected>Show All</option>
+                                    <option value="1">Exported</option>
+                                    <option value="0">Not Exported</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="export_tripblock_content">
+                        <table id="export_tripblock_list" class="table table-row-bordered align-middle table-sm gy-5">
+                            <thead>
+                                <tr class="fw-bold gs-0">
+                                    <th>TripBlock</th>
+                                    <th>Batch</th>
+                                    <th>Exported Date</th>
+                                    <th>
+                                        <div class="form-check form-check-custom form-check-solid form-check-sm">
+                                            <input class="form-check-input cursor-pointer export_all" type="checkbox" value="">
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="fw-semibold text-gray-600 tripblock_list">
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="export_tripblock_empty">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer flex-center">
+                <button type="button" modal-id="#modal_export_hauling_plan" data-id="" class="btn btn-primary me-4 export_tripblock">
+                    <span class="indicator-label">Export</span>
+                    <span class="indicator-progress">Please wait...
+                        <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                    </span>
+                </button>
+                <button type="button" modal-id="#modal_export_hauling_plan" class="btn btn-light me-3 cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL NEW UNIT --}}
 <div class="modal fade" id="modal_add_dealer_unit" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered mw-600px">
         <div class="modal-content">
@@ -138,10 +205,8 @@
                     <div class="d-flex flex-column px-5 px-lg-10" style="max-height: 670px;">
                         <div class="fv-row mb-7 fv-plugins-icon-container">
                             <label class="required fs-6 fw-semibold form-label mb-2">Dealer:</label>
-                            <select name="dealer" data-control="select2" data-placeholder="Select dealer" data-hide-search="false"  class="form-select modal-select form-select-solid fw-bold">
+                            <select name="dealer" data-control="select2" data-placeholder="Select dealer" class="form-select ajax-select form-select-solid fw-bold">
                                 <option></option>
-                                <option value="2" selected>On-Going</option>
-                                <option value="1">Completed</option>
                             </select>
                             <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                         </div>
@@ -206,3 +271,4 @@
         </div>
     </div>
 </div>
+

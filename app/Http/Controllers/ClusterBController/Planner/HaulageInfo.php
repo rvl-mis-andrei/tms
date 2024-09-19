@@ -15,6 +15,7 @@ use App\Http\Requests\HaulingPlanRequest;
 use App\Models\TmsHaulage;
 use App\Models\TmsHaulageBlock;
 use App\Models\TmsHaulageBlockUnit;
+use App\Services\DTServerSide;
 use App\Services\Phpspreadsheet;
 use App\Services\Planner\HaulageList;
 use Carbon\Carbon;
@@ -31,9 +32,14 @@ class HaulageInfo extends Controller
     {
         try{
             $id = Crypt::decrypt($rq->id);
+            $batch = $rq->batch!=='All Batch'?$rq->batch:false;
             $query = TmsHaulageBlock::with(['block_unit'=> function($query) {
                 $query->orderBy('unit_order', 'asc');
-            }])->where([['batch',$rq->batch],['haulage_id',$id],['is_deleted',null]])->get();
+            }])
+            ->when($batch,function($query,$batch){
+                $query->where('batch',$batch);
+            })
+            ->where([['haulage_id',$id],['is_deleted',null]])->get();
             $array = [];
             if($query){
                 foreach($query as $data){
@@ -45,9 +51,11 @@ class HaulageInfo extends Controller
                     foreach($data->block_unit as $row){
                         $dealer = $row->dealer;
                         if (!in_array($dealer->name, $dealer_arr)){
+                            if(!empty($dealer_arr)){
+                                $is_multipickup = true;
+                            }
                             $dealer_arr[] = $dealer->name;
                             $dealer_code_arr[] = $dealer->code;
-                            $is_multipickup = true;
                         }
                         $block_unit[]=[
                             'encrypted_id'=>Crypt::encrypt($row->id),
@@ -216,7 +224,12 @@ class HaulageInfo extends Controller
                         'created_by'=>$user_id,
                     ];
                 }else{
-                    TmsHaulageBlockUnit::insert($this->haulage_block_unit);
+                    $this->haulage_block_unit = self::filter_duplicates($this->haulage_block_unit,$haulage_id);
+                    if($this->haulage_block_unit === false){
+                        return ['status'=>400, 'message' =>'All records are duplicates'];
+                        exit(0);
+                    }
+                    TmsHaulageBlockUnit::insert($this->haulage_block_unit,$haulage_id);
                     if ($sheet->getCell("B".($row + 1))->getCalculatedValue() === null &&
                         $sheet->getCell("D".($row + 1))->getCalculatedValue() === null &&
                         $sheet->getCell("B".($row + 2))->getCalculatedValue() === null &&
@@ -236,6 +249,46 @@ class HaulageInfo extends Controller
             DB::rollback();
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);
         }
+    }
+
+    public function filter_duplicates($block_units,$haulage_id)
+    {
+
+        $existingRecords = TmsHaulageBlockUnit::where('haulage_id', $haulage_id)
+        ->where('is_deleted', null)->get([
+            'id',
+            'cs_no',
+            'dealer_id',
+            'car_model_id',
+            'haulage_id'
+        ]);
+
+        // Convert existing records to a lookup array for easier comparison
+        $existingRecordsLookup = $existingRecords->map(function ($record) {
+            return [
+                $record->cs_no,
+                $record->dealer_id,
+                $record->car_model_id,
+                $record->haulage_id
+            ];
+        })->toArray();
+
+        // Filter out duplicates from block_units
+        $filteredBlockUnits = array_filter($block_units, function ($unit) use ($existingRecordsLookup) {
+            return !in_array([
+                $unit['cs_no'],
+                $unit['dealer_id'],
+                $unit['car_model_id'],
+                $unit['haulage_id']
+            ], $existingRecordsLookup);
+        });
+
+        if (count($filteredBlockUnits) >= 1) {
+            $filteredBlockUnits = array_values($filteredBlockUnits);
+            return $filteredBlockUnits;
+        }
+
+        return false;
     }
 
     public function hauling_plan(Request $rq)
@@ -327,6 +380,7 @@ class HaulageInfo extends Controller
                             'batch'=>$rq->upload_batch,
                             'created_by'=>$user_id,
                             'status'=>1,
+                            'is_exported' => 0,
                         ];
                     }
                 }else{
@@ -558,6 +612,7 @@ class HaulageInfo extends Controller
                 'encrypted_id' =>Crypt::encrypt($query->id),
                 'block_number' =>$query->block_number,
                 'no_of_trips' =>$query->no_of_trips,
+                'batch' =>$query->batch,
             ];
             $payload = base64_encode(json_encode($array));
             DB::commit();
@@ -588,7 +643,7 @@ class HaulageInfo extends Controller
                 'color_description'=>$rq->color_description,
                 'updated_location'=>$rq->location,
                 'hub'=>$rq->hub,
-                'remarks'=>$rq->remarks,
+                'vld_instruction'=>$rq->remarks,
                 'invoice_date'=>Carbon::createFromFormat('m-d-Y',$rq->invoice_date)->format('Y-m-d'),
                 'created_by'=>Auth::user()->emp_id
             ]);
@@ -608,7 +663,7 @@ class HaulageInfo extends Controller
             $haulage_id = Crypt::decrypt($rq->id);
             $block_id = Crypt::decrypt($rq->block_id);
             $user_id = Auth::user()->emp_id;
-            TmsHaulageBlock::where([['batch',$rq->batch],['haulage_id',$haulage_id],['id',$block_id]])->update([
+            TmsHaulageBlock::where([['haulage_id',$haulage_id],['id',$block_id]])->update([
                 'is_deleted'=>1,
                 'deleted_by'=>$user_id,
                 'deleted_at'=>Carbon::now()
@@ -767,6 +822,95 @@ class HaulageInfo extends Controller
         } catch(Exception $e){
             DB::rollback();
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);
+        }
+    }
+
+    public function tripblock_list(Request $rq)
+    {
+        $batch = isset($rq->batch) ? $rq->batch : null;
+        $search = isset($rq->search) ? $rq->search : null;
+        $filter = isset($rq->filter) ? $rq->filter : null;
+        $id = Crypt::decrypt($rq->id);
+        $cluster_id = Auth::user()->emp_cluster->cluster_id;
+
+        $data = TmsHaulageBlock::with('block_unit')
+        ->when($search, function($query, $search) {
+            $query->where(function($query) use ($search) {
+                // Search by block_number
+                $query->where('block_number', 'LIKE', "%$search%");
+
+                // Search by dealer's name or code in related models
+                $query->orWhereHas('block_unit', function($q) use ($search) {
+                    $q->whereHas('dealer', function($q) use ($search) {
+                        $q->where('name', 'LIKE', "%$search%")
+                        ->orWhere('code', 'LIKE', "%$search%");
+                    });
+                });
+            });
+        })
+        ->when(isset($filter) && $filter != 'Show All', function($q) use ($filter) {
+            return $q->where('is_exported', $filter);
+        })
+        ->when(isset($batch) && $batch != 'Show All', function($q) use ($batch) {
+            return $q->where('batch', $batch);
+        })
+        ->whereHas('block_unit')
+        ->where(function ($query) {
+            // Handle soft delete logic
+            $query->where('is_deleted', '!=', 1)->orWhereNull('is_deleted');
+        })
+        ->where('haulage_id', $id)
+        ->get();
+
+        $data = $data->transform(function ($item,$key) {
+            $dealer_arr = [];
+            $dealer_code_arr = [];
+            $is_multipickup = false;
+            $unit_count = 0;
+            $item->count = $key+1;
+            foreach ($item->block_unit as $unit) {
+                $dealer = $unit->dealer;
+                if (!in_array($dealer->name, $dealer_arr)) {
+                    if (!empty($dealer_arr)) {
+                        $is_multipickup = true; // If there are multiple dealers, set this flag
+                    }
+                    $dealer_arr[] = $dealer->name;   // Add dealer's name to the array
+                    $dealer_code_arr[] = $dealer->code; // Add dealer's code to the array
+                }
+                $unit_count++;
+            }
+
+            // Assign the dealer names (or concatenated names) to $item->name
+            $item->name = $dealer_code_arr ? implode(', ', $dealer_code_arr) : 'Trip Block #'.$key+1;
+            $item->is_multipickup = $is_multipickup;
+            $item->unit_count = $unit_count;
+            $item->block_batch = $item->batch;
+            $item->export_date = $item->is_exported? Carbon::parse($item->exported_at)->format('m/d/Y'): '--';
+            $item->encrypt_id = Crypt::encrypt($item->id);
+            return $item;
+        });
+
+        return response()->json([ 'status' => 'success', 'message' => 'success', 'payload' => base64_encode(json_encode($data)) ]);
+    }
+
+    public function export_tripblock(Request $rq)
+    {
+        try{
+            DB::beginTransaction();
+            $haulage_id = Crypt::decrypt($rq->id);
+            $tripblock_ids = json_decode(base64_decode($rq->tripblock_ids));
+            $tripblocks_ids = [];
+            foreach($tripblock_ids as $tripblock_id){
+                $tripblocks_ids[] = Crypt::decrypt($tripblock_id);
+            }
+            $data = TmsHaulageBlock::whereIn('id',$tripblocks_ids)->where('haulage_id',$haulage_id)->get();
+
+
+            DB::commit();
+            return response()->json([ 'status' => 'success', 'message' => 'success', 'payload' => base64_encode(json_encode($data)) ]);
+        }catch(Exception $e){
+            DB::rollback();
+            return response()->json([ 'status' => 'error', 'message' => 'Something went wrong. Try again later' ]);
         }
     }
 }

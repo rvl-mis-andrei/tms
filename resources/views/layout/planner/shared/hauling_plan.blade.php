@@ -20,13 +20,6 @@
                         </select>
                         <!--end::Select2-->
                     </div>
-                    <button type="button" class="btn btn-light-primary me-3 hover-elevate-up" data-bs-toggle="modal" data-bs-target="#kt_modal_export_users">
-                        <i class="ki-duotone ki-exit-up fs-2">
-                            <span class="path1"></span>
-                            <span class="path2"></span>
-                        </i>
-                        Export
-                    </button>
                     <button type="button" class="btn btn-primary new hover-elevate-up" data-bs-toggle="modal" data-bs-target="#modal_add_hauling_plan">
                         <i class="ki-duotone ki-plus fs-2"></i>
                         New Hauling Plan

@@ -119,7 +119,7 @@ export async function cluster_driver(param='') {
     });
 }
 
-export async function dealer(param='') {
+export async function dealer(param='',modal_id=false) {
     return new Promise((resolve, reject) => {
         let element = $(`select[name="dealer"]`);
         element.attr('disabled', true);
@@ -131,6 +131,12 @@ export async function dealer(param='') {
         (new RequestHandler).post("/services/select/dealer", formData)
             .then((res) => {
                 element.empty().append(res);
+
+                element.select2({
+                    dropdownParent: modal_id ? $(modal_id) : null,
+                    width: '100%'
+                });
+
                 resolve(true);
             })
             .catch((error) => {
@@ -143,7 +149,7 @@ export async function dealer(param='') {
     });
 }
 
-export async function car_model(param='') {
+export async function car_model(param='',modal_id=false) {
     return new Promise((resolve, reject) => {
         let element = $(`select[name="model"]`);
         element.attr('disabled', true);
@@ -176,9 +182,10 @@ export async function car_model(param='') {
                 },
                 cache: true
             },
+            dropdownParent: modal_id ? $(modal_id) : null,
             placeholder: 'Search for an option',
             minimumInputLength: 3,
-            dropdownParent: $('.modal')
+            width: '100%'
         });
         element.attr('disabled', false);
     });

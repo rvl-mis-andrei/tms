@@ -40,13 +40,48 @@
                                 <div class="text-muted fs-7 me-2">Batch:</div>
                                 <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto" data-control="select2"
                                 data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select a batch" data-minimum-results-for-search="Infinity"
-                                 name="batch">
-                                    <option value="1">Batch 1</option>
-                                    <option value="2">Batch 2</option>
+                                rq-url="/services/haulage/add_batch" name="batch">
+                                <option value="All Batch"> All Batch</option>
+                                    @for ($i = 1; $i <= $data['batch_count']; $i++)
+                                        <option value="{{ $i }}">Batch {{ $i }}</option>
+                                    @endfor
+                                    <option value="Add Batch"> Add Batch</option>
                                 </select>
 
                             </div>
-                            @if ($data['status'] ==2)
+                            <div class="card-toolbar">
+                                <button class="btn btn-sm btn-light-info add-block me-2">
+                                    Add Block
+                                    <i class="ki-duotone ki-plus ms-1"></i>
+                                </button>
+
+                                <button class="btn btn-sm btn-light-primary export-menu" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                    More Actions
+                                    <i class="ki-duotone ki-down ms-1"></i>
+                                </button>
+                                <div class="menu menu-sub  more-actions-menu menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-4 pb-3"
+                                    data-kt-menu="true">
+                                    <div class="menu-item px-3">
+                                        <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
+                                            More Actions
+                                        </div>
+                                    </div>
+                                    <div class="menu-item px-3">
+                                        <a href="#" class="menu-link px-3 export-haulage" modal-id="#modal_export_hauling_plan">
+                                            Export Hauling Plan
+                                        </a>
+                                    </div>
+                                    @if ($data['status'] ==2)
+                                        <div class="separator mt-2 opacity-75"></div>
+                                        <div class="menu-item px-3 pt-3">
+                                            <a href="#" class="menu-link px-3 finalize-plan text-success" data-status="1" rq-url="/tms/cco-b/planner/haulage_info/finalize_plan">
+                                                Finalize Trip Block
+                                            </a>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                            {{-- @if ($data['status'] ==2)
                                 <button class="btn btn-sm btn-light-info add-block">
                                     Add Block
                                     <i class="ki-duotone ki-plus ms-1"></i>
@@ -74,12 +109,12 @@
                                         </div>
                                     </div>
                                 </div>
-                            @endif
+                            @endif --}}
                         </div>
                     </div>
                 </div>
                 <div class="card-body card-scroll h-1000px bg-light-secondary p-5">
-                    <div class="hauling_list d-none">
+                    <div class="hauling_list d-none" id="tripblock_list">
                     </div>
                     <div class="empty_hauling_list d-none">
                         <div class="card-px text-center pt-20 pb-10">
@@ -178,7 +213,7 @@
                             <span class="path1"></span>
                             <span class="path2"></span>
                         </i>
-                        <input type="text" class="form-control fs-4 ps-14 text-gray-700 rounded-0 placeholder-gray-500 search-allocation" name="search" value="" placeholder="Search here . . .">
+                        <input type="text" class="form-control fs-4 ps-14 text-gray-700 placeholder-gray-500 search-allocation" name="search" value="" placeholder="Search here . . .">
                     </div>
                     <div class="tab-content">
                         <div class="tab-pane active show" id="tab_content_1" role="tabpanel">

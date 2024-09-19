@@ -3,7 +3,7 @@
 import { DataTableHelper } from "../../../../global/datatable.js";
 import {Alert} from "../../../../global/alert.js"
 import {RequestHandler} from "../../../../global/request.js"
-import {modal_state} from "../../../../global.js"
+import {modal_state,createBlockUI} from "../../../../global.js"
 
 
 
@@ -11,6 +11,8 @@ export async function HaulingPlanDT() {
 
     let dataTableHelper = new DataTableHelper("hauling_plan_table","hauling_plan_wrapper");
     let page = $('.hauling_plan');
+    const tableBlock = createBlockUI('#hauling_plan_table', 'Loading...');
+
 
     dataTableHelper.initTable(
         `services/haulage/datatable`,
@@ -98,9 +100,19 @@ export async function HaulingPlanDT() {
                                 <span class="path4"></span>
                             </i>
                         </a>
-                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-125px py-4" data-kt-menu="true">
+                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-175px py-4" data-kt-menu="true">
+                            <div class="menu-item px-3 text-start">
+                                <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
+                                    More Actions
+                                </div>
+                            </div>
                             <div class="menu-item px-3">
                                 <a href="${row.view_url}" class="menu-link px-3">View</a>
+                            </div>
+                            <div class="menu-item px-3">
+                                <a href="javascript:;" data-id="${data}" class="menu-link px-3 export_haulaging_plan" rq-url="/services/haulage/export_hauling_plan">
+                                Export Hauling Plan
+                                </a>
                             </div>
                             ${
                                 status == 'On-Going' ?`<div class="menu-item px-3">
@@ -245,6 +257,31 @@ export async function HaulingPlanDT() {
         .finally(() => {
             $("#hauling_plan_table").DataTable().ajax.reload(null, false);
         });
+    })
+
+    page.on('click','.export_haulaging_plan',function(e){
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        tableBlock.block();
+        // let _this = $(this);
+        // let data_id = _this.attr('data-id');
+        // let url = _this.attr('url');
+
+        // let formData = new FormData();
+        // formData.append('id',data_id);
+
+        // (new RequestHandler).post(url,formData).then((res) => {
+        //     Alert.toast(res.status,res.message);
+        // })
+        // .catch((error) => {
+        //     console.log(error)
+        //     Alert.alert('error',"Something went wrong. Try again later", false);
+        // })
+        // .finally(() => {
+        //     setTimeout(() => {
+        //         tableBlock.unblock();
+        //     },1000);
+        // });
     })
 
 }

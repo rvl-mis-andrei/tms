@@ -79,6 +79,7 @@ class HaulageList
                 'status' =>$query->status,
                 'plan_type'=>$query->plan_type,
                 'filenames'=>$query->filenames,
+                'batch_count'=>$query->batch_count,
                 'planning_date' =>$query->planning_date,
                 'created_by'=>optional($query->created_by_emp)->fullname() ?? 'No record found',
                 'updated_by'=>optional($query->updated_by_emp)->fullname() ?? 'No record found',
@@ -208,9 +209,9 @@ class HaulageList
                 $id    = Crypt::decrypt($rq->id);
                 $query = TmsHaulage::find($id);
                 $files = json_decode($query->filenames,true) ??[];
-                if($folder=='masterlist' && count($files) >= 1){
-                    return ['status'=>'error','message' =>'You already uploaded a masterlist','payload'=>false];
-                }
+                // if($folder=='masterlist' && count($files) >= 1){
+                //     return ['status'=>'error','message' =>'You already uploaded a masterlist','payload'=>false];
+                // }
                 if(count($files) >= 2 && $folder == 'hauling_plan' && !isset($rq->reupload_haulage)) {
                     return ['status'=>'error','message' =>'You already uploaded 2 hauling plan','payload'=>false];
                 }
@@ -264,7 +265,7 @@ class HaulageList
 
                     $filename = Str::random(10) . '.' . $rq->file('hauling_plan')->getClientOriginalExtension();
                     $filePath = $rq->file('hauling_plan')->storeAs('hauling_plan', $filename, 'public');
-                    
+
                     $files[$index] = $filename;
                     $query->filenames = json_encode($files);
                     $query->save();
@@ -272,6 +273,22 @@ class HaulageList
                     return ['status'=>'success','message' =>'Hauling plan re-upload success'];
                 }
             }
+        }catch(Exception $e){
+            DB::rollback();
+            return ['status'=>400,'message' =>$e->getMessage()];
+        }
+    }
+
+    public function add_batch(Request $rq)
+    {
+        try{
+            DB::beginTransaction();
+            $id    = Crypt::decrypt($rq->id);
+            $query = TmsHaulage::find($id);
+            $query->batch_count = $query->batch_count+1;
+            $query->save();
+            DB::commit();
+            return ['status'=>'success','message' =>'Batch added successfully','payload'=>$query->batch_count];
         }catch(Exception $e){
             DB::rollback();
             return ['status'=>400,'message' =>$e->getMessage()];

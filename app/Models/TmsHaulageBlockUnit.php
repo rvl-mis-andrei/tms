@@ -23,7 +23,6 @@ class TmsHaulageBlockUnit extends Model
         'status',
         'inspected_end',
         'cs_no',
-        'remarks',
         'hub',
         'planning_cutoff',
         'vld_instruction',
@@ -36,6 +35,7 @@ class TmsHaulageBlockUnit extends Model
         'deleted_at',
         'deleted_by',
         'is_transfer',
+        'is_exported',
     ];
 
     public function dealer(){
