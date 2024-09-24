@@ -7,13 +7,14 @@ use App\Http\Controllers\ClusterBController\Dispatcher\ClientListing;
 use App\Http\Controllers\ClusterBController\Dispatcher\Dashboard;
 use App\Http\Controllers\ClusterBController\Dispatcher\DriverListing;
 use App\Http\Controllers\ClusterBController\Dispatcher\HaulageInfo;
+use App\Http\Controllers\ClusterBController\Dispatcher\TractorTrailerDriver;
 use App\Http\Controllers\ClusterBController\Dispatcher\TractorTrailerDriverListing;
 use App\Http\Controllers\ClusterBController\DispatcherPageController;
 use App\Services\Dispatcher\ClientList;
 use Illuminate\Support\Facades\Route;
 
-Route::group(['prefix'=>'cco-b/dispatcher'], function() {
-    // Route::group(['prefix'=>'tms/cco-b/dispatcher'], function() {
+// Route::group(['prefix'=>'cco-b/dispatcher'], function() {
+    Route::group(['prefix'=>'tms/cco-b/dispatcher'], function() {
 
     Route::middleware('auth')->group(function () {
 
@@ -42,7 +43,10 @@ Route::group(['prefix'=>'cco-b/dispatcher'], function() {
 
         Route::controller(HaulageInfo::class)->prefix('haulage_info')->group(function() {
             Route::post('/tripblock', 'tripblock');
+        });
 
+        Route::controller(TractorTrailerDriver::class)->prefix('tractor_trailer_driver')->group(function() {
+            Route::post('/dt', 'dt');
         });
 
     });

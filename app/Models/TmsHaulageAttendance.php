@@ -5,24 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TractorTrailerDriver extends Model
+class TmsHaulageAttendance extends Model
 {
     use HasFactory;
-
-    protected $fillable=[
-        'trailer_id',
-        'tractor_id',
-        'pdriver',
-        'sdriver',
-        'remarks',
-        'status',
-        'is_deleted',
-        'deleted_at',
-        'deleted_by',
-        'created_by',
-        'cluster_id',
-        'updated_by',
-    ];
 
     public function trailer(){
         return $this->belongsTo(Trailer::class,'trailer_id')->withDefault();
@@ -56,10 +41,5 @@ class TractorTrailerDriver extends Model
     public function deleted_by_emp()
     {
         return $this->belongsTo(Employee::class,'deleted_by')->withDefault();
-    }
-
-    public function haulage_att()
-    {
-        return $this->hasOne(TmsHaulageAttendance::class,'tractor_trailer_id');
     }
 }

@@ -68,28 +68,52 @@ class Phpspreadsheet
     }
 
     public function excelDateToPhpDate($excelDate) {
+        // Check if the input is not a number, and attempt to parse it as a date string
         if (!is_numeric($excelDate)) {
+            // Try to create a DateTime object from the provided string
             $date = DateTime::createFromFormat('m/d/Y', $excelDate);
-            if ($date) {
-                return $date->format('Y-m-d');
+            // Check if the date is valid (both the date object and no errors in parsing)
+            if ($date && $date->format('m/d/Y') === $excelDate) {
+                return $date->format('Y-m-d'); // Return the date in Y-m-d format
+            } else {
+                return false; // Return false if the string is not a valid date
             }
         }
-
-        $unixDate = ($excelDate - 25569) * 86400;
-        return gmdate("Y-m-d", $unixDate);
+        // If the input is numeric, treat it as an Excel date
+        elseif (is_numeric($excelDate)) {
+            // Excel's epoch starts on 1900-01-01, represented as 25569
+            $unixDate = ($excelDate - 25569) * 86400; // Convert Excel date to Unix timestamp
+            return gmdate("Y-m-d", $unixDate); // Return as Y-m-d format
+        }
+        else {
+            return false; // If neither numeric nor a valid date string, return false
+        }
     }
 
     public function excelTimeToPhpTime($excelTime) {
+        // Check if the input is not numeric and attempt to parse it as a time string
         if (!is_numeric($excelTime)) {
+            // Try to create a DateTime object from the provided time string in the format 'g:i:s A'
             $time = DateTime::createFromFormat('g:i:s A', $excelTime);
-            if ($time) {
+            // Check if the time is valid and return in 'H:i:s' format
+            if ($time && $time->format('g:i:s A') === $excelTime) {
                 return $time->format('H:i:s');
+            } else {
+                return false; // Return false if the string is not a valid time
             }
         }
-        $hours = floor($excelTime * 24);
-        $minutes = floor(($excelTime * 24 - $hours) * 60);
-        $seconds = floor((($excelTime * 24 - $hours) * 60 - $minutes) * 60);
 
-        return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+        // If the input is numeric, convert it assuming it's an Excel time
+        if (is_numeric($excelTime)) {
+            $hours = floor($excelTime * 24); // Convert the decimal time to hours
+            $minutes = floor(($excelTime * 24 - $hours) * 60); // Convert the remainder to minutes
+            $seconds = floor((($excelTime * 24 - $hours) * 60 - $minutes) * 60); // Convert the remainder to seconds
+
+            // Return the time formatted as 'H:i:s'
+            return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+        }
+
+        // If neither numeric nor a valid time string, return false
+        return false;
     }
 }

@@ -125,10 +125,10 @@
                 <div class="card-body">
                     <div class="d-flex flex-stack flex-wrap gap-4">
                         <div class="d-flex flex-wrap gap-3 gap-xl-3 mb-0">
-                            <div class="d-flex align-items-center mb-5 mt-5 me-3">
+                            {{-- <div class="d-flex align-items-center mb-5 mt-5 me-3">
                                 <input type="text" class="form-control form-control-sm" name="search_tripblock"
                                     placeholder="Search here . . .">
-                            </div>
+                            </div> --}}
                             <div class="d-flex align-items-center fw-bold">
                                 <div class="text-muted fs-7">Batch: </div>
                                 <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto"
@@ -148,6 +148,15 @@
                                     <option value="Show All" selected>Show All</option>
                                     <option value="1">Exported</option>
                                     <option value="0">Not Exported</option>
+                                </select>
+                            </div>
+                            <div class="d-flex align-items-center fw-bold">
+                                <div class="text-muted fs-7">Filter: </div>
+                                <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto"
+                                    data-hide-search="true" data-control="select2" data-dropdown-css-class="w-150px"
+                                    data-placeholder="Select an option" data-minimum-results-for-search="Infinity" name="export_format">
+                                    <option value="1" selected>Format 1</option>
+                                    <option value="2">Format 2</option>
                                 </select>
                             </div>
                         </div>

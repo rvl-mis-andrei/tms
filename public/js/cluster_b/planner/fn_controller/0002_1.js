@@ -17,13 +17,17 @@ export function HaulingPlanInfoController(page,param){
     const HaulingCard = createBlockUI('.hauling_list_card', 'Loading...');
     const AllocationCard = createBlockUI('.for_allocation_card', 'Loading...');
     const ExportTripBlock = createBlockUI('#modal_export_hauling_plan .modal-content', 'Loading...');
-    let _tagifyInstance;
+    let isSearchAllocation = false;
+    let isSearchTripblock = false;
 
     function loadTripBlock(batch=1)
     {
         let formData = new FormData();
         formData.append('id',param)
         formData.append('batch',batch)
+
+        let message = batch ==`All Batch` ? `All Batch is Finalize`:`Batch ${batch} is finalize`;
+
         return new Promise((resolve, reject) => {
             (new RequestHandler).post('/tms/cco-b/planner/haulage_info/tripblock',formData).then((res) => {
                 if(res.status == 'success'){
@@ -69,8 +73,8 @@ export function HaulingPlanInfoController(page,param){
                                                     </a>
                                                 </div>
                                                 <div class="d-flex flex-wrap fw-semibold fs-6 pe-2">
-                                                    <a href="javascript:;" class="d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
-                                                        Units : ${item.units_count}
+                                                    <a href="javascript:;" class=" d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
+                                                        Units : <span class="tripblock_unit_count">${item.units_count}</span>
                                                     </a>
                                                     ${item.is_multipickup ?`
                                                         <a href="javascript:;" class="d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
@@ -171,7 +175,7 @@ export function HaulingPlanInfoController(page,param){
                                     `<div class="alert alert-dismissible bg-light-primary d-flex flex-column flex-sm-row p-5 mb-5 complete-haulage">
                                         <i class="ki-duotone ki-notification-bing fs-2hx text-primary me-4 mb-5 mb-sm-0"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
                                         <div class="d-flex flex-column pe-0 pe-sm-10">
-                                            <h4 class="fw-semibold">Batch ${batch} Finalize</h4>
+                                            <h4 class="fw-semibold">${message}</h4>
                                             <span>This is to notify you that the hauling plan batch ${batch} is finalize.</span>
                                         </div>
 
@@ -182,7 +186,6 @@ export function HaulingPlanInfoController(page,param){
                                 ).removeClass('d-none');
                             }
                         }else{
-                            console.log(batch)
                             if(batch == 'All Batch'){
                                 $('.add-block').addClass('d-none');
                             }else{
@@ -356,7 +359,7 @@ export function HaulingPlanInfoController(page,param){
 
                                                 <div class="d-flex flex-wrap fw-semibold fs-6 pe-2">
                                                     <a href="javascript:;" class="d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
-                                                        Units : 0
+                                                        Units : <span class="tripblock_unit_count">0</span>
                                                     </a>
                                                 </div>
                                             </div>
@@ -480,7 +483,7 @@ export function HaulingPlanInfoController(page,param){
             selectedClass: 'selected',
             onEnd: function(evt) {
                 let selectedItems = evt.items.length > 0 ? evt.items : [evt.item];
-                let dragToNewTable = evt.to.closest('table');
+                let newTable = evt.to.closest('table');
                 let oldTable = evt.from.closest('table');
 
                 let allocated_badge = oldTable.querySelector('tbody').getAttribute('data-allocated');
@@ -500,13 +503,19 @@ export function HaulingPlanInfoController(page,param){
                             unit_id: item.getAttribute('data-id'),
                             batch: $('select[name="batch"]').val(),
                             status: 1,
-                            unit_order: Array.from(dragToNewTable.querySelectorAll('tbody tr')).indexOf(item) + 1
+                            unit_order: Array.from(newTable.querySelectorAll('tbody tr')).indexOf(item) + 1
                         };
                         formDataArray.push(itemData);
                         while (cells.length > 0) {
                             cells[0].parentNode.removeChild(cells[0]);
                         }
                         allocated++;
+
+                        let cardHeader = newTable.closest('.card').querySelector('.card-header');
+                        let tripblockUnitCount = cardHeader.querySelector('.tripblock_unit_count');
+
+                        tripblockUnitCount = parseInt(tripblockUnitCount.textContent)+1;
+                        cardHeader.querySelector('.tripblock_unit_count').textContent = tripblockUnitCount;
                     }
                 });
 
@@ -591,8 +600,8 @@ export function HaulingPlanInfoController(page,param){
                 pull: true,
                 put: ['planning', 'forAllocation'],
             },
-            swap: true,
-            swapClass: 'highlight',
+            // swap: true,
+            // swapClass: 'highlight',
             filter: '.exclude-filter, input, .form-check-input', // Add input elements to filter
             preventOnFilter: false, // Allow interaction with the filtered elements
             animation: 150,
@@ -603,6 +612,7 @@ export function HaulingPlanInfoController(page,param){
                 let currentTable = evt.to.closest('table');
                 let formData = new FormData();
                 let selectedItemsData = [];
+                let oldTable = evt.from.closest('table');
 
                 let allocated_badge = currentTable.querySelector('tbody').getAttribute('data-allocated');
                 let unallocated_badge = currentTable.querySelector('tbody').getAttribute('data-unallocated');
@@ -648,11 +658,26 @@ export function HaulingPlanInfoController(page,param){
 
                         if (currentTableId !== originalTableId && originalTable) {
                             originalTable.getElementsByTagName("tbody")[0].appendChild(item);
+
                         } else if (!originalTable) {
                             evt.from.appendChild(item);
                             ispushData = false;
+                        }else{
+                            unallocated++;
                         }
-                        unallocated++;
+                    }else if (tableToType == "planning"){
+                        let cardHeader = currentTable.closest('.card').querySelector('.card-header');
+                        let tripblockUnitCount = cardHeader.querySelector('.tripblock_unit_count');
+
+                        tripblockUnitCount = parseInt(tripblockUnitCount.textContent)+1;
+                        cardHeader.querySelector('.tripblock_unit_count').textContent = tripblockUnitCount;
+
+                        let oldCardHeader = oldTable.closest('.card').querySelector('.card-header');
+                        let oldtripblockUnitCount = oldCardHeader.querySelector('.tripblock_unit_count');
+
+                        oldtripblockUnitCount = parseInt(oldtripblockUnitCount.textContent)-1;
+                        oldCardHeader.querySelector('.tripblock_unit_count').textContent = oldtripblockUnitCount;
+
                     }
                     if(ispushData){ selectedItemsData.push(itemData) }
                 });
@@ -725,7 +750,7 @@ export function HaulingPlanInfoController(page,param){
                                     <td class="">
                                         <div class="position-relative">
                                             <span class=" text-hover-primary">
-                                                ${item.export_date}
+                                                ${item.exported_at}
                                             </span>
                                         </div>
                                     </td>
@@ -895,6 +920,8 @@ export function HaulingPlanInfoController(page,param){
             e.stopImmediatePropagation()
             let rq_url = $(this).attr('rq-url');
             let batch = $('select[name="batch"]').val();
+            let message = '';
+
             var hasRows = false;
             $('.hauling_list .card').each(function() {
                 var $table = $(this).find('table');
@@ -907,33 +934,43 @@ export function HaulingPlanInfoController(page,param){
                 Alert.alert('info','No trip blocks to finalize');
                 return;
             }
-            Alert.confirm(`question`,`Finalize Hauling Plan Batch ${batch}?`, {
+
+            if(batch == 'All Batch'){
+                message = `Finalize ${batch} ?`;
+            }else{
+                message = `Finalize Batch ${batch} ?`;
+            }
+
+            Alert.confirm(`question`,message, {
                 onConfirm: function() {
                     HaulingCard.block();
                     let formData = new FormData();
                     formData.append('id',param);
                     formData.append('batch',batch);
                     (new RequestHandler).post(rq_url,formData).then((res) => {
-                        Alert.toast(res.status,res.message);
-                        if(res.status == 'success'){
-                            Alert.loading("Please wait while page is refreshing . . .",{
-                                didOpen:function(){
-                                    setTimeout(function() {
-                                        window.location.reload();
-                                    }, 300);
-                                }
-                            });
+                        if(res.status == '400'){
+                            Alert.alert('error',res.message, false);
+                        }else{
+                            Alert.toast(res.status,res.message);
+                            if(res.status == 'success'){
+                                Alert.loading("Please wait while page is refreshing . . .",{
+                                    didOpen:function(){
+                                        setTimeout(function() {
+                                            window.location.reload();
+                                        }, 300);
+                                    }
+                                });
+                            }
                         }
-                        setTimeout(function() {
-                            HaulingCard.release();
-                        }, 300);
                     })
                     .catch((error) => {
                         console.log(error)
                         Alert.alert('error',"Something went wrong. Try again later", false);
                     })
                     .finally(() => {
-                        //code here
+                        setTimeout(function() {
+                            HaulingCard.release();
+                        }, 300);
                     });
                 },
                 onCancel: () => {
@@ -1019,23 +1056,34 @@ export function HaulingPlanInfoController(page,param){
             e.preventDefault()
             e.stopImmediatePropagation()
 
+            let _this = $(this);
             let hub = $('.nav-tab.active').attr('data-hub');
-            let searchTerm = $(this).val();
-            if (e.key === 'Enter' || e.keyCode === 13) {
+            let searchTerm = _this.val();
+
+            if ((e.key === 'Enter' || e.keyCode === 13)  && searchTerm.length >= 3) {
+                _this.attr('disabled',true);
                 AllocationCard.block();
                 loadForAllocation(hub,searchTerm).then(() => {
                     setTimeout(function() {
                         AllocationCard.release();
+                        _this.attr('disabled',false);
+                        _this.focus();
+                        isSearchAllocation = true;
                     },200);
                 })
-            } else if (e.keyCode === 8 || e.key === 'Backspace') {
+            }
+            else if ((e.keyCode === 8 || e.key === 'Backspace') && isSearchAllocation == true) {
                 setTimeout(() => {
-                    let updatedSearchTerm = $(this).val();
+                    let updatedSearchTerm = _this.val();
                     if (updatedSearchTerm === '') {
+                        _this.attr('disabled',true);
                         AllocationCard.block();
                         loadForAllocation(hub,updatedSearchTerm)
                         setTimeout(function() {
                             AllocationCard.release();
+                        _this.attr('disabled',false);
+                        _this.focus();
+                        isSearchAllocation = false;
                         },200);
                     }
                 }, 0);
@@ -1137,25 +1185,34 @@ export function HaulingPlanInfoController(page,param){
             e.preventDefault()
             e.stopImmediatePropagation()
 
-            let searchTerm = $(this).val();
+            let _this = $(this);
+            let searchTerm = _this.val();
             let batch = $('select[name="export_batch"]').val();
             let filter = $('select[name="filter_exported"]').val();
 
-            if (e.key === 'Enter' || e.keyCode === 13 && searchTerm != '') {
+            if ((e.key === 'Enter' || e.keyCode === 13) && searchTerm.length >= 3) {
+                _this.attr('disabled',true);
                 ExportTripBlock.block();
                 exportTripBlockList(batch,searchTerm,filter).then((res) => {
                     setTimeout(function() {
+                        _this.attr('disabled',false);
+                        _this.focus();
                         ExportTripBlock.release();
+                        isSearchTripblock = true;
                     }, 200);
                 })
-            } else if (e.keyCode === 8 || e.key === 'Backspace') {
+            } else if ((e.keyCode === 8 || e.key === 'Backspace') && isSearchTripblock == true) {
                 setTimeout(() => {
-                    let updatedSearchTerm = $(this).val();
+                    let updatedSearchTerm = _this.val();
                     if (updatedSearchTerm === '') {
+                        _this.attr('disabled',true);
                         ExportTripBlock.block();
                         exportTripBlockList(batch,updatedSearchTerm,filter)
                         setTimeout(function() {
                             ExportTripBlock.release();
+                            _this.attr('disabled',false);
+                            _this.focus();
+                            isSearchTripblock = false;
                         },200);
                     }
                 }, 0);
@@ -1171,10 +1228,12 @@ export function HaulingPlanInfoController(page,param){
 
             let modal = $(this).closest('.modal');
             let modal_id = $(this).attr('modal-id');
-            var checkedValues = modal.find('tbody .form-check-input:checked')
+            let checkedValues = modal.find('tbody .form-check-input:checked')
             .map(function() {
                 return $(this).val();
             }).get();
+
+            let format = $('select[name="export_format"]').val();
 
 
             if(checkedValues.length > 0){
@@ -1183,12 +1242,15 @@ export function HaulingPlanInfoController(page,param){
                         let formData = new FormData();
                         formData.append('id',param);
                         formData.append('tripblock_ids',window.btoa(JSON.stringify(checkedValues)));
+                        formData.append('format',format);
 
-                        (new RequestHandler).post('/tms/cco-b/planner/haulage_info/export_tripblock',formData).then((res) => {
+                        (new RequestHandler).post('/tms/cco-b/planner/haulage_info/export_reports',formData).then((res) => {
                             if(res.status == 'success'){
-                                modal_state(modal_id);
+                                window.location.href = res.payload;
+                                // modal_state(modal_id);
+                            }else{
+                                Alert.toast(res.status,res.message);
                             }
-                            Alert.toast(res.status,res.message);
                         })
                         .catch((error) => {
                             console.log(error)

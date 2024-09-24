@@ -2,16 +2,92 @@
 
     <ul class="nav nav-custom nav-tabs nav-line-tabs nav-line-tabs-2x border-0 fs-4 fw-semibold mb-5" role="tablist">
         <li class="nav-item" role="presentation">
-            <a class="nav-link text-active-primary pb-4 active" data-bs-toggle="tab" href="#tractor_driver_details_tab" aria-selected="true" role="tab">
+            <a class="nav-link text-active-primary tab pb-4" data-bs-toggle="tab" href="#tractor_driver_details_tab" aria-selected="true" role="tab">
                 Tractor Trailer / Driver Details
             </a>
         </li>
         <li class="nav-item" role="presentation">
-            <a class="nav-link text-active-primary pb-4" data-bs-toggle="tab" href="#dispatching_tab" aria-selected="false" tabindex="-1" role="tab">Dispatching</a>
+            <a class="nav-link text-active-primary tab pb-4" data-bs-toggle="tab" href="#dispatching_tab" aria-selected="false" tabindex="-1" role="tab">Dispatching</a>
         </li>
     </ul>
     <div class="tab-content">
         <div class="tab-pane fade" id="tractor_driver_details_tab" role="tab-panel">
+            <div class="card pt-0 mb-6 mb-xl-9">
+                <div class="card-header border-1 py-3">
+                    <div class="card-title">
+                        <div class="d-flex align-items-center position-relative my-1">
+                            <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5">
+                                <span class="path1"></span><span class="path2"></span>
+                            </i>
+                            <input type="text" id="" class="form-control form-control-solid w-250px ps-13 search" placeholder="Search here . . .">
+                        </div>
+                    </div>
+                    <div class="d-flex flex-stack flex-wrap gap-4">
+                        <div class="d-flex align-items-center fw-bold">
+                            <div class="text-muted fs-7 me-2">Status:</div>
+                            <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-1 w-auto" data-control="select2"
+                            data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select a batch" data-minimum-results-for-search="Infinity"
+                            rq-url="/services/haulage/add_batch" name="batch">
+                            <option value="all">Show All</option>
+                            <option value="1">On Trip</option>
+                            <option value="2">No Driver</option>
+                            <option value="3">For PMS</option>
+                            <option value="4">Available</option>
+                            <option value="4">Absent Driver</option>
+                            <option value="4">Trailer Repair</option>
+                            <option value="4">Tractor Repair</option>
+                            </select>
+                        </div>
+                        <div class="d-flex align-items-center fw-bold">
+                            <div class="text-muted fs-7 me-2">Attendance:</div>
+                            <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-1 w-auto" data-control="select2"
+                            data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select a batch" data-minimum-results-for-search="Infinity"
+                            rq-url="/services/haulage/add_batch" name="batch">
+                            <option value="all">Show All</option>
+                            <option value="All Batch"> Present</option>
+                            <option value="Add Batch"> Absent</option>
+                            </select>
+                        </div>
+                        <div class="card-toolbar">
+                            <button class="btn btn-sm btn-light-primary export-menu" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                More Actions
+                                <i class="ki-duotone ki-down ms-1"></i>
+                            </button>
+                            <div class="menu menu-sub  more-actions-menu menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-4 pb-3"
+                                data-kt-menu="true">
+                                <div class="menu-item px-3">
+                                    <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
+                                        More Actions
+                                    </div>
+                                </div>
+                                <div class="menu-item px-3">
+                                    <a href="#" class="menu-link px-3 export-haulage" modal-id="#modal_export_hauling_plan">
+                                        New Tractor Trailer
+                                    </a>
+                                </div>
+
+                                    <div class="separator mt-2 opacity-75"></div>
+                                    <div class="menu-item px-3 pt-3">
+                                        <a href="#" class="menu-link px-3 finalize-plan text-success" data-status="1" rq-url="/tms/cco-b/planner/haulage_info/finalize_plan">
+                                            Finalize Attendance
+                                        </a>
+                                    </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="dataTables_wrapper dt-bootstrap4 no-footer">
+                        <div class="table-responsive" id="tractor_trailer_driver_wrapper">
+                            <table class="table align-middle table-row-bordered fs-6 gy-5 dataTable no-footer"
+                                id="tractor_trailer_driver_table">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="tab-pane fade" id="dispatching_tab" role="tab-panel">
             @if ($data['status'] ==1)

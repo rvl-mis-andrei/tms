@@ -8,8 +8,8 @@ use App\Http\Controllers\ClusterBController\PlannerPageController;
 use Illuminate\Support\Facades\Route;
 
 //remove tms
-// Route::group(['prefix'=>'tms/cco-b/planner'], function() {
-Route::group(['prefix'=>'cco-b/planner'], function() {
+Route::group(['prefix'=>'tms/cco-b/planner'], function() {
+// Route::group(['prefix'=>'cco-b/planner'], function() {
 
     Route::middleware('auth')->group(function () {
 
@@ -57,7 +57,7 @@ Route::group(['prefix'=>'cco-b/planner'], function() {
             Route::post('/hauling_plan','hauling_plan');
             Route::post('/tripblock_list','tripblock_list');
 
-            Route::post('/export_tripblock', 'export_tripblock');
+            Route::post('/export_reports', 'export_reports');
 
             Route::post('/info','info');
         });

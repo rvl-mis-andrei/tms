@@ -24,7 +24,9 @@ class TmsHaulageBlock extends Model
         'deleted_at',
         'deleted_by',
         'export_date',
-        'is_exported'
+        'is_exported',
+        'exported_at',
+        'exported_by',
     ];
 
 

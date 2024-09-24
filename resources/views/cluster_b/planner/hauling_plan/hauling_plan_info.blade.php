@@ -50,10 +50,12 @@
 
                             </div>
                             <div class="card-toolbar">
-                                <button class="btn btn-sm btn-light-info add-block me-2">
-                                    Add Block
-                                    <i class="ki-duotone ki-plus ms-1"></i>
-                                </button>
+                                @if ($data['status'] ==2)
+                                    <button class="btn btn-sm btn-light-info add-block me-2">
+                                        Add Block
+                                        <i class="ki-duotone ki-plus ms-1"></i>
+                                    </button>
+                                @endif
 
                                 <button class="btn btn-sm btn-light-primary export-menu" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
                                     More Actions
@@ -68,7 +70,7 @@
                                     </div>
                                     <div class="menu-item px-3">
                                         <a href="#" class="menu-link px-3 export-haulage" modal-id="#modal_export_hauling_plan">
-                                            Export Hauling Plan
+                                            Export Trip Block
                                         </a>
                                     </div>
                                     @if ($data['status'] ==2)

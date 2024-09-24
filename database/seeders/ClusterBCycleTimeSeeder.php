@@ -137,8 +137,8 @@ class ClusterBCycleTimeSeeder extends Seeder
                     'time_loading' => $this->convertTime($item[4]),
                     'departure_to_pickup' => $this->convertTime($item[5]),
                     'dealer_to_garage' => $this->convertTime($item[6]),
-                    'svc_total_cycle_time' => $this->convertTime($item[7]),
-                    'bvc_total_cycle_time' => $this->convertTime($item[8]),
+                    'svc_total_cycle_time' => isset($item[7]) ? $this->convertTime($item[7]) : NULL,
+                    'bvc_total_cycle_time' => isset($item[8]) ? $this->convertTime($item[8]) : NULL,
                     'created_by' => 1,
                     'created_at' => now(),
                 ]);
@@ -158,12 +158,18 @@ class ClusterBCycleTimeSeeder extends Seeder
 
     private function convertTime($timeString)
     {
+        // Check if the string contains 'DAYS', 'MONTH', or 'YEAR'
         if (strpos($timeString, 'DAYS') !== false || strpos($timeString, 'MONTH') !== false || strpos($timeString, 'YEAR') !== false) {
             return $timeString;
         }
 
+        // Try to create a DateTime object from the time string
         $time = \DateTime::createFromFormat('H:i:s', $timeString);
-        return $time->format('H:i:s');
+
+        // Check if the time creation was successful
+        if ($time !== false) {
+            return $time->format('H:i:s');
+        }
 
     }
 }

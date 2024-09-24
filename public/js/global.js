@@ -94,7 +94,7 @@ export function modal_state(modal_id,action='hide'){
 
 export function draw_table(id, container){
     var table = `<div class="table-responsive" id="table_wrapper">
-                    <table class="table table-striped align-middle table-row-dashed fs-6 gy-5 dataTable no-footer" id="${id}"></table>
+                    <table class="table table-striped align-middle table-row-bordered fs-6 gy-5 dataTable no-footer" id="${id}"></table>
                 </div>`;
     container.html(table);
 }
