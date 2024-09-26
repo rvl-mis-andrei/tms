@@ -8,6 +8,23 @@ use Illuminate\Database\Eloquent\Model;
 class TmsHaulageAttendance extends Model
 {
     use HasFactory;
+    protected $fillable =[
+        'tractor_trailer_id',
+        'haulage_id',
+        'is_present_pdriver',
+        'is_present_sdriver',
+        'pdriver',
+        'sdriver',
+        'remarks',
+        'tractor_trailer_status',
+        'tractor_id',
+        'trailer_id',
+        'is_deleted',
+        'deleted_by',
+        'deleted_at',
+        'created_by',
+        'updated_by',
+    ];
 
     public function trailer(){
         return $this->belongsTo(Trailer::class,'trailer_id')->withDefault();

@@ -227,11 +227,43 @@ export var HaulingPlanInfoController = function (page,param) {
     var loadTractorTrailerTab = function(){
         return new Promise((resolve, reject) => {
             try {
+
                 TractorTrailerDT(param).init()
-                .then(() => {
-                    resolve(true);
-                })
-                .catch(reject);
+
+                _page.find('.start-attendance').on('click', function(e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+
+                    let _this = $(this);
+                    let url = _this.attr('rq-url');
+
+                    Alert.confirm('question',"<b>Start Attendance?</b> <br><br> <em class='text-muted'>Note: Finalize the attendance for this haul before moving to the next.</em>",
+                        {
+                            onConfirm: function() {
+                                let formData = new FormData();
+                                formData.append('id',param);
+
+                                (new RequestHandler).post(`/tms/cco-b/dispatcher/haulage_attendance/${url}`,formData).then((res) => {
+                                    if(res.status == 'success'){
+                                        Alert.toast(res.status,res.message);
+                                    }else if (res.status == 400){
+                                        Alert.alert('error',res.message, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.log(error)
+                                    Alert.alert('error',"Something went wrong. Try again later", false);
+                                })
+                                .finally(() => {
+                                });
+                            }
+                        }
+                    );
+                });
+
+                resolve(true);
+
+
             } catch (error) {
                 reject(error);
             }

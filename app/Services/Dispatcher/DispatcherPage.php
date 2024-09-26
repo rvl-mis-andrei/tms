@@ -3,6 +3,7 @@
 namespace App\Services\Dispatcher;
 
 use App\Models\TmsClusterClient;
+use App\Models\TmsHaulage;
 use App\Services\Planner\HaulageList;
 use Exception;
 use Illuminate\Http\Request;
@@ -46,8 +47,8 @@ class DispatcherPage
     public function haulage_info($rq)
     {
         try{
-            $data = (new HaulageList)->info($rq);
-            $data = json_decode(base64_decode($data['payload']),true);
+            $id = Crypt::decrypt($rq->id);
+            $data = TmsHaulage::with('haulage_attendance')->find($id);
             return view('cluster_b.dispatcher.dispatch.hauling_plan_info', compact('data'))->render();
         } catch(Exception $e) {
             return response()->json([

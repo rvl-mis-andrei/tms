@@ -48,5 +48,10 @@ class TmsHaulage extends Model
         return $this->hasMany(TmsHaulageBlock::class,'haulage_id');
     }
 
+    public function haulage_attendance()
+    {
+        return $this->hasMany(TmsHaulageAttendance::class,'haulage_id');
+    }
+
 
 }

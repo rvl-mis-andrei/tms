@@ -49,7 +49,15 @@
                             </select>
                         </div>
                         <div class="card-toolbar">
-                            <button class="btn btn-sm btn-light-primary export-menu" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                            @if($data->haulage_attendance->isEmpty())
+                                <button class="btn btn-sm btn-light-primary start-attendance" rq-url="create_attendance">
+                                    Start Attendance
+                                </button>
+                            @else
+                            <button class="btn btn-sm btn-light-success finalize-attendance" rq-url="finalize_attendance">
+                                Finalize Attendance
+                            </button>
+                            {{-- <button class="btn btn-sm btn-light-primary export-menu" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
                                 More Actions
                                 <i class="ki-duotone ki-down ms-1"></i>
                             </button>
@@ -60,20 +68,15 @@
                                         More Actions
                                     </div>
                                 </div>
-                                <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3 export-haulage" modal-id="#modal_export_hauling_plan">
-                                        New Tractor Trailer
+                                <div class="separator mt-2 opacity-75"></div>
+                                <div class="menu-item px-3 pt-3">
+                                    <a href="#" class="menu-link px-3 finalize-plan text-success" data-status="1" rq-url="/tms/cco-b/planner/haulage_info/finalize_plan">
+                                        Finalize Attendance
                                     </a>
                                 </div>
+                            </div> --}}
+                            @endif
 
-                                    <div class="separator mt-2 opacity-75"></div>
-                                    <div class="menu-item px-3 pt-3">
-                                        <a href="#" class="menu-link px-3 finalize-plan text-success" data-status="1" rq-url="/tms/cco-b/planner/haulage_info/finalize_plan">
-                                            Finalize Attendance
-                                        </a>
-                                    </div>
-
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -90,12 +93,12 @@
             </div>
         </div>
         <div class="tab-pane fade" id="dispatching_tab" role="tab-panel">
-            @if ($data['status'] ==1)
+            @if ($data->status ==1)
                 <div class="alert alert-dismissible bg-light-primary d-flex flex-column flex-sm-row p-5 mb-5 complete-haulage">
                     <i class="ki-duotone ki-notification-bing fs-2hx text-primary me-4 mb-5 mb-sm-0"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
                     <div class="d-flex flex-column pe-0 pe-sm-10">
                         <h4 class="fw-semibold">Hauling Plan Complete</h4>
-                        <span>This is to notify you that '{{ $data['updated_by'] }}' set the status of hauling plan as complete.</span>
+                        <span>This is to notify you that '{{ optional($data->updated_by)->fullname() ?? '' }}' set the status of hauling plan as complete.</span>
                     </div>
 
                     <button type="button" class="position-absolute position-sm-relative m-2 m-sm-0 top-0 end-0 btn btn-icon ms-sm-auto" data-bs-dismiss="alert">
@@ -136,11 +139,11 @@
                                             <option value="2">Batch 2</option>
                                         </select>
                                     </div>
-                                    @if ($data['status'] ==2)
+                                    @if ($data->status ==2)
                                         <button class="btn btn-sm btn-light-success finalize-dispatch d-none" data-status="1" rq-url="/tms/cco-b/planner/haulage_info/finalize_plan">
                                             Finalize Dispatch
                                         </button>
-                                    @elseif ($data['status'] ==1)
+                                    @elseif ($data->status ==1)
                                         <div class="card-toolbar">
                                             <button class="btn btn-sm btn-light-primary export-menu" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
                                                 More Actions
@@ -193,7 +196,7 @@
                                     </a>
                                 </li>
                             </ul>
-                        @if ($data['status'] ==2)
+                        @if ($data->status ==2)
                             <div class="card-toolbar">
                                 <button class="btn btn-sm btn-light-primary more-actions" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
                                     Actions
@@ -207,19 +210,19 @@
                                         </div>
                                     </div>
 
-                                    @if ($data['status'] ==2)
+                                    @if ($data->status ==2)
                                         <div class="menu-item px-3">
                                             <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#modal_add_dealer_unit">
                                                 Add New Unit
                                             </a>
                                         </div>
-                                        @if ($data['plan_type'] == 2 && count($data['filenames']) < 2)
+                                        @if ($data->plan_type == 2 && count($data->filenames) < 2)
                                             <div class="menu-item px-3">
                                                 <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#modal_fhauling_plan">
                                                     Upload Hauling Plan
                                                 </a>
                                             </div>
-                                        @elseif ($data['plan_type'] == 2 && count($data['filenames']) >=2)
+                                        @elseif ($data->plan_type == 2 && count($data->filenames) >=2)
                                             <div class="separator mt-3 opacity-75"></div>
                                             <div class="menu-item px-3 mt-2">
                                                 <a href="#" class="menu-link px-3 reupload" form_id="form_hauling_plan" modal-title="Re-Upload Hauling Plan" modal-id="#modal_fhauling_plan" rq-url="/tms/cco-b/planner/haulage_info/reupload_hauling_plan">
@@ -227,13 +230,13 @@
                                                 </a>
                                             </div>
                                         @endif
-                                        @if($data['plan_type'] == 1 && count($data['filenames']) <1)
+                                        @if($data->plan_type == 1 && count($data->filenames) <1)
                                             <div class="menu-item px-3">
                                                 <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#modal_upload_masterlist">
                                                     Upload Masterlist
                                                 </a>
                                             </div>
-                                        @elseif($data['plan_type'] == 1 && count($data['filenames']) >=1)
+                                        @elseif($data->plan_type == 1 && count($data->filenames) >=1)
                                             <div class="separator mt-3 opacity-75"></div>
                                             <div class="menu-item px-3 mt-2">
                                                 <a href="#" class="menu-link px-3 reupload" form_id="form_masterlist" modal-title="Re-Upload Masterlist" modal-id="#modal_upload_masterlist" rq-url="/tms/cco-b/planner/haulage_info/reupload_masterlist">
@@ -257,7 +260,7 @@
                                             <div class="card-px text-center pt-20 pb-15">
                                                 <h2 class="fs-5 mb-0">No Units Found</h2>
                                                 <p class="text-gray-500 fs-6 fw-semibold py-7">
-                                                    <em> Click the button <span class="text-primary">Actions</span> and <br> select Upload @if ($data['plan_type'] == 2) Hauling Plan @else Masterlist @endif</em>
+                                                    <em> Click the button <span class="text-primary">Actions</span> and <br> select Upload @if ($data->plan_type == 2) Hauling Plan @else Masterlist @endif</em>
                                                 </p>
                                             </div>
                                         </div>
@@ -272,7 +275,7 @@
                                             <div class="card-px text-center pt-20 pb-15">
                                                 <h2 class="fs-5 mb-0">No Units Found</h2>
                                                 <p class="text-gray-500 fs-6 fw-semibold py-7">
-                                                    <em> Click the button <span class="text-primary">Actions</span> and <br> select Upload @if ($data['plan_type'] == 2) Hauling Plan @else Masterlist @endif</em>
+                                                    <em> Click the button <span class="text-primary">Actions</span> and <br> select Upload @if ($data->plan_type == 2) Hauling Plan @else Masterlist @endif</em>
                                                 </p>
                                             </div>
                                         </div>

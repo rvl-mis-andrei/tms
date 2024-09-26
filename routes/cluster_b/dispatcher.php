@@ -6,6 +6,7 @@ use App\Http\Controllers\ClusterBController\AccessController;
 use App\Http\Controllers\ClusterBController\Dispatcher\ClientListing;
 use App\Http\Controllers\ClusterBController\Dispatcher\Dashboard;
 use App\Http\Controllers\ClusterBController\Dispatcher\DriverListing;
+use App\Http\Controllers\ClusterBController\Dispatcher\HaulageAttendance;
 use App\Http\Controllers\ClusterBController\Dispatcher\HaulageInfo;
 use App\Http\Controllers\ClusterBController\Dispatcher\TractorTrailerDriver;
 use App\Http\Controllers\ClusterBController\Dispatcher\TractorTrailerDriverListing;
@@ -43,6 +44,12 @@ use Illuminate\Support\Facades\Route;
 
         Route::controller(HaulageInfo::class)->prefix('haulage_info')->group(function() {
             Route::post('/tripblock', 'tripblock');
+        });
+
+        Route::controller(HaulageAttendance::class)->prefix('haulage_attendance')->group(function() {
+            Route::post('/create_attendance', 'create_attendance');
+            Route::post('/update_attendance', 'update_attendance');
+            Route::post('/update_tractor_trailer_att', 'update_tractor_trailer_att');
         });
 
         Route::controller(TractorTrailerDriver::class)->prefix('tractor_trailer_driver')->group(function() {
