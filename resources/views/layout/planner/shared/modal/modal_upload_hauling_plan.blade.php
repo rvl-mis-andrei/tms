@@ -74,7 +74,7 @@
         <div class="modal-content">
             <div class="modal-header justify-content-center">
                 <div class="text-center">
-                    <h1 class="mb-3 modal_title">Upload Masterlist</h1>
+                    <h1 class="mb-3 modal_title">Upload TMP</h1>
                     <div class="text-muted fs-5">Fill-up the form and click
                         <a href="javascript:;" class="fw-bolder link-primary">Submit</a>.
                     </div>
@@ -110,6 +110,7 @@
     </div>
 </div>
 
+{{-- MODAL EXPORT TRIPBLOCK --}}
 <div class="modal fade" id="modal_export_hauling_plan" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -133,10 +134,10 @@
                                 <div class="text-muted fs-7">Batch: </div>
                                 <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto"
                                     data-hide-search="true" data-control="select2" data-dropdown-css-class="w-150px"
-                                    data-placeholder="Select an option" data-minimum-results-for-search="Infinity" name="export_batch">
-                                    <option value="Show All" selected>Show All</option>
+                                    data-placeholder="Select a Batch" data-minimum-results-for-search="Infinity" name="export_batch">
+                                    <option></option>
                                     @for ($i = 1; $i <= $data['batch_count']; $i++)
-                                        <option value="{{ $i }}">Batch {{ $i }}</option>
+                                        <option value="{{ $i }}" {{ $i==1?'selected':'' }}>Batch {{ $i }}</option>
                                     @endfor
                                 </select>
                             </div>
@@ -166,6 +167,7 @@
                             <thead>
                                 <tr class="fw-bold gs-0">
                                     <th>TripBlock</th>
+                                    <th>Hub</th>
                                     <th>Batch</th>
                                     <th>Exported Date</th>
                                     <th>
@@ -281,3 +283,44 @@
     </div>
 </div>
 
+{{-- MODAL UPLOAD VISMIN --}}
+<div class="modal fade" id="modal_upload_vismin" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header justify-content-center">
+                <div class="text-center">
+                    <h1 class="mb-3 modal_title">Upload Vismin</h1>
+                    <div class="text-muted fs-5">Fill-up the form and click
+                        <a href="javascript:;" class="fw-bolder link-primary">Submit</a>.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body px-5 my-7">
+                <form id="form_vismin" modal-id="#modal_upload_vismin" class="form fv-plugins-bootstrap5 fv-plugins-framework" action="/tms/cco-b/planner/haulage_info/vismin">
+                    <div class="custom-file-upload">
+                        <div class="upload-area uploadArea">
+                            <div class="fv-row">
+                                <div class="icon" id="uploadIcon">
+                                    <i class="bi bi-cloud-arrow-up-fill"></i>
+                                </div>
+                                <h3 id="" class="uploadText">Click here to upload file</h3>
+                                <input type="file" class="fileInput" name="vismin">
+                                <div id="" class="file-name fileName"></div>
+                                <a href="#" id="" class="text-active-primary mt-3 removeFile" style="display: none;">Remove File</a>
+                                <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer flex-center">
+                <button type="button" modal-id="#modal_upload_vismin" data-id="" class="btn btn-primary me-4 submit">
+                    <span class="indicator-label">Submit</span>
+                    <span class="indicator-progress">Please wait...
+                        <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+                </button>
+                <button type="button" modal-id="#modal_upload_vismin" class="btn btn-light me-3 cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

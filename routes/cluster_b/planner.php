@@ -8,8 +8,8 @@ use App\Http\Controllers\ClusterBController\PlannerPageController;
 use Illuminate\Support\Facades\Route;
 
 //remove tms
-// Route::group(['prefix'=>'tms/cco-b/planner'], function() {
-Route::group(['prefix'=>'cco-b/planner'], function() {
+Route::group(['prefix'=>'tms/cco-b/planner'], function() {
+// Route::group(['prefix'=>'cco-b/planner'], function() {
 
     Route::middleware('auth')->group(function () {
 
@@ -42,6 +42,7 @@ Route::group(['prefix'=>'cco-b/planner'], function() {
             Route::post('/remove_unit', 'remove_unit');
             Route::post('/add_block_unit', 'add_block_unit');
             Route::post('/update_block_units', 'update_block_units');
+            Route::post('/update_tripblock_position', 'update_tripblock_position');
             Route::post('/finalize_plan', 'finalize_plan');
             Route::post('/update_transfer', 'update_transfer');
             Route::post('/update_unit_remarks', 'update_unit_remarks');
@@ -55,7 +56,11 @@ Route::group(['prefix'=>'cco-b/planner'], function() {
 
             Route::post('/masterlist','masterlist');
             Route::post('/hauling_plan','hauling_plan');
+            Route::post('/vismin','vismin');
             Route::post('/tripblock_list','tripblock_list');
+            Route::get('/download_tmp/{id}','download_tmp')->name('cluster_b.download_tmp');
+            Route::get('/download_vismin/{id}','download_vismin')->name('cluster_b.download_vismin');
+
 
             Route::post('/export_reports', 'export_reports');
 

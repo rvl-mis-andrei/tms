@@ -83,35 +83,6 @@
                                     @endif
                                 </div>
                             </div>
-                            {{-- @if ($data['status'] ==2)
-                                <button class="btn btn-sm btn-light-info add-block">
-                                    Add Block
-                                    <i class="ki-duotone ki-plus ms-1"></i>
-                                </button>
-                                <button class="btn btn-sm btn-light-success finalize-plan" data-status="1" rq-url="/tms/cco-b/planner/haulage_info/finalize_plan">
-                                    Finalize Trip Block
-                                </button>
-                             @elseif ($data['status'] ==1)
-                                <div class="card-toolbar">
-                                    <button class="btn btn-sm btn-light-primary export-menu" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-                                        More Actions
-                                        <i class="ki-duotone ki-down ms-1"></i>
-                                    </button>
-                                    <div class="menu menu-sub  more-actions-menu menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-4"
-                                        data-kt-menu="true">
-                                        <div class="menu-item px-3">
-                                            <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
-                                                More Actions
-                                            </div>
-                                        </div>
-                                        <div class="menu-item px-3">
-                                            <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#">
-                                                Print Report
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif --}}
                         </div>
                     </div>
                 </div>
@@ -182,6 +153,18 @@
                                         Add New Unit
                                     </a>
                                 </div>
+                                @if($data['plan_type'] == 1)
+                                    <div class="menu-item px-3">
+                                        <a href="{{ route('cluster_b.download_tmp', ['id' => $data['encrypted_id'] ]) }}" class="menu-link px-3 download_tmp">
+                                        Download TMP
+                                        </a>
+                                    </div>
+                                    <div class="menu-item px-3">
+                                        <a href="{{ route('cluster_b.download_vismin', ['id' => $data['encrypted_id'] ]) }}" class="menu-link px-3 download_vismin">
+                                            Download Vismin
+                                        </a>
+                                    </div>
+                                @endif
                                 @if ($data['plan_type'] == 2 && count($data['filenames']) < 2)
                                     <div class="menu-item px-3">
                                         <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#modal_fhauling_plan">
@@ -200,7 +183,12 @@
                                     <div class="separator mt-3 opacity-75"></div>
                                     <div class="menu-item px-3 mt-2">
                                         <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#modal_upload_masterlist">
-                                            Upload Masterlist
+                                            Upload TMP
+                                        </a>
+                                    </div>
+                                    <div class="menu-item px-3">
+                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#modal_upload_vismin">
+                                            Upload Vismin
                                         </a>
                                     </div>
                                 @endif

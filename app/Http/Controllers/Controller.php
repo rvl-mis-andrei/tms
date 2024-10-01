@@ -28,6 +28,12 @@ class Controller extends BaseController
         return Carbon::parse($date)->format($format);
     }
 
+    function getInitials($string) {
+        return strtoupper(implode('', array_map(function($word) {
+            return $word[0]; // Get the first letter of each word
+        }, explode(' ', $string))));
+    }
+
     // public function letter_to_number($columnLetter) {
     //     $columnLetter = strtoupper($columnLetter);
     //     $columnNumber = 0;

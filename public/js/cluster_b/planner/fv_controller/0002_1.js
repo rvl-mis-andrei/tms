@@ -63,9 +63,9 @@ export function fvHaulingPlanInfo(param){
                         modal_state(modal_id);
                         fvMasterPlan.resetForm();
                         form.reset();
-                        $('#form').attr('action','/services/haulage_info/masterlist');
-                        $('.submit').attr('data-id','');
-                        $('.modal_title').text('Upload MasterList');
+                        form.setAttribute('action','action','/tms/cco-b/planner/haulage_info/masterlist');
+                        $(modal_id).find('.submit').attr('data-id','');
+                        $(modal_id).find('.modal_title').text('Upload TMP');
                     }
                 })
             })
@@ -90,8 +90,8 @@ export function fvHaulingPlanInfo(param){
                                 formData.append('batch',$('select[name="batch"]').val())
                                 if(param) { formData.append('id',param) }
                                 (new RequestHandler).post(form_url,formData,true).then((res) => {
-                                    Alert.toast(res.status,res.message)
                                     if(res.status == 'success'){
+                                        Alert.toast(res.status,res.message)
                                         if(res.payload >= 1){
                                             Alert.loading("Page is refreshing . . .",{
                                                 didOpen:function(){
@@ -100,14 +100,8 @@ export function fvHaulingPlanInfo(param){
                                                     }, 300);
                                                 }
                                             });
-                                        }else{
-
                                         }
-                                        // form.reset()
-                                        // fvMasterPlan.resetForm()
-                                        // $('.nav-tab.active').click()
-                                        // modal_state(modal_id)
-                                    }else {
+                                    }else{
                                         Alert.alert('error',res.message, false)
                                     }
                                 })
@@ -177,7 +171,7 @@ export function fvHaulingPlanInfo(param){
                         modal_state(modal_id);
                         fvFinalHaulingPlan.resetForm();
                         form.reset();
-                        $('#form').attr('action','/services/haulage_info/masterlist');
+                        $('#form').attr('action','/tms/cco-b/planner/haulage_info/hauling_plan');
                         $('.submit').attr('data-id','');
                         $('.modal_title').text('Upload MasterList');
                     }
@@ -245,6 +239,111 @@ export function fvHaulingPlanInfo(param){
             })
         }
 
+        var _handlefvInterIsland = function(){
+            let form = document.querySelector("#form_vismin");
+            let modal_id = form.getAttribute('modal-id');
+            let modalContent = document.querySelector(`${modal_id} .modal-content`);
+            let blockUI = new KTBlockUI(modalContent, {
+                message: '<div class="blockui-message"><span class="spinner-border text-primary"></span> Loading...</div>',
+            });
+            let fvMasterPlan = FormValidation.formValidation(form, {
+                fields: {
+                    vismin: {
+                        validators: {
+                            notEmpty: { message: 'This field is required'
+                            },
+                            file: {
+                                extension: 'xls,xlsx,xlsm',
+                                type: 'application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                message: 'Please select a valid Excel file (xls, xlsx, xlsm)'
+                            },
+                            fileSize: {
+                                maxSize: 20480 * 1024, // in bytes (20 MB in this example)
+                                message: 'The file is too large. Maximum size allowed is 20 MB.'
+                            }
+                        },
+                    },
+                },
+                plugins: {
+                trigger: new FormValidation.plugins.Trigger(),
+                bootstrap: new FormValidation.plugins.Bootstrap5({
+                    rowSelector: ".fv-row",
+                    eleInvalidClass: "",
+                    eleValidClass: "",
+                }),
+                },
+            })
+
+            $(modal_id).on('click','.cancel',function(e){
+                e.preventDefault()
+                e.stopImmediatePropagation()
+                Alert.confirm('question',"Close this form ?",{
+                    onConfirm: () => {
+                        modal_state(modal_id);
+                        fvMasterPlan.resetForm();
+                        form.reset();
+                        form.setAttribute('action','/tms/cco-b/planner/haulage_info/vismin');
+                        $(modal_id).find('.submit').attr('data-id','');
+                        $(modal_id).find('.modal_title').text('Upload Vismin');
+                    }
+                })
+            })
+
+            $(modal_id).on('click','.submit',function(e){
+                e.preventDefault()
+                e.stopImmediatePropagation()
+
+                let btn_submit = $(this);
+                let form_url = form.getAttribute('action');
+
+                fvMasterPlan && fvMasterPlan.validate().then(function (v) {
+                    if(v == "Valid"){
+                        Alert.confirm("question","Submit this form?", {
+                            onConfirm: function() {
+
+                                blockUI.block();
+
+                                let formData = new FormData(form);
+                                btn_submit.attr("data-kt-indicator","on");
+                                btn_submit.attr("disabled",true);
+                                formData.append('batch',$('select[name="batch"]').val())
+                                if(param) { formData.append('id',param) }
+                                (new RequestHandler).post(form_url,formData,true).then((res) => {
+                                    if(res.status == 'success'){
+                                        Alert.toast(res.status,res.message)
+                                        if(res.payload >= 1){
+                                            Alert.loading("Page is refreshing . . .",{
+                                                didOpen:function(){
+                                                    setTimeout(function() {
+                                                        window.location.reload();
+                                                    }, 300);
+                                                }
+                                            });
+                                        }
+                                    }else {
+                                        Alert.alert('error',res.message, false)
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.log(error)
+                                    Alert.alert('error',"Something went wrong. Try again later", false);
+                                })
+                                .finally(() => {
+                                    btn_submit.attr("data-kt-indicator","off");
+                                    btn_submit.attr("disabled",false);
+                                    blockUI.release();
+                                });
+                            },
+                            onCancel: () => {
+                                btn_submit.attr("data-kt-indicator","off");
+                                btn_submit.attr("disabled",false);
+                            }
+                        });
+                    }
+                })
+            })
+        }
+
         var _handlefvNewUnit = function(){
             let form = document.querySelector("#form_new_unit");
             let modal_id = form.getAttribute('modal-id');
@@ -291,8 +390,9 @@ export function fvHaulingPlanInfo(param){
                         modal_state(modal_id);
                         fvNewUnit.resetForm();
                         form.reset();
-                        $('#form').attr('action','/tms/cco-b/planner/haulage_info/add_block_unit');
-                        $('.modal_title').text('Add New Unit');
+                        form.setAttribute('action','/tms/cco-b/planner/haulage_info/add_block_unit');
+                        $(modal_id).find('.submit').attr('data-id','');
+                        $(modal_id).find('.modal_title').text('Add New Unit');
                     }
                 })
             })
@@ -346,6 +446,7 @@ export function fvHaulingPlanInfo(param){
             _handlefvMasterList()
             _handlefvHaulingPlan()
             _handlefvNewUnit()
+            _handlefvInterIsland()
         },
       };
 

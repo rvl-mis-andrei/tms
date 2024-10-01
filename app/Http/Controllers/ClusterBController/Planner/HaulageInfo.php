@@ -21,9 +21,11 @@ use App\Services\Planner\HaulageList;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use Illuminate\Support\Str;
 
 class HaulageInfo extends Controller
 {
@@ -43,7 +45,7 @@ class HaulageInfo extends Controller
             ->when($batch,function($query,$batch){
                 $query->where('batch',$batch);
             })
-            ->where([['haulage_id',$id],['is_deleted',null]])->get();
+            ->where([['haulage_id',$id],['is_deleted',null]])->orderBy('block_number', 'asc')->get();
             $array = [];
             if($query){
                 foreach($query as $data){
@@ -64,7 +66,7 @@ class HaulageInfo extends Controller
                         $block_unit[]=[
                             'encrypted_id'=>Crypt::encrypt($row->id),
                             'dealer_code'=>$dealer->code,
-                            'model'=>$row->car->car_model,
+                            'model'=>$row->car->short_name ?? $row->car->car_model,
                             'cs_no'=>$row->cs_no,
                             'color_description'=>$row->color_description,
                             'invoice_date'=>date('m/d/Y',strtotime($row->invoice_date)),
@@ -141,7 +143,7 @@ class HaulageInfo extends Controller
                         $unit=[
                             'encrypted_id'=>Crypt::encrypt($data->id),
                             'dealer_code'=>$dealer->code,
-                            'model'=>$data->car->car_model,
+                            'model'=>$data->car->short_name ?? $data->car->car_model,
                             'cs_no'=>$data->cs_no,
                             'color_description'=>$data->color_description,
                             'invoice_date'=>date('m/d/Y',strtotime($data->invoice_date)),
@@ -184,29 +186,57 @@ class HaulageInfo extends Controller
         try{
             DB::beginTransaction();
             $haulage_id = Crypt::decrypt($rq->id);
+            $cluster_id    = Auth::user()->emp_cluster->cluster_id;
 
-            $result = (new HaulageList)->move_file($rq,'masterlist');
+            $result = (new HaulageList)->move_file($rq,'masterlist','cluster_b/masterlist');
             if ($result['status'] != 'success' && $result['payload'] === false) {  return response()->json($result); }
 
             $class         = new Phpspreadsheet;
             [$sheet,$highestRow] = $class->read($result['payload'],true,true,'RVL');
+            $encrypted_key = $sheet->getCell("AB1")->getCalculatedValue();
 
-            $cluster_id    = Auth::user()->emp_cluster->cluster_id;
+            if($highestRow <= 1){
+                if (Storage::disk('public')->exists($result['payload'])) {
+                    Storage::disk('public')->delete($result['payload']);
+                }
+                throw new \Exception("Sheet 'RVL' does not have any data.");
+            }
+
+            if($encrypted_key == null){
+                throw new \Exception("Upload the file you downloaded in this hauling plan");
+            }
+
+            $keys = json_decode($result['upload_key'],true) ?? [];
+            if(empty($keys)){
+                throw new \Exception("Download the TMP file first before uploading");
+            }
+
+            if (!array_key_exists($encrypted_key,$keys)){
+                throw new \Exception("Upload the file you downloaded in this hauling plan");
+            }
+            if($keys[$encrypted_key] == 'VISMIN'){
+                throw new \Exception("Upload the excel file for TMP");
+            }
+
             $dealer_arr    = TmsClientDealership::all()->pluck('id', 'code')->toArray();
             $car_model_arr = TmsClusterCarModel::where('cluster_id',$cluster_id)->get()->pluck('id', 'car_model')->toArray();
             $user_id = Auth::user()->emp_id;
 
-            for ($row = 3; $row <= $highestRow; $row++) {
+            for ($row = 2; $row <= $highestRow; $row++) {
                 $dealer_code = $sheet->getCell("A$row")->getCalculatedValue();
+                $dealer_id    = isset($dealer_arr[$dealer_code]) ? $dealer_arr[$dealer_code] : false;
                 $car_model = strtoupper($sheet->getCell("D$row")->getCalculatedValue());
                 $car_model_id = $car_model_arr[$car_model] ?? false;
                 $cs_no = $sheet->getCell("B$row")->getCalculatedValue();
+                $color        = $sheet->getCell("E$row")->getCalculatedValue();
                 if ($dealer_code !== null && $cs_no !== null){
                     if(!$car_model_id){
-                        return ['status'=>'error', 'message' =>$car_model.' does not exist in the car list'];
+                        $insert = TmsClusterCarModel::create(['cluster_id' => $cluster_id, 'car_model'=>$car_model,'color_description' => $color,'is_active' =>1]);
+                        $car_model_id = $insert->id;
                     }
-                    if(!isset($dealer_arr[$dealer_code])){
-                        return ['status'=>'error', 'message' =>'Dealer '.$dealer_code.' does not exist in the dealership list'];
+                    if(!$dealer_id){
+                        $insert = TmsClientDealership::create([ 'code' => $dealer_code, 'is_active' =>1 ]);
+                        $dealer_id = $insert->id;
                     }
                     $invoice_date = $class->excelDateToPhpDate($sheet->getCell("F$row")->getCalculatedValue());
                     $invoice_time = $class->excelTimeToPhpTime($sheet->getCell("G$row")->getCalculatedValue());
@@ -218,10 +248,10 @@ class HaulageInfo extends Controller
                         'status'=>0,
                         'block_id'=>null,
                         'haulage_id'=>$haulage_id,
-                        'dealer_id' => $dealer_arr[$dealer_code],
+                        'dealer_id' => $dealer_id,
                         'car_model_id' =>$car_model_id,
                         'cs_no' => $cs_no,
-                        'color_description' => $sheet->getCell("E$row")->getCalculatedValue(),
+                        'color_description' => $color,
                         'updated_location' => $sheet->getCell("C$row")->getCalculatedValue(),
                         'invoice_date' =>$invoice_date,
                         'invoice_time' =>$invoice_time,
@@ -231,10 +261,11 @@ class HaulageInfo extends Controller
                         'hub' => $sheet->getCell("K$row")->getCalculatedValue(),
                         'assigned_lsp' =>$sheet->getCell("L$row")->getCalculatedValue(),
                         'vld_planner_confirmation' =>$sheet->getCell("M$row")->getCalculatedValue(),
+                        'units_from' => 'TMP',
                         'created_by'=>$user_id,
                     ];
                 }else{
-                    $this->haulage_block_unit = self::filter_duplicates($this->haulage_block_unit,$haulage_id);
+                    $this->haulage_block_unit = self::filter_duplicates($haulage_id);
                     if($this->haulage_block_unit === false){
                         return ['status'=>400, 'message' =>'All records are duplicates'];
                         exit(0);
@@ -261,7 +292,118 @@ class HaulageInfo extends Controller
         }
     }
 
-    public function filter_duplicates($block_units, $haulage_id)
+    public function vismin(Request $rq)
+    {
+        ini_set('memory_limit', '-1');
+        set_time_limit(0);
+        try{
+            DB::beginTransaction();
+
+            $result = (new HaulageList)->move_file($rq,'vismin','cluster_b/vismin');
+            if ($result['status'] != 'success' && $result['payload'] === false) {  return response()->json($result); }
+
+            $class   = new Phpspreadsheet;
+            [$sheet,$highestRow] = $class->read($result['payload'],true,true,'VISMIN');
+            $encrypted_key = $sheet->getCell("AB1")->getCalculatedValue();
+
+            if($highestRow <= 1){
+                if (Storage::disk('public')->exists($result['payload'])) {
+                    Storage::disk('public')->delete($result['payload']);
+                }
+                throw new \Exception("Sheet 'VISMIN' does not have any data.");
+            }
+
+            if($encrypted_key == null){
+                throw new \Exception("Upload the file you downloaded in this hauling plan");
+            }
+
+            $keys = json_decode($result['upload_key'],true) ?? [];
+            if(empty($keys)){
+                throw new \Exception("Download the VISMIN file first before uploading");
+            }
+            if (!array_key_exists($encrypted_key,$keys)){
+                throw new \Exception("Upload the file you downloaded in this hauling plan");
+            }
+            if($keys[$encrypted_key] == 'TMP'){
+                throw new \Exception("Upload the excel file for TMP");
+            }
+
+            $user_id       = Auth::user()->emp_id;
+            $haulage_id    = Crypt::decrypt($rq->id);
+            $cluster_id    = Auth::user()->emp_cluster->cluster_id;
+            $dealer_arr    = TmsClientDealership::all()->pluck('id', 'code')->toArray();
+            $car_model_arr = TmsClusterCarModel::where('cluster_id',$cluster_id)->get()->pluck('id', 'car_model')->toArray();
+
+            for ($row = 2; $row <= $highestRow; $row++) {
+                $dealer_code  = $sheet->getCell("C$row")->getCalculatedValue();
+                $dealer_id    = isset($dealer_arr[$dealer_code]) ? $dealer_arr[$dealer_code] : false;
+                $car_model    = strtoupper($sheet->getCell("G$row")->getCalculatedValue());
+                $car_model_id = $car_model_arr[$car_model] ?? false;
+                $cs_no        = $sheet->getCell("E$row")->getCalculatedValue();
+                $color        = $sheet->getCell("H$row")->getCalculatedValue();
+
+                $invoice_date = $class->excelDateToPhpDate($sheet->getCell("I$row")->getCalculatedValue());
+                $invoice_time = $class->excelTimeToPhpTime($sheet->getCell("J$row")->getCalculatedValue());
+                $booking_date = $class->excelDateToPhpDate($sheet->getCell("O$row")->getCalculatedValue());
+                $etd          = $class->excelDateToPhpDate($sheet->getCell("R$row")->getCalculatedValue());
+                $eta          = $class->excelDateToPhpDate($sheet->getCell("S$row")->getCalculatedValue());
+
+                if ($dealer_code !== null && $cs_no !== null){
+                    if(!$car_model_id){
+                        $insert = TmsClusterCarModel::create(['cluster_id' => $cluster_id, 'car_model'=>$car_model,'color_description' => $color,'is_active' =>1]);
+                        $car_model_id = $insert->id;
+                    }
+                    if(!$dealer_id){
+                        $insert = TmsClientDealership::create([ 'code' => $dealer_code, 'is_active' =>1 ]);
+                        $dealer_id = $insert->id;
+                    }
+                    if ($invoice_date == false || $booking_date == false || $etd == false || $eta == false) {
+                        return ['status'=>'error', 'message' =>'Invalid date format on row '.$row];
+                    }
+                    if ($invoice_time == false) {
+                        return ['status'=>'error', 'message' =>'Invalid invoice time format  on row '.$row];
+                    }
+                    $this->haulage_block_unit[] = [
+                        'haulage_id'=>$haulage_id,
+                        'dealer_id' => $dealer_id,
+                        'car_model_id' =>$car_model_id,
+                        'cs_no' => $cs_no,
+                        'color_description' => $color,
+                        'updated_location' => $sheet->getCell("F$row")->getCalculatedValue(),
+                        'invoice_date' =>$invoice_date,
+                        'invoice_time' =>$invoice_time,
+                        'vdn_number' =>$sheet->getCell("D$row")->getCalculatedValue(),
+                        'vld_instruction' =>$sheet->getCell("L$row")->getCalculatedValue(),
+                        'hub' => $sheet->getCell("K$row")->getCalculatedValue(),
+                        'assigned_lsp' =>$sheet->getCell("A$row")->getCalculatedValue(),
+                        'vld_planner_confirmation' =>$sheet->getCell("U$row")->getCalculatedValue(),
+                        'booking_date'=>$booking_date,
+                        'shipping_lines'=>$sheet->getCell("P$row")->getCalculatedValue(),
+                        'vessel_name'=>$sheet->getCell("Q$row")->getCalculatedValue(),
+                        'etd'=>$etd,
+                        'eta'=>$eta,
+                        'origin_port'=>$sheet->getCell("T$row")->getCalculatedValue(),
+                        'units_from' => 'VISMIN',
+                        'created_by'=>$user_id,
+                    ];
+                }
+            }
+
+            $this->haulage_block_unit = self::filter_duplicates($haulage_id);
+            if($this->haulage_block_unit === false){
+                return ['status'=>400, 'message' =>'All records are duplicates'];
+                exit(0);
+            }
+            TmsHaulageBlockUnit::insert($this->haulage_block_unit,$haulage_id);
+            DB::commit();
+            return response()->json(['status' => 'success', 'message' => 'File uploaded successfully','payload'=>$result['upload_count']]);
+        }catch(Exception $e){
+            DB::rollback();
+            return response()->json(['status'=>400,'message' =>$e->getMessage()]);
+        }
+    }
+
+    public function filter_duplicates($haulage_id)
     {
         $existingRecords = TmsHaulageBlockUnit::where('haulage_id', $haulage_id)
             ->where('is_deleted', null)
@@ -278,7 +420,7 @@ class HaulageInfo extends Controller
         $filteredBlockUnits = [];
         $seenKeys = []; // To track unique keys in block_units
 
-        foreach ($block_units as $unit) {
+        foreach ($this->haulage_block_unit as $unit) {
             $key = "{$unit['cs_no']}_{$unit['dealer_id']}_{$unit['car_model_id']}_{$unit['haulage_id']}";
 
             // Check if the unit is in existing records or if it's already seen
@@ -297,7 +439,8 @@ class HaulageInfo extends Controller
         set_time_limit(0);
         try{
             DB::beginTransaction();
-            $result = (new HaulageList)->move_file($rq);
+
+            $result = (new HaulageList)->move_file($rq,'hauling_plan','cluster_b/hauling_plan');
             if ($result['status'] != 'success' && $result['payload'] === false) {  return response()->json($result); }
 
             $class  = new Phpspreadsheet;
@@ -630,10 +773,12 @@ class HaulageInfo extends Controller
             DB::beginTransaction();
             $id = Crypt::decrypt($rq->id);
             $user_id = Auth::user()->emp_id;
+
+            $block_number = TmsHaulageBlock::where([['haulage_id',$id],['batch',$rq->batch]])->max('block_number') ?? 0;
             $query = TmsHaulageBlock::create([
                 'haulage_id' =>$id,
                 'status'=>1,
-                'block_number' =>$rq->block_number,
+                'block_number' =>$block_number+1,
                 'batch' =>$rq->batch,
                 'no_of_trips' =>1,
                 'created_by'=>$user_id
@@ -660,11 +805,43 @@ class HaulageInfo extends Controller
 
     public function add_block_unit(Request $rq)
     {
+        $cluster_id    = Auth::user()->emp_cluster->cluster_id;
+
+        try {
+            $dealer_id = Crypt::decrypt($rq->dealer);
+        } catch (Exception $e) {
+            $dealer_id = false;
+        }
+
+        try {
+            $car_model_id = Crypt::decrypt($rq->model);
+        } catch (Exception $e) {
+            $car_model_id = false;
+        }
+
+        if(!$car_model_id){
+            $insert = TmsClusterCarModel::create([
+                'cluster_id' => $cluster_id,
+                'car_model'=>$rq->model,
+                'color_description' => $rq->color_description,
+                'is_active' =>1
+            ]);
+            $car_model_id = $insert->id;
+        }
+
+        if(!$dealer_id){
+            $insert = TmsClientDealership::create([
+                'name' => $rq->dealer,
+                'code' => $this->getInitials($rq->dealer),
+                'is_active' =>1
+            ]);
+            $dealer_id = $insert->id;
+        }
+
         try{
             DB::beginTransaction();
             $id = Crypt::decrypt($rq->id);
-            $dealer_id = Crypt::decrypt($rq->dealer);
-            $car_model_id = Crypt::decrypt($rq->model);
+
             TmsHaulageBlockUnit::create([
                 'status'=>0,
                 'haulage_id'=>$id,
@@ -819,6 +996,33 @@ class HaulageInfo extends Controller
         }
     }
 
+    public function update_tripblock_position(Request $rq)
+    {
+        try{
+            DB::beginTransaction();
+
+            $dragged_tripblock = Crypt::decrypt($rq->draggedDataId);
+            $swapped_triblock = Crypt::decrypt($rq->swappedDataId);
+
+            $swap = TmsHaulageBlock::find($swapped_triblock);
+            $drag = TmsHaulageBlock::find($dragged_tripblock);
+
+            $temp_block_number = $drag->block_number;
+            $drag->block_number = $swap->block_number;
+            $drag->save();
+
+            $swap->block_number = $temp_block_number;
+            $swap->save();
+
+            DB::commit();
+            return ['status'=>'success','message' =>'success'];
+
+        }catch(Exception $e){
+            DB::rollback();
+            return response()->json(['status'=>400,'message' =>$e->getMessage()]);
+        }
+    }
+
     public function update_transfer(Request $rq)
     {
         try{
@@ -826,9 +1030,13 @@ class HaulageInfo extends Controller
             $id = Crypt::decrypt($rq->id);
             $unit_id = Crypt::decrypt($rq->unit_id);
             $transfer = $rq->transfer;
-            TmsHaulageBlockUnit::where([['id',$unit_id],['haulage_id',$id]])->update([
-                'is_transfer' => $transfer
-            ]);
+            $query = TmsHaulageBlockUnit::where([['id',$unit_id],['haulage_id',$id]])->first();
+
+            if(stripos($query->vld_instruction, 'MP') !== false){
+                return ['status'=>'error','message' =>'You cant check "Transfer" if the remarks have "MP"'];
+            }
+            $query->is_transfer = $transfer;
+            $query->save();
             DB::commit();
             return ['status'=>'success','message' =>'success'];
         } catch(Exception $e){
@@ -899,24 +1107,40 @@ class HaulageInfo extends Controller
             $is_multipickup = false;
             $unit_count = 0;
             $item->count = $key+1;
+            $is_mp = false;
+            $is_tt = false;
+            $hub  = 'SVC';
+
             foreach ($item->block_unit as $unit) {
                 $dealer = $unit->dealer;
                 if (!in_array($dealer->name, $dealer_arr)) {
-                    if (!empty($dealer_arr)) {
-                        $is_multipickup = true; // If there are multiple dealers, set this flag
-                    }
                     $dealer_arr[] = $dealer->name;   // Add dealer's name to the array
                     $dealer_code_arr[] = $dealer->code; // Add dealer's code to the array
+                }
+                if($unit->hub == 'SVC' || ($unit->hub == 'BVC' && $unit->is_transfer)){
+                    $hub = 'SVC';
+                }elseif($unit->hub == 'BVC' || ($unit->hub == 'SVC' && $unit->is_transfer)){
+                    $hub = 'BVC';
+                }
+
+                if($unit->is_transfer){
+                    $is_tt = true;
+                }
+
+                if (stripos($unit->vld_instruction, 'MP') !== false) {
+                    $is_mp = true;
                 }
                 $unit_count++;
             }
 
             // Assign the dealer names (or concatenated names) to $item->name
             $item->name = $dealer_code_arr ? implode(', ', $dealer_code_arr) : 'Trip Block #'.$key+1;
-            $item->is_multipickup = $is_multipickup;
             $item->unit_count = $unit_count;
             $item->block_batch = $item->batch;
-            $item->exported_at = $item->is_exported==1? Carbon::parse($item->exported_at)->format('m/d/Y'): '--';
+            $item->exported_at = $item->is_exported==1? Carbon::parse($item->exported_at)->format('m/d/Y g:i A'): '--';
+            $item->hub = $hub;
+            $item->is_transfer = $is_tt;
+            $item->is_multipickup = $is_mp;
             $item->encrypt_id = Crypt::encrypt($item->id);
             return $item;
         });
@@ -928,11 +1152,16 @@ class HaulageInfo extends Controller
     {
         try{
             $report = match($rq->format){
-                '1', '2' => $this->export_tripblock($rq),
+                '1', '2' => self::export_tripblock($rq),
                 // '2' => $this->format_2($rq),
-                'Hauling Plan' => $this->export_haulage($rq),
-                default => false,
+                'Hauling Plan' => self::export_haulage($rq),
+                default => 'Handler Not Found',
             };
+
+            if($report == 'Handler Not Found'){
+                return response()->json(['status'=>'error','message' =>'Something went wrong. Try again later.']);
+                exit(0);
+            }
 
             if($report['status'] == 'success'){
 
@@ -975,7 +1204,7 @@ class HaulageInfo extends Controller
                 return ['status'=>400,'message' =>'No haulage selected'];
             }
 
-            $filePath = 'cluster_b_export/Format_1.xlsx';
+            $filePath = 'cluster_b/template/TMP DOWNLOAD TEMPLATE.xlsx';
             $check_file = Storage::disk('public')->exists($filePath);
 
             if(!$check_file){
@@ -1007,7 +1236,8 @@ class HaulageInfo extends Controller
             $row = 4;
             $unit_count = 0;
             $blocks_number_arr = [];
-
+            $temp_arr = [];
+            $columnsToUnhide = ['M', 'N', 'O', 'P', 'Q'];
 
             foreach($data as $tripblock){
 
@@ -1018,7 +1248,6 @@ class HaulageInfo extends Controller
                 $batch = 'B-'.$tripblock->batch;
 
                 foreach($block_units as $block_unit){
-
                     if(!in_array($block_number,$blocks_number_arr)){
                         if($row != 4){
                             $add_row = 1;   //add space if not the first block
@@ -1033,7 +1262,7 @@ class HaulageInfo extends Controller
                         $invoice_date = '';
                     }
 
-                    $hub = $block_unit->hub;
+                    $hub = strtolower($block_unit->hub);
                     $assigned_lsp = $block_unit->assigned_lsp;
                     $dealer_code = $block_unit->dealer->code;
                     $cs_no = $block_unit->cs_no;
@@ -1041,18 +1270,35 @@ class HaulageInfo extends Controller
                     $car_model = $block_unit->car->car_model;
                     $color_description = $block_unit->color_description;
                     $invoice_date = $block_unit->invoice_date;
-                    $vld_instruction = $block_unit->vld_instruction;
-                    $is_transfer = $block_unit->is_transfer?'TT':'';
+                    $vld_instruction = $block_unit->vld_instruction !=0 ?$block_unit->vld_instruction:'--';
+                    $is_transfer = $block_unit->is_transfer !=0 ?$block_unit->is_transfer:'';
                     // $est_departure_time = $block_unit->est_departure_time;
                     // $est_loading_time = $block_unit->est_loading_time;
 
-                    if($hub == 'BVC'){
+                    if($hub == 'bvc'){
                         $site = 'BTG';
                     }else{
                         $site = 'SR';
                     }
 
-                    $sheet->setCellValue('A' . ($add_row+$row),  $hub);
+                    if($is_transfer){
+                        $is_transfer ='TT';
+                        if($hub == 'svc'){
+                            $hub = 'bvc';
+                        }elseif($hub == 'bvc'){
+                            $hub = 'svc';
+                        }
+                    }
+
+                    if (stripos($vld_instruction, 'MP') !== false) {
+                        if($is_transfer == 'TT'){
+                            return ['status'=>400,'message' =>'Remarks have MP and Transer is checked. Please check the trip block'];
+                            exit(0);
+                        }
+                        $is_transfer = 'MP';
+                    }
+
+                    $sheet->setCellValue('A' . ($add_row+$row),  strtoupper($hub));
                     $sheet->setCellValue('B' . ($add_row+$row),$is_transfer);
                     $sheet->setCellValue('C' . ($add_row+$row),$assigned_lsp);
                     $sheet->setCellValue('D' . ($add_row+$row), $dealer_code);
@@ -1066,9 +1312,17 @@ class HaulageInfo extends Controller
                     // $sheet->setCellValue('L' . ($add_row+$row), $est_loading_time);
                     $sheet->setCellValue('U' . ($add_row+$row), $vld_instruction);
 
+                    if($block_unit->units_from == 'VISMIN'){
+                        $dropoff_point = $block_unit->shipping_lines.'-'.$block_unit->origin_port;
+                        $sheet->setCellValue('M' . ($add_row+$row), $dropoff_point);
+
+                        foreach ($columnsToUnhide as $column) {
+                            $sheet->getColumnDimension($column)->setVisible(true);
+                        }
+                    }
                     $row++;
                     $unit_count++;
-                    $add_row = 0;
+                    $temp_arr[] = $block_unit->car->car_model;
                 }
 
             }
@@ -1076,7 +1330,8 @@ class HaulageInfo extends Controller
             $sheet->setCellValue('L' .$row, $unit_count.' UNITS');
 
             $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-            $filename = $site.' HUB '.$batch.' '.$formatted_date.'.xlsx';
+            // $filename = $site.' HUB '.$batch.' '.$formatted_date.'.xlsx';
+            $filename = $rq->filename.'.xlsx';
             $tempFilePath = storage_path('app/public/'.$filename);
             $writer->save($tempFilePath);
 
@@ -1093,7 +1348,7 @@ class HaulageInfo extends Controller
     public function export_haulage($rq){
         try{
 
-            $filePath = 'cluster_b_export/Hauling_Plan.xlsx';
+            $filePath = 'cluster_b/template/HAULING PLAN TEMPLATE.xlsx';
             $check_file = Storage::disk('public')->exists($filePath);
 
             if(!$check_file){
@@ -1104,7 +1359,7 @@ class HaulageInfo extends Controller
             $planning_date = TmsHaulage::find($haulage_id)->planning_date;
             $formatted_date = Carbon::parse($planning_date)->format('F j Y');
             $formatted_date = strtoupper(Carbon::parse($planning_date)->format('F')) . Carbon::parse($planning_date)->format(' j Y');
-            $data = TmsHaulageBlock::with('block_unit')->whereHas('block_unit')->where('haulage_id',$haulage_id)->get();
+            $data = TmsHaulageBlock::with('block_unit')->whereHas('block_unit')->where('haulage_id',$haulage_id)->where('is_deleted',null)->get();
 
             if($data->isEmpty()){
                 return ['status'=>'error','message' =>'No data found'];
@@ -1130,9 +1385,9 @@ class HaulageInfo extends Controller
             foreach($data as $tripblock){
                 $block_number = $tripblock->block_number;
                 $block_units = $tripblock->block_unit;
-                $add_row = 0;
-                $first_row = 0;
-                $last_row = 0;
+                $row++;
+                // $first_row = 0;
+                // $last_row = 0;
 
                 foreach($block_units as $block_unit){
                     $add_row = 0;
@@ -1159,14 +1414,14 @@ class HaulageInfo extends Controller
                     $color_description = $block_unit->color_description;
                     $vld_instruction = $block_unit->vld_instruction;
 
-                    $sheet->setCellValue('A' . ($add_row+$row),  $hub);
-                    $sheet->setCellValue('B' . ($add_row+$row), $dealer_code);
-                    $sheet->setCellValue('C' . ($add_row+$row), $cs_no);
-                    $sheet->setCellValue('D' . ($add_row+$row), $car_model);
-                    $sheet->setCellValue('E' . ($add_row+$row), $color_description);
-                    $sheet->setCellValue('F' . ($add_row+$row), $location);
-                    $sheet->setCellValue('G' . ($add_row+$row), $invoice_date);
-                    $sheet->setCellValue('O' . ($add_row+$row), $vld_instruction);
+                    $sheet->setCellValue('A' . ($row+$add_row),  $hub);
+                    $sheet->setCellValue('B' . ($row+$add_row), $dealer_code);
+                    $sheet->setCellValue('C' . ($row+$add_row), $cs_no);
+                    $sheet->setCellValue('D' . ($row+$add_row), $car_model);
+                    $sheet->setCellValue('E' . ($row+$add_row), $color_description);
+                    $sheet->setCellValue('F' . ($row+$add_row), $location);
+                    $sheet->setCellValue('G' . ($row+$add_row), $invoice_date);
+                    $sheet->setCellValue('O' . ($row+$add_row), $vld_instruction);
 
                     // Check if the value contains the word 'priority'
                     if (stripos($vld_instruction, 'priority') !== false) {
@@ -1176,22 +1431,20 @@ class HaulageInfo extends Controller
                         ]);
                     }
 
-                    $row++;
                     $unit_count++;
                     $last_row = $first_row+$unit_count;
+                    $row++;
                 }
 
-                // Merge cells from H$first_row to H$last_row and set a value (if needed)
-
-                $sheet->mergeCells('H'.($first_row).':H'.($unit_count+3));
-                $sheet->mergeCells('I'.($first_row).':I'.($unit_count+3));
+                $sheet->mergeCells('H'.($first_row).':H'.($unit_count+$add_row+3));
+                $sheet->mergeCells('I'.($first_row).':I'.($unit_count+$add_row+3));
 
                 // Optionally set a value for the merged cell (e.g., a space or text)
-                $sheet->setCellValue('H'.($first_row), '123');
-                $sheet->setCellValue('I'.($first_row), ' 123');
+                $sheet->setCellValue('H'.($first_row), '');
+                $sheet->setCellValue('I'.($first_row), ' ');
 
                 // Set background color to yellow for the merged range
-                $sheet->getStyle('H'.($first_row).':H'.($unit_count+3))->applyFromArray([
+                $sheet->getStyle('H'.($first_row).':H'.($unit_count+$add_row+3))->applyFromArray([
                     'fill' => [
                         'fillType' => Fill::FILL_SOLID,
                         'startColor' => [
@@ -1200,7 +1453,7 @@ class HaulageInfo extends Controller
                     ],
                 ]);
 
-                $sheet->getStyle('I'.($first_row).':I'.($unit_count+3))->applyFromArray([
+                $sheet->getStyle('I'.($first_row).':I'.($unit_count+$add_row+3))->applyFromArray([
                     'fill' => [
                         'fillType' => Fill::FILL_SOLID,
                         'startColor' => [
@@ -1209,8 +1462,7 @@ class HaulageInfo extends Controller
                     ],
                 ]);
 
-                $sheet->getStyle('B'.($first_row).':O'.($unit_count+3))->applyFromArray($borderStyle);
-
+                $sheet->getStyle('B'.($first_row).':O'.($unit_count+$add_row+3))->applyFromArray($borderStyle);
             }
 
             // $sheet->setCellValue('L' .$row, $unit_count.' UNITS');
@@ -1229,4 +1481,100 @@ class HaulageInfo extends Controller
         }
     }
 
+    public function download_tmp($id)
+    {
+        try {
+            // Load the existing template from the storage folder
+            $filePath = storage_path('app/public/cluster_b/template/TMP UPLOAD TEMPLATE.xlsx');
+            if (!file_exists($filePath)) {
+                return ['status' => 'error', 'message' => 'Template file not found'];
+            }
+
+            $id = Crypt::decrypt($id);
+            $query = TmsHaulage::find($id);
+            $keys = json_decode($query->upload_key,true) ?? [];
+
+            $encryptedKey = null;
+            // Loop until a unique encrypted key is generated
+            do {
+                $randomString = Str::random(10) . time();
+                $encryptedKey = Crypt::encrypt($randomString);
+            } while (in_array($encryptedKey, $keys));
+
+            $keys[$encryptedKey] ='TMP';
+            $query->upload_key = json_encode($keys);
+            $query->save();
+
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($filePath);
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Encrypt the string and set it to N1
+            $sheet->setCellValue('AB1', $encryptedKey);
+
+            // Optionally hide the column N or make the font color white
+            $sheet->getColumnDimension('AB')->setVisible(false);  // Hide column N
+            $sheet->getStyle('AB1')->getFont()->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_WHITE); // Make text invisible
+
+            // Prepare the writer for the response without saving the file
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment; filename="'. urlencode('TMP_TEMPLATE.xlsx').'"');
+            ob_end_clean();
+            $writer->save('php://output');
+            exit(0);
+
+        } catch (Exception $e) {
+            return ['status' => 400, 'message' => $e->getMessage()];
+        }
+
+    }
+
+    public function download_vismin($id)
+    {
+        try {
+            // Load the existing template from the storage folder
+            $filePath = storage_path('app/public/cluster_b/template/VISMIN UPLOAD TEMPLATE.xlsx');
+            if (!file_exists($filePath)) {
+                return ['status' => 'error', 'message' => 'Template file not found'];
+            }
+
+            $id = Crypt::decrypt($id);
+            $query = TmsHaulage::find($id);
+            $keys = json_decode($query->upload_key,true) ?? [];
+
+            $encryptedKey = null;
+            // Loop until a unique encrypted key is generated
+            do {
+                $randomString = Str::random(10) . time();
+                $encryptedKey = Crypt::encrypt($randomString);
+            } while (in_array($encryptedKey, $keys));
+
+            $keys[$encryptedKey] ='VISMIN';
+            $query->upload_key = json_encode($keys);
+            $query->save();
+
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($filePath);
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Encrypt the string and set it to N1
+            $sheet->setCellValue('AB1', $encryptedKey);
+
+            // Optionally hide the column N or make the font color white
+            $sheet->getColumnDimension('AB')->setVisible(false);  // Hide column N
+            $sheet->getStyle('AB1')->getFont()->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_WHITE); // Make text invisible
+
+            // Prepare the writer for the response without saving the file
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment; filename="'. urlencode('VISMIN_TEMPLATE.xlsx').'"');
+            ob_end_clean();
+            $writer->save('php://output');
+            exit(0);
+
+        } catch (Exception $e) {
+            return ['status' => 400, 'message' => $e->getMessage()];
+        }
+    }
 }

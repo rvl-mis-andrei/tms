@@ -1373,6 +1373,13 @@ class ClusterCarModelSeeder extends Seeder
             ['cluster_id' => 2, 'car_model' => 'YARIS CROSS 1.5 V CVT PC - BB', 'is_active' => 1],
         ];
 
-        DB::table('tms_cluster_car_models')->insert($carModels);
+        $search = 'Ambulance';
+        $short_name = strtoupper('Ambulance');
+        DB::table('tms_cluster_car_models')->where('car_model','LIKE','%'.$search.'%')->update([
+            'short_name' => $short_name
+        ]);
+
+
+        // DB::table('tms_cluster_car_models')->insert($carModels);
     }
 }

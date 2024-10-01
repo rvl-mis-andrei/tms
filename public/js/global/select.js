@@ -134,7 +134,33 @@ export async function dealer(param='',modal_id=false) {
 
                 element.select2({
                     dropdownParent: modal_id ? $(modal_id) : null,
-                    width: '100%'
+                    width: '100%',
+                    tags:true,
+                    allowClear: true,
+                    createTag: function(params) {
+                        var term = $.trim(params.term);
+
+                        if (term === '') {
+                            return null; // Return null if the term is empty
+                        }
+
+                        return {
+                            id: term, // Create new option
+                            text: term, // Display text for the option
+                            newOption: true // Mark as a new option
+                        };
+                    },
+                    templateResult: function(data) {
+                        // Highlight the new tag that the user typed
+                        var $result = $('<span></span>');
+                        $result.text(data.text);
+
+                        if (data.newOption) {
+                            $result.append(' <em>(new)</em>');
+                        }
+
+                        return $result;
+                    }
                 });
 
                 resolve(true);
@@ -159,6 +185,8 @@ export async function car_model(param='',modal_id=false) {
         formData.append('type', 'options');
 
         element.select2({
+            tags: true,
+            allowClear: true,
             ajax: {
                 url: '/services/select/car_model', // Replace with your API endpoint
                 dataType: 'json',
@@ -185,7 +213,26 @@ export async function car_model(param='',modal_id=false) {
             dropdownParent: modal_id ? $(modal_id) : null,
             placeholder: 'Search for an option',
             minimumInputLength: 3,
-            width: '100%'
+            width: '100%',
+            createTag: function (params) {
+                var term = $.trim(params.term);
+
+                // Check if the term is empty or already exists in the options
+                if (term === '') {
+                    return null;
+                }
+
+                // Create a new option that will be treated as a custom entry
+                return {
+                    id: term, // Set id to the custom value
+                    text: term, // Set the displayed text to the custom value
+                    newTag: true // This helps in identifying if it's a new custom tag
+                };
+            },
+            templateSelection: function (data) {
+                // Highlight newly created tags if needed
+                return data.newTag ? data.text : data.text;
+            }
         });
         element.attr('disabled', false);
     });

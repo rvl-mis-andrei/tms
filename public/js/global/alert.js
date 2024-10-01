@@ -57,6 +57,35 @@ export class Alert {
         });
     }
 
+    // Add input dialog method
+    // Input dialog method with text input
+    static input(icon, message, option) {
+        Swal.fire({
+            title: message,
+            icon: icon,
+            input: 'text', // Input type
+            inputPlaceholder: 'Enter your response', // Placeholder text
+            showCancelButton: true,
+            confirmButtonText: 'Submit',
+            cancelButtonText: 'Cancel',
+            inputAttributes: {
+                autocapitalize: 'off' // Disable auto-capitalization for input
+            },
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'You need to write something!';
+                }
+            },
+            allowOutsideClick: () => !Swal.isLoading(),
+        }).then((result) => {
+            if (result.isConfirmed && typeof option.onConfirm === "function") {
+                option.onConfirm(result.value); // Pass input value to callback
+            } else if (result.isDismissed && typeof option.onCancel === "function") {
+                option.onCancel();
+            }
+        });
+    }
+
     static loading(message, option) {
         Swal.fire({
             html: message,

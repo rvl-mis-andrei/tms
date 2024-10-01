@@ -210,6 +210,8 @@
         </script>
         <script src="{{ asset('assets/plugins/custom/formrepeater/formrepeater.bundle.js') }}"></script>
         <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+        {{-- <script src="https://raw.githack.com/JoakimFFCG/sortablejs/fix-cancel-swap/Sortable.js"></script> --}}
+
         <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
         <script src="{{ asset('js/cluster_b/planner/navbar.js') }}" type="module"></script>
 </body>

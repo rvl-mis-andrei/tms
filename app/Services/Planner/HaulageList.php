@@ -84,6 +84,7 @@ class HaulageList
                 'created_by'=>optional($query->created_by_emp)->fullname() ?? 'No record found',
                 'updated_by'=>optional($query->updated_by_emp)->fullname() ?? 'No record found',
                 'created_at'=>Carbon::parse($query->created_at)->format('F j, Y'),
+                'encrypted_id'=>$rq->id
             ]));
             return ['status'=>'success','message' =>'success', 'payload' => $payload];
 
@@ -199,30 +200,28 @@ class HaulageList
         }
     }
 
-    public function move_file($rq,$folder='hauling_plan')
+    public function move_file($rq,$file='hauling_plan',$storePath)
     {
         try{
-            DB::beginTransaction();
-            $filename = Str::random(10) . '.' . $rq->file($folder)->getClientOriginalExtension();
-            $filePath = $rq->file($folder)->storeAs($folder, $filename, 'public');
+            $filename = time().'_'.Str::random(15).'.'.$rq->file($file)->getClientOriginalExtension();
+            $filePath = $rq->file($file)->storeAs($storePath, $filename, 'public');
             if (Storage::disk('public')->exists($filePath)) {
                 $id    = Crypt::decrypt($rq->id);
                 $query = TmsHaulage::find($id);
                 $files = json_decode($query->filenames,true) ??[];
-                // if($folder=='masterlist' && count($files) >= 1){
+                // if($file=='masterlist' && count($files) >= 1){
                 //     return ['status'=>'error','message' =>'You already uploaded a masterlist','payload'=>false];
                 // }
-                if(count($files) >= 2 && $folder == 'hauling_plan' && !isset($rq->reupload_haulage)) {
+                if(count($files) >= 2 && $file == 'hauling_plan' && !isset($rq->reupload_haulage)) {
                     return ['status'=>'error','message' =>'You already uploaded 2 hauling plan','payload'=>false];
                 }
                 $files[] = $filename;
                 $query->filenames = json_encode($files);
                 $query->save();
-                DB::commit();
-                return ['status'=>'success','message' =>'success','payload'=>$filePath, 'upload_count'=>count($files)];
+                return ['status'=>'success','message' =>'success','payload'=>$filePath, 'upload_count'=>count($files),'upload_key'=>$query->upload_key];
             }
         }catch(Exception $e){
-            DB::rollback();
+            Storage::disk('public')->delete($filePath);
             return response()->json([ 'status' => 400,  'message' =>  $e->getMessage() ]);
         }
     }

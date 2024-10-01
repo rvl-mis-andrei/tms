@@ -22,7 +22,6 @@ class Phpspreadsheet
         unset($reader);
         $spreadsheet = $spreadsheet->getActiveSheet();
         $row   = $spreadsheet->getHighestDataRow();
-        $row <= 1 && throw new \Exception("Sheet '{$sheet}' does not have any data.");
         return [$spreadsheet, $row];
     }
 
@@ -70,22 +69,27 @@ class Phpspreadsheet
     public function excelDateToPhpDate($excelDate) {
         // Check if the input is not a number, and attempt to parse it as a date string
         if (!is_numeric($excelDate)) {
-            // Try to create a DateTime object from the provided string
+            // Try to create a DateTime object from the provided string (4-digit year)
             $date = DateTime::createFromFormat('m/d/Y', $excelDate);
-            // Check if the date is valid (both the date object and no errors in parsing)
             if ($date && $date->format('m/d/Y') === $excelDate) {
-                return $date->format('Y-m-d'); // Return the date in Y-m-d format
-            } else {
-                return false; // Return false if the string is not a valid date
+                return $date->format('Y-m-d'); // Return date in Y-m-d format
             }
+
+            // Try with two-digit year
+            $date = DateTime::createFromFormat('m/d/y', $excelDate);
+            if ($date && $date->format('m/d/y') === $excelDate) {
+                return $date->format('Y-m-d'); // Return date in Y-m-d format
+            }
+
+            // If no valid date, return false
+            return false;
         }
         // If the input is numeric, treat it as an Excel date
         elseif (is_numeric($excelDate)) {
             // Excel's epoch starts on 1900-01-01, represented as 25569
             $unixDate = ($excelDate - 25569) * 86400; // Convert Excel date to Unix timestamp
             return gmdate("Y-m-d", $unixDate); // Return as Y-m-d format
-        }
-        else {
+        } else {
             return false; // If neither numeric nor a valid date string, return false
         }
     }
@@ -93,11 +97,16 @@ class Phpspreadsheet
     public function excelTimeToPhpTime($excelTime) {
         // Check if the input is not numeric and attempt to parse it as a time string
         if (!is_numeric($excelTime)) {
-            // Try to create a DateTime object from the provided time string in the format 'g:i:s A'
-            $time = DateTime::createFromFormat('g:i:s A', $excelTime);
+            // Normalize the time string to uppercase AM/PM
+            $excelTime = strtolower($excelTime); // Convert to lowercase first
+            $excelTime = ucfirst($excelTime); // Capitalize 'am' or 'pm'
+
+            // Try to create a DateTime object from the provided time string in the format 'g:i:s a'
+            $time = DateTime::createFromFormat('g:i:s a', $excelTime);
+
             // Check if the time is valid and return in 'H:i:s' format
-            if ($time && $time->format('g:i:s A') === $excelTime) {
-                return $time->format('H:i:s');
+            if ($time && $time->format('g:i:s a') === $excelTime) {
+                return $time->format('H:i:s'); // Return the time in 24-hour format (H:i:s)
             } else {
                 return false; // Return false if the string is not a valid time
             }
@@ -116,4 +125,5 @@ class Phpspreadsheet
         // If neither numeric nor a valid time string, return false
         return false;
     }
+
 }
