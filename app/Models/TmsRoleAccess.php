@@ -9,7 +9,7 @@ class TmsRoleAccess extends Model
 {
     use HasFactory;
 
-    protected $table = 'rvlmc_db.tms_role_access';
+    protected $table = 'tms_role_access';
     protected $fillable=[
         'role_id',
         'file_id',

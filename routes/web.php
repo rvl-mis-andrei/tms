@@ -21,7 +21,6 @@ Route::group(['prefix'=>'cco-b'], function() {
 
     });
 
-
 });
 
 
