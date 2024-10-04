@@ -170,12 +170,11 @@
                                                 <i class="ki-outline ki-right fs-7 text-gray-700"></i>
                                             </li>
                                             <li class="breadcrumb-item text-gray-700 fw-bold lh-1 mx-n1">
-                                                Account </li>
+                                                Dashboard </li>
                                             <li class="breadcrumb-item">
                                                 <i class="ki-outline ki-right fs-7 text-gray-700"></i>
                                             </li>
-                                            <li class="breadcrumb-item text-gray-500 mx-n1">
-                                                Overview </li>
+
                                         </ul>
                                         <h1 class="page-heading d-flex flex-column justify-content-center text-dark fw-bolder fs-3 m-0 page_title text-capitalize">
 

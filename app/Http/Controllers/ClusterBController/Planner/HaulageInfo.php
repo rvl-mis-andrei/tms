@@ -40,7 +40,8 @@ class HaulageInfo extends Controller
             $id = Crypt::decrypt($rq->id);
             $batch = $rq->batch!=='All Batch'?$rq->batch:false;
             $query = TmsHaulageBlock::with(['block_unit'=> function($query) {
-                $query->orderBy('unit_order', 'asc');
+                $query->orderByRaw("CASE WHEN vld_instruction LIKE '%MP%' THEN 1 ELSE 0 END, id");
+                // ->orderBy('unit_order', 'asc')
             }])
             ->when($batch,function($query,$batch){
                 $query->where('batch',$batch);
@@ -57,12 +58,14 @@ class HaulageInfo extends Controller
                     foreach($data->block_unit as $row){
                         $dealer = $row->dealer;
                         if (!in_array($dealer->name, $dealer_arr)){
-                            if(!empty($dealer_arr)){
-                                $is_multipickup = true;
-                            }
                             $dealer_arr[] = $dealer->name;
                             $dealer_code_arr[] = $dealer->code;
                         }
+
+                        if (stripos($row->vld_instruction, 'MP') !== false) {
+                            $is_multipickup = true;
+                        }
+
                         $block_unit[]=[
                             'encrypted_id'=>Crypt::encrypt($row->id),
                             'dealer_code'=>$dealer->code,
@@ -687,13 +690,13 @@ class HaulageInfo extends Controller
                         }
                     }
                 }
-
                 // Assign the new unit order to the current record
                 $query->unit_order = $new_unit_order;
                 $query->block_id = $block_id;
                 $query->haulage_id = $haulage_id;
                 $query->status = $status;
                 $query->updated_by = $user_id;
+                $query->vld_instruction = empty(trim($query->vld_instruction))? $data['multipickup']: $data['multipickup'] . ' ' . $query->vld_instruction;
                 $query->save();
 
                 // Prepare the response array
@@ -1053,6 +1056,11 @@ class HaulageInfo extends Controller
             $unit_id = Crypt::decrypt($rq->unit_id);
             $remarks = $rq->remarks;
             $query = TmsHaulageBlockUnit::where([['id',$unit_id],['haulage_id',$id]])->first();
+
+            if((stripos($query->vld_instruction, 'MP') !== false || stripos($remarks, 'MP') !== false) && $query->is_transfer){
+                return ['status'=>'error','message' =>'You cant put "MP" if the transfer is checked'];
+            }
+
             $query->vld_instruction = $remarks;
             $query->save();
 
@@ -1098,7 +1106,7 @@ class HaulageInfo extends Controller
             // Handle soft delete logic
             $query->where('is_deleted', '!=', 1)->orWhereNull('is_deleted');
         })
-        ->where('haulage_id', $id)
+        ->where('haulage_id', $id)->orderBy('block_number','ASC')
         ->get();
 
         $data = $data->transform(function ($item,$key) {
@@ -1222,7 +1230,11 @@ class HaulageInfo extends Controller
             $formatted_date = Carbon::parse($planning_date)->format('F j Y');
             $formatted_date = strtoupper(Carbon::parse($planning_date)->format('F')) . Carbon::parse($planning_date)->format(' j Y');
 
-            $data = TmsHaulageBlock::with('block_unit')->whereIn('id',$tripblocks_ids)->where('haulage_id',$haulage_id)->get();
+            $data = TmsHaulageBlock::with([
+                'block_unit'=>function($q){
+                    $q->orderByRaw("CASE WHEN vld_instruction LIKE '%MP%' THEN 1 ELSE 0 END, id");
+                }
+            ])->whereIn('id',$tripblocks_ids)->where('haulage_id',$haulage_id)->orderBy('block_number','ASC')->get();
 
             if($data->isEmpty()){
                 return ['status'=>'error','message' =>'No data found'];
@@ -1238,19 +1250,23 @@ class HaulageInfo extends Controller
             $blocks_number_arr = [];
             $temp_arr = [];
             $columnsToUnhide = ['M', 'N', 'O', 'P', 'Q'];
-
+            $is_mp = false;
             foreach($data as $tripblock){
 
                 $block_number = $tripblock->block_number;
                 $block_units = $tripblock->block_unit;
-                $add_row = 0;
                 $site = 'SR';
                 $batch = 'B-'.$tripblock->batch;
 
+                if($is_mp == true){
+                    $row++;
+                }
+
                 foreach($block_units as $block_unit){
+                    $is_mp = false;
                     if(!in_array($block_number,$blocks_number_arr)){
                         if($row != 4){
-                            $add_row = 1;   //add space if not the first block
+                            $row++;
                         }
                         $blocks_number_arr[] = $block_number;
                     }
@@ -1269,7 +1285,7 @@ class HaulageInfo extends Controller
                     $location = $block_unit->updated_location;
                     $car_model = $block_unit->car->car_model;
                     $color_description = $block_unit->color_description;
-                    $invoice_date = $block_unit->invoice_date;
+                    $invoice_date = date('m-d-Y',strtotime($block_unit->invoice_date));
                     $vld_instruction = $block_unit->vld_instruction !=0 ?$block_unit->vld_instruction:'--';
                     $is_transfer = $block_unit->is_transfer !=0 ?$block_unit->is_transfer:'';
                     // $est_departure_time = $block_unit->est_departure_time;
@@ -1296,25 +1312,26 @@ class HaulageInfo extends Controller
                             exit(0);
                         }
                         $is_transfer = 'MP';
+                        $is_mp = true;
                     }
 
-                    $sheet->setCellValue('A' . ($add_row+$row),  strtoupper($hub));
-                    $sheet->setCellValue('B' . ($add_row+$row),$is_transfer);
-                    $sheet->setCellValue('C' . ($add_row+$row),$assigned_lsp);
-                    $sheet->setCellValue('D' . ($add_row+$row), $dealer_code);
-                    $sheet->setCellValue('E' . ($add_row+$row), $cs_no);
-                    $sheet->setCellValue('F' . ($add_row+$row), $location);
-                    $sheet->setCellValue('G' . ($add_row+$row), $car_model);
-                    $sheet->setCellValue('H' . ($add_row+$row), $color_description);
-                    $sheet->setCellValue('I' . ($add_row+$row), $invoice_date);
+                    $sheet->setCellValue('A' . ($row+($is_mp?1:0)),  strtoupper($hub));
+                    $sheet->setCellValue('B' . ($row+($is_mp?1:0)),$is_transfer);
+                    $sheet->setCellValue('C' . ($row+($is_mp?1:0)),$assigned_lsp);
+                    $sheet->setCellValue('D' . ($row+($is_mp?1:0)), $dealer_code);
+                    $sheet->setCellValue('E' . ($row+($is_mp?1:0)), $cs_no);
+                    $sheet->setCellValue('F' . ($row+($is_mp?1:0)), $location);
+                    $sheet->setCellValue('G' . ($row+($is_mp?1:0)), $car_model);
+                    $sheet->setCellValue('H' . ($row+($is_mp?1:0)), $color_description);
+                    $sheet->setCellValue('I' . ($row+($is_mp?1:0)), $invoice_date);
                     // $sheet->setCellValue('J' . ($add_row+$row), $delivery_date);
                     // $sheet->setCellValue('K' . ($add_row+$row), $est_departure_time);
                     // $sheet->setCellValue('L' . ($add_row+$row), $est_loading_time);
-                    $sheet->setCellValue('U' . ($add_row+$row), $vld_instruction);
+                    $sheet->setCellValue('U' . ($row+($is_mp?1:0)), $vld_instruction);
 
                     if($block_unit->units_from == 'VISMIN'){
                         $dropoff_point = $block_unit->shipping_lines.'-'.$block_unit->origin_port;
-                        $sheet->setCellValue('M' . ($add_row+$row), $dropoff_point);
+                        $sheet->setCellValue('M' . ($row+($is_mp?1:0)), $dropoff_point);
 
                         foreach ($columnsToUnhide as $column) {
                             $sheet->getColumnDimension($column)->setVisible(true);
@@ -1327,7 +1344,7 @@ class HaulageInfo extends Controller
 
             }
 
-            $sheet->setCellValue('L' .$row, $unit_count.' UNITS');
+            $sheet->setCellValue('L' .($sheet->getHighestDataRow()+1), $unit_count.' UNITS');
 
             $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
             // $filename = $site.' HUB '.$batch.' '.$formatted_date.'.xlsx';
@@ -1359,7 +1376,12 @@ class HaulageInfo extends Controller
             $planning_date = TmsHaulage::find($haulage_id)->planning_date;
             $formatted_date = Carbon::parse($planning_date)->format('F j Y');
             $formatted_date = strtoupper(Carbon::parse($planning_date)->format('F')) . Carbon::parse($planning_date)->format(' j Y');
-            $data = TmsHaulageBlock::with('block_unit')->whereHas('block_unit')->where('haulage_id',$haulage_id)->where('is_deleted',null)->get();
+            $data = TmsHaulageBlock::with([
+                'block_unit'=>function($q){
+                    $q->orderByRaw("CASE WHEN vld_instruction LIKE '%MP%' THEN 1 ELSE 0 END, id");
+                }
+            ])
+            ->whereHas('block_unit')->where('haulage_id',$haulage_id)->where('is_deleted',null)->get();
 
             if($data->isEmpty()){
                 return ['status'=>'error','message' =>'No data found'];
@@ -1385,18 +1407,19 @@ class HaulageInfo extends Controller
             foreach($data as $tripblock){
                 $block_number = $tripblock->block_number;
                 $block_units = $tripblock->block_unit;
-                $row++;
                 // $first_row = 0;
                 // $last_row = 0;
 
                 foreach($block_units as $block_unit){
                     $add_row = 0;
                     if(!in_array($block_number,$blocks_number_arr)){
-                        if($row != 4){
-                            $add_row = 1;
-                        }
                         $first_row = $row+$add_row;
                         $blocks_number_arr[] = $block_number;
+                        if($row != 4){
+                            $add_row = 1;
+                            $first_row = $row+$add_row;
+                            $row++;
+                        }
                     }
 
                     //format date
@@ -1412,16 +1435,16 @@ class HaulageInfo extends Controller
                     $location = $block_unit->updated_location;
                     $car_model = $block_unit->car->car_model;
                     $color_description = $block_unit->color_description;
-                    $vld_instruction = $block_unit->vld_instruction;
+                    $vld_instruction = $block_unit->vld_instruction !=0 ?$block_unit->vld_instruction:'--';
 
-                    $sheet->setCellValue('A' . ($row+$add_row),  $hub);
-                    $sheet->setCellValue('B' . ($row+$add_row), $dealer_code);
-                    $sheet->setCellValue('C' . ($row+$add_row), $cs_no);
-                    $sheet->setCellValue('D' . ($row+$add_row), $car_model);
-                    $sheet->setCellValue('E' . ($row+$add_row), $color_description);
-                    $sheet->setCellValue('F' . ($row+$add_row), $location);
-                    $sheet->setCellValue('G' . ($row+$add_row), $invoice_date);
-                    $sheet->setCellValue('O' . ($row+$add_row), $vld_instruction);
+                    $sheet->setCellValue('A' . ($row),  $hub);
+                    $sheet->setCellValue('B' . ($row), $dealer_code);
+                    $sheet->setCellValue('C' . ($row), $cs_no);
+                    $sheet->setCellValue('D' . ($row), $car_model);
+                    $sheet->setCellValue('E' . ($row), $color_description);
+                    $sheet->setCellValue('F' . ($row), $location);
+                    $sheet->setCellValue('G' . ($row), $invoice_date);
+                    $sheet->setCellValue('O' . ($row), $vld_instruction);
 
                     // Check if the value contains the word 'priority'
                     if (stripos($vld_instruction, 'priority') !== false) {
@@ -1436,15 +1459,15 @@ class HaulageInfo extends Controller
                     $row++;
                 }
 
-                $sheet->mergeCells('H'.($first_row).':H'.($unit_count+$add_row+3));
-                $sheet->mergeCells('I'.($first_row).':I'.($unit_count+$add_row+3));
+                $sheet->mergeCells('H'.($first_row).':H'.($row-1));
+                $sheet->mergeCells('I'.($first_row).':I'.($row-1));
 
                 // Optionally set a value for the merged cell (e.g., a space or text)
                 $sheet->setCellValue('H'.($first_row), '');
                 $sheet->setCellValue('I'.($first_row), ' ');
 
                 // Set background color to yellow for the merged range
-                $sheet->getStyle('H'.($first_row).':H'.($unit_count+$add_row+3))->applyFromArray([
+                $sheet->getStyle('H'.($first_row).':H'.($row-1))->applyFromArray([
                     'fill' => [
                         'fillType' => Fill::FILL_SOLID,
                         'startColor' => [
@@ -1453,7 +1476,7 @@ class HaulageInfo extends Controller
                     ],
                 ]);
 
-                $sheet->getStyle('I'.($first_row).':I'.($unit_count+$add_row+3))->applyFromArray([
+                $sheet->getStyle('I'.($first_row).':I'.($row-1))->applyFromArray([
                     'fill' => [
                         'fillType' => Fill::FILL_SOLID,
                         'startColor' => [
@@ -1462,7 +1485,10 @@ class HaulageInfo extends Controller
                     ],
                 ]);
 
-                $sheet->getStyle('B'.($first_row).':O'.($unit_count+$add_row+3))->applyFromArray($borderStyle);
+                // if($first_row ==21){
+                //     dd('B'.($first_row).':O'.($row-1));
+                // }
+                $sheet->getStyle('B'.($first_row).':O'.($row-1))->applyFromArray($borderStyle);
             }
 
             // $sheet->setCellValue('L' .$row, $unit_count.' UNITS');

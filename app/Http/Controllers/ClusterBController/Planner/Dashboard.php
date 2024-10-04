@@ -14,6 +14,7 @@ class Dashboard extends Controller
     public function index(Request $rq)
     {
         $data = self::getTruckTripsForMonth($rq);
+        
         $page = view('cluster_b.planner.dashboard.trip_monitoring',compact('data'))->render();
 
         return [ 'status'=>'success', 'message' => 'success', 'payload'=>base64_encode(json_encode($page))];
