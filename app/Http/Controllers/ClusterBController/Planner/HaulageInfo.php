@@ -1513,7 +1513,7 @@ class HaulageInfo extends Controller
             // Load the existing template from the storage folder
             $filePath = storage_path('app/public/cluster_b/template/TMP UPLOAD TEMPLATE.xlsx');
             if (!file_exists($filePath)) {
-                return ['status' => 'error', 'message' => 'Template file not found'];
+                return ['status' => 'error', 'message' => 'Template file not found','payload'=>storage_path('app/public/cluster_b/template/TMP UPLOAD TEMPLATE.xlsx')];
             }
 
             $id = Crypt::decrypt($id);
