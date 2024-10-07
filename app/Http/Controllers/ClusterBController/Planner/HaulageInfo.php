@@ -38,7 +38,7 @@ class HaulageInfo extends Controller
     {
         try{
             $id = Crypt::decrypt($rq->id);
-            $batch = $rq->batch!=='All Batch'?$rq->batch:false;
+            $batch = $rq->batch!='All Batch'?$rq->batch:false;
             $query = TmsHaulageBlock::with(['block_unit'=> function($query) {
                 $query->orderByRaw("CASE WHEN vld_instruction LIKE '%MP%' THEN 1 ELSE 0 END, id");
                 // ->orderBy('unit_order', 'asc')
@@ -46,7 +46,14 @@ class HaulageInfo extends Controller
             ->when($batch,function($query,$batch){
                 $query->where('batch',$batch);
             })
-            ->where([['haulage_id',$id],['is_deleted',null]])->orderBy('block_number', 'asc')->get();
+            ->when($batch==false,function($query){
+                $query->orderBy('all_batch_order','asc');
+            })
+            ->when($batch!=false,function($query,$batch){
+                $query->orderBy('block_number', 'asc');
+            })
+            ->where([['haulage_id',$id],['is_deleted',null]])->orderBy('batch','asc')->get();
+
             $array = [];
             if($query){
                 foreach($query as $data){
@@ -191,7 +198,7 @@ class HaulageInfo extends Controller
             $haulage_id = Crypt::decrypt($rq->id);
             $cluster_id    = Auth::user()->emp_cluster->cluster_id;
 
-            $result = (new HaulageList)->move_file($rq,'masterlist','cluster_b/masterlist');
+            $result = (new HaulageList)->move_file($rq,'masterlist','cluster_b/tmp');
             if ($result['status'] != 'success' && $result['payload'] === false) {  return response()->json($result); }
 
             $class         = new Phpspreadsheet;
@@ -737,22 +744,19 @@ class HaulageInfo extends Controller
             if ($batch == 'All Batch') {
                 $batch_count = TmsHaulage::find($haulage_id)->batch_count;
 
-                for($x=1;$x<=$batch_count;$x++){
-                    // Check if batch exists
-                    $batchExist = TmsHaulageBlock::where('haulage_id', $haulage_id)
-                    ->where('batch',$x)
+                $batchExist = TmsHaulageBlock::where('haulage_id', $haulage_id)
+                    ->whereIn('batch', range(1, $batch_count))
                     ->whereNull('is_deleted')
                     ->where('status', 1)
                     ->exists();
 
-                    if (!$batchExist) {
-                        return response()->json(['status' => 400, 'message' => 'There is no trip blocks in batch '.$x]);
-                        exit(0);
-                    }
+                if (!$batchExist) {
+                    return response()->json(['status' => 400, 'message' => 'There is no trip blocks in batch '.$x]);
+                    exit(0);
                 }
             }
 
-            TmsHaulageBlock::when($batch!='All Batch', function($q) use($batch){
+            $query = TmsHaulageBlock::when($batch!='All Batch', function($q) use($batch){
                 $q->where('batch',$batch);
             })
             ->where([['haulage_id',$haulage_id],['is_deleted',null],['status',1]])
@@ -762,8 +766,18 @@ class HaulageInfo extends Controller
                 'updated_at'=>Carbon::now()
             ]);
 
+            if($query <= 0){
+                $status = 'info';
+                $message = 'No Changes have been made';
+                $reload = false;
+            }else{
+                $status = 'success';
+                $message = 'Tripblock is finalized';
+                $reload = true;
+            }
+
             DB::commit();
-            return response()->json(['status' => 'success', 'message' => 'Hauling Plan is Saved']);
+            return response()->json(['status' => $status, 'message' => $message,'payload'=>$reload]);
         }catch(Exception $e){
             DB::rollback();
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);
@@ -778,13 +792,16 @@ class HaulageInfo extends Controller
             $user_id = Auth::user()->emp_id;
 
             $block_number = TmsHaulageBlock::where([['haulage_id',$id],['batch',$rq->batch]])->max('block_number') ?? 0;
+            $all_batch_order = TmsHaulageBlock::where('haulage_id',$id)->max('all_batch_order') ?? 0;
+
             $query = TmsHaulageBlock::create([
                 'haulage_id' =>$id,
                 'status'=>1,
                 'block_number' =>$block_number+1,
                 'batch' =>$rq->batch,
                 'no_of_trips' =>1,
-                'created_by'=>$user_id
+                'created_by'=>$user_id,
+                'all_batch_order' =>$all_batch_order+1
             ]);
 
             $array[] = [
@@ -823,22 +840,32 @@ class HaulageInfo extends Controller
         }
 
         if(!$car_model_id){
-            $insert = TmsClusterCarModel::create([
-                'cluster_id' => $cluster_id,
-                'car_model'=>$rq->model,
-                'color_description' => $rq->color_description,
-                'is_active' =>1
-            ]);
-            $car_model_id = $insert->id;
+            $normalizedCarModel = strtoupper($rq->model);
+            $car_model = TmsClusterCarModel::firstOrCreate(
+                [
+                    'cluster_id' => $cluster_id,
+                    'car_model' => $normalizedCarModel, // Use normalized input
+                ],
+                [
+                    'color_description' => $rq->color_description,
+                    'is_active' => 1,
+                ]
+            );
+            $car_model_id = $car_model->id;
         }
 
         if(!$dealer_id){
-            $insert = TmsClientDealership::create([
-                'name' => $rq->dealer,
-                'code' => $this->getInitials($rq->dealer),
-                'is_active' =>1
-            ]);
-            $dealer_id = $insert->id;
+            $normalizedDealer = strtoupper($rq->dealer);
+            $dealer = TmsClientDealership::firstOrCreate(
+                [
+                    'name' => $normalizedDealer,
+                ],
+                [
+                    'code' => $this->getInitials($normalizedDealer),
+                    'is_active' => 1,
+                ]
+            );
+            $dealer_id = $dealer->id;
         }
 
         try{
@@ -908,8 +935,10 @@ class HaulageInfo extends Controller
                 'deleted_by'=>$user_id,
                 'deleted_at'=>Carbon::now()
             ]);
+
+            $active_unit = TmsHaulageBlockUnit::where('haulage_id', $haulage_id)->where('is_deleted',null)->count();
             DB::commit();
-            return ['status'=>'success','message' =>'Unit remove successfully'];
+            return ['status'=>'success','message' =>'Unit remove successfully','payload'=>$active_unit];
         }catch(Exception $e) {
             DB::rollback();
             return response()->json([
@@ -1010,11 +1039,15 @@ class HaulageInfo extends Controller
             $swap = TmsHaulageBlock::find($swapped_triblock);
             $drag = TmsHaulageBlock::find($dragged_tripblock);
 
-            $temp_block_number = $drag->block_number;
-            $drag->block_number = $swap->block_number;
+            if($rq->batch == 'All Batch'){
+                $swap->all_batch_order = $rq->old_position+1;
+                $drag->all_batch_order = $rq->new_position+1;
+            }else{
+                $temp_block_number = $drag->block_number;
+                $drag->block_number = $swap->block_number;
+                $swap->block_number = $temp_block_number;
+            }
             $drag->save();
-
-            $swap->block_number = $temp_block_number;
             $swap->save();
 
             DB::commit();
@@ -1075,41 +1108,35 @@ class HaulageInfo extends Controller
     public function tripblock_list(Request $rq)
     {
         $batch = isset($rq->batch) ? $rq->batch : null;
-        $search = isset($rq->search) ? $rq->search : null;
         $filter = isset($rq->filter) ? $rq->filter : null;
         $id = Crypt::decrypt($rq->id);
         $cluster_id = Auth::user()->emp_cluster->cluster_id;
 
-        $data = TmsHaulageBlock::with('block_unit')
-        ->when($search, function($query, $search) {
-            $query->where(function($query) use ($search) {
-                // Search by block_number
-                $query->where('block_number', 'LIKE', "%$search%");
-
-                // Search by dealer's name or code in related models
-                $query->orWhereHas('block_unit', function($q) use ($search) {
-                    $q->whereHas('dealer', function($q) use ($search) {
-                        $q->where('name', 'LIKE', "%$search%")
-                        ->orWhere('code', 'LIKE', "%$search%");
-                    });
-                });
-            });
-        })
+        $data = TmsHaulageBlock::with(['block_unit'=> function($query) {
+            $query->orderByRaw("CASE WHEN vld_instruction LIKE '%MP%' THEN 1 ELSE 0 END, id");
+            // ->orderBy('unit_order', 'asc')
+        }])
         ->when(isset($filter) && $filter != 'Show All', function($q) use ($filter) {
             return $q->where('is_exported', $filter);
         })
         ->when(isset($batch) && $batch != 'Show All', function($q) use ($batch) {
-            return $q->where('batch', $batch);
+            return $q->where(function ($query) use ($batch) {
+                $query->where('batch', $batch)
+                    ->orWhereHas('block_unit', function ($q) {
+                        $q->where('vld_instruction', 'LIKE', '%MP%');
+                    });
+            });
         })
         ->whereHas('block_unit')
         ->where(function ($query) {
-            // Handle soft delete logic
             $query->where('is_deleted', '!=', 1)->orWhereNull('is_deleted');
         })
-        ->where('haulage_id', $id)->orderBy('block_number','ASC')
+        ->where('haulage_id', $id)
+        ->orderBy('block_number','ASC')
         ->get();
 
-        $data = $data->transform(function ($item,$key) {
+
+        $data = $data->transform(function ($item,$key) use($batch) {
             $dealer_arr = [];
             $dealer_code_arr = [];
             $is_multipickup = false;
@@ -1117,18 +1144,13 @@ class HaulageInfo extends Controller
             $item->count = $key+1;
             $is_mp = false;
             $is_tt = false;
-            $hub  = 'SVC';
-
+            $hub  = $batch ==1 ? 'SVC' :'BVC';
+            $mp_count = 0;
             foreach ($item->block_unit as $unit) {
                 $dealer = $unit->dealer;
                 if (!in_array($dealer->name, $dealer_arr)) {
-                    $dealer_arr[] = $dealer->name;   // Add dealer's name to the array
-                    $dealer_code_arr[] = $dealer->code; // Add dealer's code to the array
-                }
-                if($unit->hub == 'SVC' || ($unit->hub == 'BVC' && $unit->is_transfer)){
-                    $hub = 'SVC';
-                }elseif($unit->hub == 'BVC' || ($unit->hub == 'SVC' && $unit->is_transfer)){
-                    $hub = 'BVC';
+                    $dealer_arr[] = $dealer->name;
+                    $dealer_code_arr[] = $dealer->code;
                 }
 
                 if($unit->is_transfer){
@@ -1137,21 +1159,27 @@ class HaulageInfo extends Controller
 
                 if (stripos($unit->vld_instruction, 'MP') !== false) {
                     $is_mp = true;
+                    $mp_count++;
+                }else{
+                    $is_mp = false;
                 }
+
                 $unit_count++;
             }
 
             // Assign the dealer names (or concatenated names) to $item->name
             $item->name = $dealer_code_arr ? implode(', ', $dealer_code_arr) : 'Trip Block #'.$key+1;
             $item->unit_count = $unit_count;
+            $item->mp_count = $mp_count;
             $item->block_batch = $item->batch;
             $item->exported_at = $item->is_exported==1? Carbon::parse($item->exported_at)->format('m/d/Y g:i A'): '--';
-            $item->hub = $hub;
+            $item->hub = $item->batch ==1 ?'SVC':'BVC';
             $item->is_transfer = $is_tt;
             $item->is_multipickup = $is_mp;
             $item->encrypt_id = Crypt::encrypt($item->id);
             return $item;
         });
+
 
         return response()->json([ 'status' => 'success', 'message' => 'success', 'payload' => base64_encode(json_encode($data)) ]);
     }
@@ -1173,16 +1201,15 @@ class HaulageInfo extends Controller
 
             if($report['status'] == 'success'){
 
-                $tripblocks_ids = [];
                 $haulage_id = Crypt::decrypt($rq->id);
 
                 TmsHaulageBlock::with('block_unit')->when(isset($rq->tripblock_ids), function($q) use ($rq){
-                    $tripblock_ids = json_decode(base64_decode($rq->tripblock_ids));
-                    foreach($tripblock_ids as $tripblock_id){
-                        $tripblocks_ids[] = Crypt::decrypt($tripblock_id);
+                    $tripblock_data = json_decode(base64_decode($rq->tripblock_ids), true);
+                    foreach ($tripblock_data as $tripblock) {
+                        $tripblock_id = Crypt::decrypt($tripblock['tripblock_id']);
+                        $tripblock_ids [] = $tripblock_id;
                     }
-
-                    $q->whereIn('id',$tripblocks_ids);
+                    $q->whereIn('id',$tripblock_ids);
                 })
                 ->where('haulage_id',$haulage_id)->update([
                     'is_exported' => 1,
@@ -1203,7 +1230,7 @@ class HaulageInfo extends Controller
     public function export_tripblock($rq)
     {
         try{
-
+            DB::beginTransaction();
             if(!isset($rq->tripblock_ids)){
                 return ['status'=>400,'message' =>'No trip block selected'];
             }
@@ -1219,22 +1246,69 @@ class HaulageInfo extends Controller
                 return ['status'=>400,'message' =>'File not found'];
             }
 
+            $batch = $rq->batch;
             $haulage_id = Crypt::decrypt($rq->id);
-            $tripblock_ids = json_decode(base64_decode($rq->tripblock_ids));
-            $tripblocks_ids = [];
+            $tripblock_data = json_decode(base64_decode($rq->tripblock_ids), true);
+            $tripblocks_multipickup = [];
+            $tripblocks_non_multipickup = [];
 
-            foreach($tripblock_ids as $tripblock_id){
-                $tripblocks_ids[] = Crypt::decrypt($tripblock_id);
+
+            foreach ($tripblock_data as $tripblock) {
+                $tripblock_id = Crypt::decrypt($tripblock['tripblock_id']);
+                if ($tripblock['isMultipickup']) {
+                    // Store in multipickup array
+                    $tripblocks_multipickup[] = $tripblock_id;
+                } else {
+                    // Store in non-multipickup array
+                    $tripblocks_non_multipickup[] = $tripblock_id;
+                }
             }
-            $planning_date = TmsHaulage::find($haulage_id)->planning_date;
+
+            $query = TmsHaulage::find($haulage_id)->planning_date;
+            $planning_date = $query->planning_date;
             $formatted_date = Carbon::parse($planning_date)->format('F j Y');
             $formatted_date = strtoupper(Carbon::parse($planning_date)->format('F')) . Carbon::parse($planning_date)->format(' j Y');
 
             $data = TmsHaulageBlock::with([
-                'block_unit'=>function($q){
-                    $q->orderByRaw("CASE WHEN vld_instruction LIKE '%MP%' THEN 1 ELSE 0 END, id");
+                'block_unit' => function($q) {
+                    // Exclude units with "MP" in vld_instruction
+                    $q->where('vld_instruction', 'NOT LIKE', '%MP%')
+                      ->orderByRaw("CASE WHEN vld_instruction LIKE '%MP%' THEN 1 ELSE 0 END, id");
                 }
-            ])->whereIn('id',$tripblocks_ids)->where('haulage_id',$haulage_id)->orderBy('block_number','ASC')->get();
+            ])
+            ->whereIn('id', $tripblocks_non_multipickup)
+            ->where('haulage_id', $haulage_id)
+            ->orderBy('block_number', 'ASC')
+            ->get();
+
+            if($tripblocks_multipickup){
+                $multipickup = TmsHaulageBlock::with([
+                    'block_unit' => function($q) {
+                        $q->where('vld_instruction', 'LIKE', '%MP%')  // Only load block_unit with "MP"
+                        ->orderByRaw("CASE WHEN vld_instruction LIKE '%MP%' THEN 1 ELSE 0 END, id");
+                    }
+                ])
+                ->whereIn('id', $tripblocks_multipickup)
+                ->where('haulage_id', $haulage_id)
+                ->whereHas('block_unit', function ($q) {
+                    $q->where('vld_instruction', 'LIKE', '%MP%'); // Filter only blocks with "MP"
+                })
+                ->orderBy('block_number', 'ASC')
+                ->get();
+
+
+                $data = $data->merge($multipickup);
+
+                $sortedData = $data->sortBy(function ($item) {
+                    // Assign a value based on whether it has multipickup units
+                    return $item->block_unit->contains(function ($unit) {
+                        return stripos($unit->vld_instruction, 'MP') !== false;
+                    }) ? 1 : 0; // Multipickup gets a higher sort value
+                });
+
+                // If you need to reset the keys
+                $data = $sortedData->values();
+            }
 
             if($data->isEmpty()){
                 return ['status'=>'error','message' =>'No data found'];
@@ -1248,26 +1322,25 @@ class HaulageInfo extends Controller
             $row = 4;
             $unit_count = 0;
             $blocks_number_arr = [];
-            $temp_arr = [];
             $columnsToUnhide = ['M', 'N', 'O', 'P', 'Q'];
             $is_mp = false;
+            $filtered_hub = $batch ==1 ? 'SVC':'BVC';
+
             foreach($data as $tripblock){
 
-                $block_number = $tripblock->block_number;
+                $block_number = $tripblock->block_number.'batch'.$tripblock->batch;
                 $block_units = $tripblock->block_unit;
-                $site = 'SR';
-                $batch = 'B-'.$tripblock->batch;
+                // $site = 'SR';
+                // $batch = 'B-'.$tripblock->batch;
 
-                if($is_mp == true){
-                    $row++;
-                }
+                // if($is_mp == true){
+                //     $row++;
+                // }
 
                 foreach($block_units as $block_unit){
                     $is_mp = false;
                     if(!in_array($block_number,$blocks_number_arr)){
-                        if($row != 4){
-                            $row++;
-                        }
+                        if($row != 4){ $row++; }
                         $blocks_number_arr[] = $block_number;
                     }
 
@@ -1286,16 +1359,14 @@ class HaulageInfo extends Controller
                     $car_model = $block_unit->car->car_model;
                     $color_description = $block_unit->color_description;
                     $invoice_date = date('m-d-Y',strtotime($block_unit->invoice_date));
-                    $vld_instruction = $block_unit->vld_instruction !=0 ?$block_unit->vld_instruction:'--';
                     $is_transfer = $block_unit->is_transfer !=0 ?$block_unit->is_transfer:'';
-                    // $est_departure_time = $block_unit->est_departure_time;
-                    // $est_loading_time = $block_unit->est_loading_time;
+                    $vld_instruction = $block_unit->vld_instruction !=0 ?$block_unit->vld_instruction:'--';
 
-                    if($hub == 'bvc'){
-                        $site = 'BTG';
-                    }else{
-                        $site = 'SR';
-                    }
+                    // if($hub == 'bvc'){
+                    //     $site = 'BTG';
+                    // }else{
+                    //     $site = 'SR';
+                    // }
 
                     if($is_transfer){
                         $is_transfer ='TT';
@@ -1303,6 +1374,8 @@ class HaulageInfo extends Controller
                             $hub = 'bvc';
                         }elseif($hub == 'bvc'){
                             $hub = 'svc';
+                        }elseif($hub == 'others'){
+                            $hub = 'others';
                         }
                     }
 
@@ -1312,7 +1385,7 @@ class HaulageInfo extends Controller
                             exit(0);
                         }
                         $is_transfer = 'MP';
-                        $is_mp = true;
+                        $is_mp = false;
                     }
 
                     $sheet->setCellValue('A' . ($row+($is_mp?1:0)),  strtoupper($hub));
@@ -1324,9 +1397,6 @@ class HaulageInfo extends Controller
                     $sheet->setCellValue('G' . ($row+($is_mp?1:0)), $car_model);
                     $sheet->setCellValue('H' . ($row+($is_mp?1:0)), $color_description);
                     $sheet->setCellValue('I' . ($row+($is_mp?1:0)), $invoice_date);
-                    // $sheet->setCellValue('J' . ($add_row+$row), $delivery_date);
-                    // $sheet->setCellValue('K' . ($add_row+$row), $est_departure_time);
-                    // $sheet->setCellValue('L' . ($add_row+$row), $est_loading_time);
                     $sheet->setCellValue('U' . ($row+($is_mp?1:0)), $vld_instruction);
 
                     if($block_unit->units_from == 'VISMIN'){
@@ -1337,9 +1407,9 @@ class HaulageInfo extends Controller
                             $sheet->getColumnDimension($column)->setVisible(true);
                         }
                     }
+
                     $row++;
                     $unit_count++;
-                    $temp_arr[] = $block_unit->car->car_model;
                 }
 
             }
@@ -1350,21 +1420,28 @@ class HaulageInfo extends Controller
             // $filename = $site.' HUB '.$batch.' '.$formatted_date.'.xlsx';
             $filename = $rq->filename.'.xlsx';
             $tempFilePath = storage_path('app/public/'.$filename);
+
+            $exported_tripblock = json_decode($query->exported_tripblocks,true) ?? [];
+            $exported_tripblock[] = $filename;
+            $query->exported_tripblocks = json_encode($query->exported_haulage);
+            $query->save();
             $writer->save($tempFilePath);
 
             // Return the URL where the file can be downloaded
             $downloadUrl = asset('storage/'.$filename);
+
+            DB::commit();
             return ['status' => 'success', 'payload' => $downloadUrl];
 
-
         }catch(Exception $e){
+            DB::rollback();
             return ['status'=>400,'message' =>$e->getMessage()];
         }
     }
 
     public function export_haulage($rq){
         try{
-
+            DB::beginTransaction();
             $filePath = 'cluster_b/template/HAULING PLAN TEMPLATE.xlsx';
             $check_file = Storage::disk('public')->exists($filePath);
 
@@ -1373,7 +1450,8 @@ class HaulageInfo extends Controller
             }
 
             $haulage_id = Crypt::decrypt($rq->id);
-            $planning_date = TmsHaulage::find($haulage_id)->planning_date;
+            $query = TmsHaulage::find($haulage_id)->planning_date;
+            $planning_date = $query->planning_date;
             $formatted_date = Carbon::parse($planning_date)->format('F j Y');
             $formatted_date = strtoupper(Carbon::parse($planning_date)->format('F')) . Carbon::parse($planning_date)->format(' j Y');
             $data = TmsHaulageBlock::with([
@@ -1494,15 +1572,22 @@ class HaulageInfo extends Controller
             // $sheet->setCellValue('L' .$row, $unit_count.' UNITS');
             $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
             $filename = 'FINAL HAULING PLAN - '.$formatted_date.'.xlsx';
-            $tempFilePath = storage_path('app/public/'.$filename);
+            $tempFilePath = storage_path('app/public/cluster_b/haulage/'.$filename);
+
+            $exported_haulage = json_decode($query->exported_haulage,true) ?? [];
+            $exported_haulage[] = $filename;
+            $query->exported_haulage = json_encode($query->exported_haulage);
+            $query->save();
             $writer->save($tempFilePath);
 
             // Return the URL where the file can be downloaded
-            $downloadUrl = asset('storage/'.$filename);
+            $downloadUrl = asset('storage/cluster_b/haulage/'.$filename);
+
+            DB::commit();
             return ['status' => 'success', 'payload' => $downloadUrl];
 
-
         }catch(Exception $e){
+            DB::rollback();
             return ['status'=>400,'message' =>$e->getMessage()];
         }
     }

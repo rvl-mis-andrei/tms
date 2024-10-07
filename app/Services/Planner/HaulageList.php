@@ -215,7 +215,10 @@ class HaulageList
                 if(count($files) >= 2 && $file == 'hauling_plan' && !isset($rq->reupload_haulage)) {
                     return ['status'=>'error','message' =>'You already uploaded 2 hauling plan','payload'=>false];
                 }
-                $files[] = $filename;
+                $files[] = [
+                    'filename'=>$filename,
+                    'type'=>$file
+                ];
                 $query->filenames = json_encode($files);
                 $query->save();
                 return ['status'=>'success','message' =>'success','payload'=>$filePath, 'upload_count'=>count($files),'upload_key'=>$query->upload_key];

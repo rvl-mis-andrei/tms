@@ -27,6 +27,7 @@ class TmsHaulageBlock extends Model
         'is_exported',
         'exported_at',
         'exported_by',
+        'all_batch_order'
     ];
 
 

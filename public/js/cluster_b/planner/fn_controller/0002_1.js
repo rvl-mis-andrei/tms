@@ -38,145 +38,168 @@ export function HaulingPlanInfoController(page,param){
                     $('.finalize-notif').empty().addClass('d-none');
                     if(payload.length >0){
                         payload.forEach(function(item,key) {
-                            // if(item.is_multipickup){
-                            //     loadMultiPickUpBlock(item,batch);
-                            // }else{
-                                tbody = '';
-                                item.block_units.forEach(function(units) {
-                                    tbody+=`<tr class=" ${/priority/i.test(units.remarks) ? 'text-danger' : 'text-muted'}" data-original-table="tbl_${units.dealer_code}_${units.hub}" data-type="forAllocation"
-                                    data-id="${units.encrypted_id}">
-                                            <td class="  remove-cell">${units.dealer_code}</td>
-                                            <td class="">${units.cs_no}</td>
-                                            <td class="">${units.model}</td>
-                                            <td class="">${units.color_description}</td>
-                                            <td class="">${units.invoice_date}</td>
-                                            <td class="">${units.updated_location}</td>
-                                            <td class="remove-cell">${units.inspection_start}</td>
-                                            <td class="remove-cell">${units.hub}</td>
-                                            <td class="text-center exclude-filter remove-cell">
-                                                <div class="form-check form-check-custom form-check-solid form-check-sm" style="display:block;">
-                                                    <input class="form-check-input cursor-pointer transfer-checkbox" type="checkbox" value="" data-id="${units.encrypted_id}"
-                                                    rq-url="/tms/cco-b/planner/haulage_info/update_transfer" ${units.is_transfer ==1 ? 'checked':''} />
-                                                </div>
-                                            </td>
-                                            <td class="remove-cell exclude-filter pe-1">
-                                                <input type="text" class=" ${/priority/i.test(units.remarks) ? 'text-danger' : 'text-muted'} form-control form-control-sm form-control-solid"
-                                                name="unit_remarks" value="${units.remarks}" data-id="${units.encrypted_id}"
-                                                rq-url="/tms/cco-b/planner/haulage_info/update_unit_remarks">
-                                            </td>
-                                        </tr>`;
-                                });
-                                html = `
-                                <div class="">
-                                    <div class="card mb-5">
-                                        <div class="card-header card-sortable collapsible">
-                                            <span class="card-title pt-3">
-                                                <div class="d-flex flex-column">
-                                                    <div class="d-flex align-items-center mb-1">
-                                                        <a href="javascript:;" class="text-gray-900 text-hover-primary fs-5 fw-bold me-1">
-                                                            ${ item.dealer_code ?? 'Trip Block #'+(key+1) }
-                                                        </a>
-                                                    </div>
-                                                    <div class="d-flex flex-wrap fw-semibold fs-6 pe-2">
-                                                        <a href="javascript:;" class=" d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
-                                                            Units : <span class="tripblock_unit_count">${item.units_count}</span>
-                                                        </a>
-                                                        ${item.is_multipickup ?`
-                                                            <a href="javascript:;" class="d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
-                                                            Multi-Pickup
-                                                            </a>`:``
+                            tbody = '';
+                            item.block_units.forEach(function(units) {
+                                tbody+=`<tr class=" ${/priority/i.test(units.remarks) ? 'text-danger' : 'text-muted'}" data-original-table="tbl_${units.dealer_code}_${units.hub}" data-type="forAllocation"
+                                data-id="${units.encrypted_id}">
+                                        <td class="  remove-cell">${units.dealer_code}</td>
+                                        <td class="">${units.cs_no}</td>
+                                        <td class="">${units.model}</td>
+                                        <td class="">${units.color_description}</td>
+                                        <td class="">${units.invoice_date}</td>
+                                        <td class="">${units.updated_location}</td>
+                                        <td class="remove-cell">${units.inspection_start}</td>
+                                        <td class="remove-cell">${units.hub}</td>
+                                        <td class="text-center exclude-filter remove-cell">
+                                            <div class="form-check form-check-custom form-check-solid form-check-sm" style="display:block;">
+                                                <input class="form-check-input cursor-pointer ${item.status !=2?`transfer-checkbox`:``}" type="checkbox" value="" data-id="${units.encrypted_id}"
+                                                rq-url="/tms/cco-b/planner/haulage_info/update_transfer" ${units.is_transfer ==1 ? 'checked':''} ${item.status ==2?'disabled':''} />
+                                            </div>
+                                        </td>
+                                        <td class="remove-cell exclude-filter pe-1">
+                                            <input type="text" class=" ${/priority/i.test(units.remarks) ? 'text-danger' : 'text-muted'} form-control form-control-sm form-control-solid"
+                                            name="${item.status !=2?`unit_remarks`:''}" value="${units.remarks}" data-id="${units.encrypted_id}"
+                                            rq-url="/tms/cco-b/planner/haulage_info/update_unit_remarks" ${item.status ==2?'readonly':''}>
+                                        </td>
+                                    </tr>`;
+                            });
+                            html = `
+                            <div class="">
+                                <div class="card mb-5">
+                                    <div class="card-header card-sortable collapsible">
+                                        <span class="card-title pt-3">
+                                            <div class="d-flex flex-column">
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <a href="javascript:;" class="text-gray-900 text-hover-primary fs-5 fw-bold me-1">
+                                                        ${
+                                                            item.dealer_code ??
+                                                            "Trip Block #" +
+                                                            (key + 1)
                                                         }
-                                                        ${batch == 'All Batch' ?`
-                                                            <a href="javascript:;" class="d-flex align-items-center text-gray-500 text-hover-primary mb-2">
-                                                                Batch : ${item.batch}
-                                                            </a>`:``
-                                                        }
-                                                    </div>
+                                                    </a>
                                                 </div>
-                                            </span>
-                                            <div class="card-toolbar">
-                                                ${item.status != 2 ? `
-                                                <div class="me-0">
-                                                    <button class="btn btn-sm btn-icon btn-active-color-primary"
-                                                        data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-                                                        <i class="ki-solid ki-dots-horizontal fs-2x"></i>
-                                                    </button>
-                                                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-3"
-                                                        data-kt-menu="true">
-                                                        <div class="menu-item px-3">
-                                                            <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
-                                                                More Actions
-                                                            </div>
-                                                        </div>
-                                                        <div class="menu-item px-3">
-                                                            <a href="#" class="menu-link px-3 " add-mp-block="" data-id="${item.encrypted_id}">
-                                                                Add Multi-Pickup Block
-                                                            </a>
-                                                        </div>
-                                                        <div class="separator my-2 opacity-75"></div>
-                                                        <div class="menu-item px-3">
-                                                            <a href="#" class="menu-link px-3 text-danger remove-block" data-id="${item.encrypted_id}">
-                                                                Remove Block
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                `
-                                                        : ""
-                                                }
-                                                <div class="rotate btn btn-icon btn-sm btn-active-color-info" data-kt-rotate="true" data-bs-toggle="collapse" data-bs-target="#trip_block_${
-                                                    item.block_number
-                                                }">
-                                                    <i class="ki-duotone ki-down fs-1  rotate-n180"></i>
+                                                <div class="d-flex flex-wrap fw-semibold fs-6 pe-2">
+                                                    <a href="javascript:;" class=" d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
+                                                        Units: <span class="tripblock_unit_count">${item.units_count}</span>
+                                                    </a>
+                                                    ${
+                                                        item.is_multipickup
+                                                            ? `
+                                                            <a href="javscript:;" class="d-flex align-items-center text-gray-500 text-primary me-5 mb-2">
+                                                                <i class="ki-duotone ki-geolocation fs-4 me-1"><span class="path1"></span><span class="path2"></span></i>
+                                                                Multi-Pickup
+                                                            </a>`
+                                                            : ``
+                                                    }
+                                                    ${
+                                                        batch == "All Batch"
+                                                            ? `
+                                                        <a href="javascript:;" class="d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
+                                                            Batch ${item.batch}
+                                                        </a>`
+                                                            : ``
+                                                    }
+                                                    ${
+                                                        item.status == 2
+                                                            ? `
+                                                        <a href="javascript:;" class="d-flex align-items-center text-success text-hover-primary mb-2">
+                                                            Finalize
+                                                        </a>`
+                                                            : ``
+                                                    }
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div id="trip_block_${
-                                            item.block_number
-                                        }" class="collapse show">
-                                            <div class="card-body">
-                                                <div class="table-responsive">
-                                                    <table class="table table-row-bordered align-middle table-sm gy-3" id="tbl_block_${item.block_number}"
-                                                    data-type="planning" data-id="${item.encrypted_id}">
-                                                        <thead class="">
-                                                            <tr class=" fw-bold fs-8 text-uppercase gs-0">
-                                                                <th>Dealer</th>
-                                                                <th>Cs No.</th>
-                                                                <th>Model</th>
-                                                                <th>Color</th>
-                                                                <th>Invoice Date</th>
-                                                                <th>Location</th>
-                                                                <th>Inspection TIme</th>
-                                                                <th>Hub</th>
-                                                                <th class="text-center">Transfer ?</th>
-                                                                <th>Remarks</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody class="fs-8 fw-semibold text-gray-600" data-type="planning" data-id="${
-                                                            item.encrypted_id
-                                                        }">
-                                                            ${tbody}
-                                                        </tbody>
-                                                    </table>
+                                        </span>
+                                        <div class="card-toolbar">
+                                            ${
+                                                item.status != 2
+                                                    ? `
+                                            <div class="me-0">
+                                                <button class="btn btn-sm btn-icon btn-active-color-primary"
+                                                    data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                                    <i class="ki-solid ki-dots-horizontal fs-2x"></i>
+                                                </button>
+                                                <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-3"
+                                                    data-kt-menu="true">
+                                                    <div class="menu-item px-3">
+                                                        <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
+                                                            More Actions
+                                                        </div>
+                                                    </div>
+                                                    <div class="separator my-2 opacity-75"></div>
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3 text-danger remove-block" data-id="${item.encrypted_id}">
+                                                            Remove Block
+                                                        </a>
+                                                    </div>
                                                 </div>
+                                            </div>
+                                            `
+                                                    : ""
+                                            }
+                                            <div class="rotate btn btn-icon btn-sm btn-active-color-info"
+                                                data-kt-rotate="true" data-bs-toggle="collapse" data-bs-target="#trip_batch${
+                                                    item.batch
+                                                }_block_${
+                                item.block_number
+                            }">
+                                                <i class="ki-duotone ki-down fs-1  rotate-n180"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="trip_batch${
+                                        item.batch
+                                    }_block_${
+                                item.block_number
+                            }" class="collapse show">
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-row-bordered align-middle table-sm gy-3" id="tbl_batch${
+                                                    item.batch
+                                                }_block_${
+                                item.block_number
+                            }"
+                                                data-type="planning" data-id="${
+                                                    item.encrypted_id
+                                                }">
+                                                    <thead class="">
+                                                        <tr class=" fw-bold fs-8 text-uppercase gs-0">
+                                                            <th>Dealer</th>
+                                                            <th>Cs No.</th>
+                                                            <th>Model</th>
+                                                            <th>Color</th>
+                                                            <th>Invoice Date</th>
+                                                            <th>Location</th>
+                                                            <th>Inspection TIme</th>
+                                                            <th>Hub</th>
+                                                            <th class="text-center">Transfer ?</th>
+                                                            <th>Remarks</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="fs-8 fw-semibold text-gray-600" data-type="planning" data-id="${
+                                                        item.encrypted_id
+                                                    }">
+                                                        ${tbody}
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                `;
-                                hauling_list.append(html);
-                            // }
+                            </div>
+                            `;
+                            hauling_list.append(html);
                             tripBlockCount++;
                             trpBlockUnit++;
                             block_number = tripBlockCount;
                             if(item.status !=2){
-                                initSortableTribBlock(`tbl_block_${item.block_number}`)
-                                initSortableBlocks()
+                                initSortableTribBlock(`tbl_batch${item.batch}_block_${item.block_number}`)
                                 isAllBlockFinal=false;
                             }else{
                                 isAllBlockFinal=true;
                             }
                         })
+
                         if(isAllBlockFinal){
                             $('.finalize-plan').addClass('d-none');
                             $('.add-block').addClass('d-none');
@@ -206,6 +229,8 @@ export function HaulingPlanInfoController(page,param){
                             $('.finalize-plan').removeClass('d-none');
                             $('.more-actions').removeClass('d-none');
                         }
+
+                        initSortableBlocks()
                         hauling_list.removeClass('d-none')
                         empty_hauling_list.addClass('d-none')
                     }else{
@@ -235,228 +260,6 @@ export function HaulingPlanInfoController(page,param){
             .finally(() => {
             });
         })
-    }
-
-    function loadMultiPickUpBlock(item,batch){
-
-        let tbody = '',html='',mpHtml='',card ='', mpTbody ='';
-
-        item.block_units.forEach(function(units) {
-            if (/MP/i.test(units.remarks)) {
-                mpTbody += `<tr class="${/priority/i.test(units.remarks) ? 'text-danger' : 'text-muted'}" data-original-table="tbl_${units.dealer_code}_${units.hub}"
-                data-type="forAllocation" data-id="${units.encrypted_id}">
-                    <td class="remove-cell">${units.dealer_code}</td>
-                    <td class="">${units.cs_no}</td>
-                    <td class="">${units.model}</td>
-                    <td class="">${units.color_description}</td>
-                    <td class="">${units.invoice_date}</td>
-                    <td class="">${units.updated_location}</td>
-                    <td class="remove-cell">${units.inspection_start}</td>
-                    <td class="remove-cell">${units.hub}</td>
-                    <td class="text-center exclude-filter remove-cell">
-                        <div class="form-check form-check-custom form-check-solid form-check-sm" style="display:block;">
-                            <input class="form-check-input cursor-pointer transfer-checkbox" type="checkbox" value="" data-id="${units.encrypted_id}"
-                            rq-url="/tms/cco-b/planner/haulage_info/update_transfer" ${units.is_transfer == 1 ? 'checked' : ''} />
-                        </div>
-                    </td>
-                    <td class="remove-cell exclude-filter pe-1">
-                        <input type="text" class="${/priority/i.test(units.remarks) ? 'text-danger' : 'text-muted'} form-control form-control-sm form-control-solid"
-                        name="unit_remarks" value="${units.remarks}" data-id="${units.encrypted_id}" rq-url="/tms/cco-b/planner/haulage_info/update_unit_remarks">
-                    </td>
-                </tr>`;
-            } else {
-                tbody += `<tr class="${/priority/i.test(units.remarks) ? 'text-danger' : 'text-muted'}"
-                    data-original-table="tbl_${units.dealer_code}_${units.hub}" data-type="forAllocation" data-id="${units.encrypted_id}">
-                    <td class="remove-cell">${units.dealer_code}</td>
-                    <td class="">${units.cs_no}</td>
-                    <td class="">${units.model}</td>
-                    <td class="">${units.color_description}</td>
-                    <td class="">${units.invoice_date}</td>
-                    <td class="">${units.updated_location}</td>
-                    <td class="remove-cell">${units.inspection_start}</td>
-                    <td class="remove-cell">${units.hub}</td>
-                    <td class="text-center exclude-filter remove-cell">
-                        <div class="form-check form-check-custom form-check-solid form-check-sm" style="display:block;">
-                            <input class="form-check-input cursor-pointer transfer-checkbox" type="checkbox" value="" data-id="${units.encrypted_id}" rq-url="/tms/cco-b/planner/haulage_info/update_transfer" ${units.is_transfer == 1 ? 'checked' : ''} />
-                        </div>
-                    </td>
-                    <td class="remove-cell exclude-filter pe-1">
-                        <input type="text" class="${/priority/i.test(units.remarks) ? 'text-danger' : 'text-muted'} form-control form-control-sm form-control-solid" name="unit_remarks" value="${units.remarks}" data-id="${units.encrypted_id}" rq-url="/tms/cco-b/planner/haulage_info/update_unit_remarks">
-                    </td>
-                </tr>`;
-            }
-
-        });
-
-        html = `<div class="card mb-5">
-            <div class="card-header collapsible">
-                <span class="card-title pt-3">
-                    <div class="d-flex flex-column">
-                        <div class="d-flex align-items-center mb-1">
-                            <a href="javascript:;" class="text-gray-900 text-hover-primary fs-5 fw-bold me-1">
-                                ${item.dealer_code ?? 'Trip Block #' + (key + 1)}
-                            </a>
-                        </div>
-                        <div class="d-flex flex-wrap fw-semibold fs-6 pe-2">
-                            <a href="javascript:;" class="d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
-                                Units : <span class="tripblock_unit_count">${item.units_count}</span>
-                            </a>
-                            ${item.is_multipickup ? `
-                                <a href="javascript:;" class="d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
-                                Multi-Pickup
-                                </a>` : ``}
-                            ${batch == 'All Batch' ? `
-                                <a href="javascript:;" class="d-flex align-items-center text-gray-500 text-hover-primary mb-2">
-                                    Batch : ${item.batch}
-                                </a>` : ``}
-                        </div>
-                    </div>
-                </span>
-                <div class="card-toolbar">
-                    <div class="rotate btn btn-icon btn-sm btn-active-color-info" data-kt-rotate="true" data-bs-toggle="collapse" data-bs-target="#trip_block_${item.block_number}">
-                        <i class="ki-duotone ki-down fs-1  rotate-n180"></i>
-                    </div>
-                </div>
-            </div>
-            <div id="trip_block_${item.block_number}" class="collapse show">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-row-bordered align-middle table-sm gy-3" id="tbl_block_${item.block_number}" data-type="planning" data-id="${item.encrypted_id}">
-                            <thead class="">
-                                <tr class="fw-bold fs-8 text-uppercase gs-0">
-                                    <th>Dealer</th>
-                                    <th>Cs No.</th>
-                                    <th>Model</th>
-                                    <th>Color</th>
-                                    <th>Invoice Date</th>
-                                    <th>Location</th>
-                                    <th>Inspection Time</th>
-                                    <th>Hub</th>
-                                    <th class="text-center">Transfer ?</th>
-                                    <th>Remarks</th>
-                                </tr>
-                            </thead>
-                            <tbody class="fs-8 fw-semibold text-gray-600" data-type="planning" data-id="${item.encrypted_id}">
-                                ${tbody}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-
-        if (mpTbody) {
-            mpHtml = `<div class="card mb-5">
-                        <div class="card-header collapsible">
-                            <span class="card-title pt-3">
-                                <div class="d-flex flex-column">
-                                    <div class="d-flex align-items-center mb-1">
-                                        <a href="javascript:;" class="text-gray-900 text-hover-primary fs-5 fw-bold me-1">
-                                            ${item.dealer_code ?? 'Multi Pickup'}
-                                        </a>
-                                    </div>
-                                    <div class="d-flex flex-wrap fw-semibold fs-6 pe-2">
-                                        <a href="javascript:;" class="d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
-                                            Units : <span class="tripblock_unit_count">${item.units_count}</span>
-                                        </a>
-                                        ${item.is_multipickup ? `
-                                            <a href="javascript:;" class="d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
-                                            Multi-Pickup
-                                            </a>` : ``}
-                                        ${batch == 'All Batch' ? `
-                                            <a href="javascript:;" class="d-flex align-items-center text-gray-500 text-hover-primary mb-2">
-                                                Batch : ${item.batch}
-                                            </a>` : ``}
-                                    </div>
-                                </div>
-                            </span>
-                            <div class="card-toolbar">
-                                <div class="rotate btn btn-icon btn-sm btn-active-color-info" data-kt-rotate="true" data-bs-toggle="collapse" data-bs-target="#trip_mpblock_${multipickup_block}">
-                                    <i class="ki-duotone ki-down fs-1  rotate-n180"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="trip_mpblock_${multipickup_block}" class="collapse show">
-                    <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-row-bordered align-middle table-sm gy-3" tbl-multipick="MP" id="tbl_mpblock_${multipickup_block}"
-                            data-type="planning" data-id="${item.encrypted_id}">
-                            <thead class="">
-                                <tr class=" fw-bold fs-8 text-uppercase gs-0">
-                                    <th>Dealer</th>
-                                    <th>Cs No.</th>
-                                    <th>Model</th>
-                                    <th>Color</th>
-                                    <th>Invoice Date</th>
-                                    <th>Location</th>
-                                    <th>Inspection TIme</th>
-                                    <th>Hub</th>
-                                    <th class="text-center">Transfer ?</th>
-                                    <th>Remarks</th>
-                                </tr>
-                            </thead>
-                            <tbody class="fs-8 fw-semibold text-gray-600" data-type="planning" data-id="${item.encrypted_id}">
-                                ${mpTbody}
-                            </tbody>
-                        </table>
-                    </div>
-                    </div>
-                </div>
-            </div>`;
-        }
-
-        card =`<div class="card mb-5">
-                <div class="card-header collapsible">
-                    <span class="card-title pt-3">
-                        <div class="d-flex flex-column">
-                            <div class="d-flex align-items-center mb-1">
-                                <a href="javascript:;" class="text-gray-900 text-hover-primary fs-5 fw-bold me-1">
-                                    Multi-Pickup Block
-                                </a>
-                            </div>
-                        </div>
-                    </span>
-                    <div class="card-toolbar">
-                        ${`<div class="me-0">
-                            <button class="btn btn-sm btn-icon btn-active-color-primary"
-                                data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-                                <i class="ki-solid ki-dots-horizontal fs-2x"></i>
-                            </button>
-                            <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-3"
-                                data-kt-menu="true">
-                                <div class="menu-item px-3">
-                                    <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
-                                        More Actions
-                                    </div>
-                                </div>
-                                <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3 add-multipick" data-id="${item.encrypted_id}">
-                                        Add Multi-Pickup
-                                    </a>
-                                </div>
-                                <div class="separator my-2 opacity-75"></div>
-                                <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3 cancel-mp-block text-danger" data-id="${item.encrypted_id}">
-                                        Cancel Multi-Pickup
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        `}
-                    </div>
-                </div>
-                <div class='card-body'>
-                    ${html}
-                    ${mpHtml}
-                </div>
-            </div>
-        `;
-
-        hauling_list.append(card);
-        initSortableTribBlock(`trip_block_${item.block_number}`)
-        initSortableTribBlock(`tbl_mpblock_${multipickup_block}`)
-        multipickup_block++;
-
     }
 
     function loadForAllocation(hub,search=''){
@@ -543,6 +346,7 @@ export function HaulingPlanInfoController(page,param){
                     }else{
                         $(`.${hub}_content`).addClass('d-none').empty();
                         $(`.empty_${hub}`).removeClass('d-none');
+                        $(`.${hub}-count`).text('0').addClass('d-none');
                     }
 
                     KTComponents.init()
@@ -620,15 +424,15 @@ export function HaulingPlanInfoController(page,param){
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="rotate btn btn-icon btn-sm btn-active-color-info" data-kt-rotate="true" data-bs-toggle="collapse" data-bs-target="#trip_block_${item.block_number}">
+                                            <div class="rotate btn btn-icon btn-sm btn-active-color-info" data-kt-rotate="true" data-bs-toggle="collapse" data-bs-target="#trip_batch${item.batch}_block_${item.block_number}">
                                                 <i class="ki-duotone ki-down fs-1  rotate-n180"></i>
                                             </div>
                                         </div>
                                     </div>
-                                    <div id="trip_block_${item.block_number}" class="collapse show">
+                                    <div id="trip_batch${item.batch}_block_${item.block_number}" class="collapse show">
                                         <div class="card-body pt-0">
                                             <div class="table-responsive">
-                                                <table class="table align-middle fs-6 gy-3 table-sm" id="tbl_block_${item.block_number}"
+                                                <table class="table align-middle fs-6 gy-3 table-sm" id="tbl_batch${item.batch}_block_${item.block_number}"
                                                 data-type="planning" data-id="${item.encrypted_id}">
                                                     <thead class="">
                                                         <tr class=" fw-bold fs-8 text-uppercase gs-0">
@@ -654,7 +458,7 @@ export function HaulingPlanInfoController(page,param){
                             </div>
                             `;
                             hauling_list.last().append(html).removeClass('d-none');
-                            initSortableTribBlock(`tbl_block_${item.block_number}`)
+                            initSortableTribBlock(`tbl_batch${item.batch}_block_${item.block_number}`)
                             initSortableBlocks()
                             empty_hauling_list.addClass('d-none');
                             resolve(true)
@@ -674,171 +478,6 @@ export function HaulingPlanInfoController(page,param){
         })
 
 
-    }
-
-    function addMultiPickupBlock(card,data_id,tableId)
-    {
-        let cardHTML = card[0].outerHTML; // Convert the DOM element back to HTML string
-        let newCard = `
-            <div class="card mb-5">
-                <div class="card-header collapsible">
-                    <span class="card-title pt-3">
-                        <div class="d-flex flex-column">
-                            <div class="d-flex align-items-center mb-1">
-                                <a href="javascript:;" class="text-gray-900 text-hover-primary fs-5 fw-bold me-1">
-                                    Multi-Pickup Block
-                                </a>
-                            </div>
-                        </div>
-                    </span>
-                    <div class="card-toolbar">
-                        ${`
-                        <div class="me-0">
-                            <button class="btn btn-sm btn-icon btn-active-color-primary"
-                                data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-                                <i class="ki-solid ki-dots-horizontal fs-2x"></i>
-                            </button>
-                            <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-3"
-                                data-kt-menu="true">
-                                <div class="menu-item px-3">
-                                    <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
-                                        More Actions
-                                    </div>
-                                </div>
-                                <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3 add-multipick" data-id="${data_id}">
-                                        Add Multi-Pickup
-                                    </a>
-                                </div>
-                                <div class="separator my-2 opacity-75"></div>
-                                <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3 cancel-mp-block text-danger" data-id="${data_id}">
-                                        Cancel Multi-Pickup
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        `}
-                    </div>
-                </div>
-                <div class='card-body'>
-                    ${cardHTML}
-                    <div class="card mb-5">
-                        <div class="card-header collapsible">
-                            <span class="card-title pt-3">
-                                <div class="d-flex flex-column">
-                                    <div class="d-flex align-items-center mb-1">
-                                        <a href="javascript:;" class="text-gray-900 text-hover-primary fs-5 fw-bold me-1">
-                                            Multi-Pickup
-                                        </a>
-                                    </div>
-                                    <div class="d-flex flex-wrap fw-semibold fs-6 pe-2">
-                                        <a href="javascript:;" class="d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
-                                            Units : <span class="tripblock_unit_count">0</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </span>
-                            <div class="card-toolbar">
-                                <div class="rotate btn btn-icon btn-sm btn-active-color-info" data-kt-rotate="true" data-bs-toggle="collapse" data-bs-target="#trip_mpblock_${multipickup_block}">
-                                    <i class="ki-duotone ki-down fs-1  rotate-n180"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="trip_mpblock_${multipickup_block}" class="collapse show">
-                            <div class='card-body'>
-                                <div class="table-responsive">
-                                    <table class="table table-row-bordered align-middle table-sm gy-3" tbl-multipick="MP" id="tbl_mpblock_${multipickup_block}"
-                                    data-type="planning" data-id="${data_id}">
-                                        <thead class="">
-                                            <tr class=" fw-bold fs-8 text-uppercase gs-0">
-                                                <th>Dealer</th>
-                                                <th>Cs No.</th>
-                                                <th>Model</th>
-                                                <th>Color</th>
-                                                <th>Invoice Date</th>
-                                                <th>Location</th>
-                                                <th>Inspection TIme</th>
-                                                <th>Hub</th>
-                                                <th class="text-center">Transfer ?</th>
-                                                <th>Remarks</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="fs-8 fw-semibold text-gray-600" data-type="planning" data-id="${data_id}">
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        `;
-
-        card.replaceWith(newCard); // Replace the original card with the new one
-        initSortableTribBlock(tableId)
-        initSortableTribBlock(`tbl_mpblock_${multipickup_block}`)
-        KTComponents.init()
-        data_bs_components()
-        multipickup_block++;
-    }
-
-    function addMultipickUp(data_id,card_body){
-        card_body.append(`
-            <div class="card mb-5">
-                        <div class="card-header collapsible">
-                            <span class="card-title pt-3">
-                                <div class="d-flex flex-column">
-                                    <div class="d-flex align-items-center mb-1">
-                                        <a href="javascript:;" class="text-gray-900 text-hover-primary fs-5 fw-bold me-1">
-                                            Multi-Pickup
-                                        </a>
-                                    </div>
-                                    <div class="d-flex flex-wrap fw-semibold fs-6 pe-2">
-                                        <a href="javascript:;" class="d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
-                                            Units : <span class="tripblock_unit_count">0</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </span>
-                            <div class="card-toolbar">
-                                <div class="rotate btn btn-icon btn-sm btn-active-color-info" data-kt-rotate="true" data-bs-toggle="collapse" data-bs-target="#trip_mpblock_${multipickup_block}">
-                                    <i class="ki-duotone ki-down fs-1  rotate-n180"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="trip_mpblock_${multipickup_block}" class="collapse show">
-                            <div class='card-body'>
-                                <div class="table-responsive">
-                                    <table class="table table-row-bordered align-middle table-sm gy-3" tbl-multipick="MP" id="tbl_mpblock_${multipickup_block}"
-                                    data-type="planning" data-id="${data_id}">
-                                        <thead class="">
-                                            <tr class=" fw-bold fs-8 text-uppercase gs-0">
-                                                <th>Dealer</th>
-                                                <th>Cs No.</th>
-                                                <th>Model</th>
-                                                <th>Color</th>
-                                                <th>Invoice Date</th>
-                                                <th>Location</th>
-                                                <th>Inspection TIme</th>
-                                                <th>Hub</th>
-                                                <th class="text-center">Transfer ?</th>
-                                                <th>Remarks</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="fs-8 fw-semibold text-gray-600" data-type="planning" data-id="${data_id}">
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-            `);
-        initSortableTribBlock(`tbl_mpblock_${multipickup_block}`)
-        KTComponents.init()
-        data_bs_components()
-        multipickup_block++;
     }
 
     function removeTripBlock(_this){
@@ -1148,6 +787,7 @@ export function HaulingPlanInfoController(page,param){
                 let swappedTable = swappedCard.querySelector('table');
                 let swappedDataId = swappedTable.getAttribute('data-id');
 
+                let batch = $('select[name="batch"]').val();
 
                 if (draggedDataId.length > 0 && swappedDataId.length > 0) {
                     let formData = new FormData();
@@ -1155,12 +795,13 @@ export function HaulingPlanInfoController(page,param){
                     formData.append('new_position',newPosition);
                     formData.append('draggedDataId',draggedDataId);
                     formData.append('swappedDataId',swappedDataId);
+                    formData.append('batch',batch);
 
                     (new RequestHandler).post('/tms/cco-b/planner/haulage_info/update_tripblock_position', formData).then((res) => {
                         if (res.status == 'success') {
                             //code here
                         } else {
-                            Alert.alert('error', res.message);
+                            Alert.alert("error","Something went wrong. Try again later");
                         }
                     }).catch((error) => {
                         console.log(error);
@@ -1175,123 +816,6 @@ export function HaulingPlanInfoController(page,param){
             },
         });
     }
-
-    // function initSortableMPBlocks(id)
-    // {
-    //     new Sortable(document.getElementById(id).getElementsByTagName('tbody')[0], {
-    //         group: {
-    //             name: 'planning',
-    //             pull: true,
-    //             put: ['planning', 'forAllocation'],
-    //         },
-    //         filter: '.exclude-filter, input, .form-check-input', // Add input elements to filter
-    //         preventOnFilter: false, // Allow interaction with the filtered elements
-    //         animation: 150,
-    //         multiDrag: true,
-    //         selectedClass: 'selected',
-    //         onEnd: function(evt) {
-    //             let selectedItems = evt.items.length > 0 ? evt.items : [evt.item];
-    //             let currentTable = evt.to.closest('table');
-    //             let formData = new FormData();
-    //             let selectedItemsData = [];
-    //             let oldTable = evt.from.closest('table');
-
-    //             let allocated_badge = currentTable.querySelector('tbody').getAttribute('data-allocated');
-    //             let unallocated_badge = currentTable.querySelector('tbody').getAttribute('data-unallocated');
-    //             let allocated = 0;
-    //             let unallocated = 0;
-
-    //             selectedItems.forEach(function(item) {
-    //                 let originalTableId = item.getAttribute('data-original-table');
-    //                 let currentTableId = evt.to.closest('table').id;
-    //                 let tableToType = evt.to.getAttribute('data-type');
-    //                 let cells = item.getElementsByClassName('remove-cell');
-    //                 let itemData = {
-    //                     haulage_id: param,
-    //                     block_id: tableToType === 'forAllocation' ? '' : evt.to.getAttribute('data-id'),
-    //                     unit_id: item.getAttribute('data-id'),
-    //                     batch: $('select[name="batch"]').val(),
-    //                     status: tableToType === 'forAllocation' ? 0 : 1,
-    //                     unit_order: Array.from(currentTable.querySelectorAll('tbody tr')).indexOf(item) + 1
-    //                 };
-    //                 let ispushData = true;
-    //                 if (item.getAttribute('data-type') === 'forAllocation' && tableToType === "forAllocation") {
-    //                     let originalTable = document.getElementById(originalTableId);
-    //                     if(originalTable){
-    //                         while (cells.length > 0) {
-    //                             cells[0].parentNode.removeChild(cells[0]);
-    //                         }
-    //                     }
-    //                     let inspectionTimeCell = document.createElement('td');
-    //                     inspectionTimeCell.classList.add('remove-cell');
-    //                     inspectionTimeCell.innerHTML =`
-    //                         <td class="remove-cell">
-    //                             <a href="javascript:;" class="btn btn-icon btn-color-gray-500 btn-active-color-danger justify-content-end remove-unit"
-    //                             data-bs-toggle="tooltip" data-bs-placement="top" title="Remove unit" data-id="${item.getAttribute('data-id')}" rq-url="/tms/cco-b/planner/haulage_info/remove_unit">
-    //                                 <i class="ki-duotone ki-trash-square fs-1">
-    //                                     <span class="path1"></span>
-    //                                     <span class="path2"></span>
-    //                                     <span class="path3"></span>
-    //                                     <span class="path4"></span>
-    //                                 </i>
-    //                             </a>
-    //                         </td>`;
-    //                     item.appendChild(inspectionTimeCell);
-
-    //                     if (currentTableId !== originalTableId && originalTable) {
-    //                         originalTable.getElementsByTagName("tbody")[0].appendChild(item);
-
-    //                     } else if (!originalTable) {
-    //                         evt.from.appendChild(item);
-    //                         ispushData = false;
-    //                     }else{
-    //                         unallocated++;
-    //                     }
-    //                 }else if (tableToType == "planning"){
-    //                     let cardHeader = currentTable.closest('.card').querySelector('.card-header');
-    //                     let tripblockUnitCount = cardHeader.querySelector('.tripblock_unit_count');
-
-    //                     tripblockUnitCount = parseInt(tripblockUnitCount.textContent)+1;
-    //                     cardHeader.querySelector('.tripblock_unit_count').textContent = tripblockUnitCount;
-
-    //                     let oldCardHeader = oldTable.closest('.card').querySelector('.card-header');
-    //                     let oldtripblockUnitCount = oldCardHeader.querySelector('.tripblock_unit_count');
-
-    //                     oldtripblockUnitCount = parseInt(oldtripblockUnitCount.textContent)-1;
-    //                     oldCardHeader.querySelector('.tripblock_unit_count').textContent = oldtripblockUnitCount;
-
-    //                 }
-    //                 if(ispushData){ selectedItemsData.push(itemData) }
-    //             });
-
-    //             if (selectedItemsData.length > 0) {
-    //                 formData.append('units', JSON.stringify(selectedItemsData));
-    //                 formData.append('haulage_id', param);
-    //                 (new RequestHandler).post('/tms/cco-b/planner/haulage_info/update_mpblock_units', formData).then((res) => {
-    //                     if (res.status == 'success') {
-    //                     } else {
-    //                         Alert.alert('error', res.message);
-    //                     }
-    //                 }).catch((error) => {
-    //                     console.log(error);
-    //                     Alert.alert('error', "Something went wrong. Try again later", false);
-    //                 }).finally(() => {
-    //                 });
-
-    //                 if(unallocated > 0){
-    //                     allocated = (parseInt($(`.${allocated_badge}`).text())) - unallocated;
-    //                     unallocated = (parseInt($(`.${unallocated_badge}`).text())) + unallocated;
-    //                     $(`.${allocated_badge}`).empty().text(allocated);
-    //                     $(`.${unallocated_badge}`).empty().text(unallocated);
-    //                 }
-
-    //             }
-    //         },
-    //         onStart: function(evt) {
-    //             //code here
-    //         },
-    //     });
-    // }
 
     function exportTripBlockList(batch='Show All',search='',filter='Show All'){
 
@@ -1322,7 +846,7 @@ export function HaulingPlanInfoController(page,param){
                                                 ${item.name}
                                             </span>
                                             <div class="fs-7 text-muted">
-                                                Units : ${item.unit_count} ${item.is_multipickup ?  '| Multi-PickUp' : ''} ${item.is_transfer ?  '| Transfer' : ''}
+                                                Units : ${item.unit_count} ${item.is_multipickup ?  `| Multi-PickUp` : ``} ${item.is_transfer ?  '| Transfer' : ''}
                                             </div>
                                         </div>
                                     </td>
@@ -1341,7 +865,8 @@ export function HaulingPlanInfoController(page,param){
                                     </td>
                                     <td class="text-center">
                                         <div class="form-check form-check-custom form-check-solid form-check-sm">
-                                            <input class="form-check-input cursor-pointer" type="checkbox" value="${item.encrypt_id}">
+                                            <input class="form-check-input cursor-pointer" type="checkbox" value="${item.encrypt_id}"
+                                                data-multipick="${item.is_multipickup && batch != item.block_batch ? true : false}">
                                         </div>
                                     </td>
                                 </tr>
@@ -1390,11 +915,6 @@ export function HaulingPlanInfoController(page,param){
         let sess_batch =localStorage.getItem("sess_batch") || 1;
 
         loadTripBlock(sess_batch).then(()=>{
-            if(sess_batch == 'All Batch'){
-                $('.add-block').addClass('d-none');
-            }else{
-                $('.add-block').removeClass('d-none');
-            }
             fvHaulingPlanInfo(param)
             loadForAllocation('svc')
             custom_upload()
@@ -1477,7 +997,7 @@ export function HaulingPlanInfoController(page,param){
                 }
                 setTimeout(function() {
                     HaulingCard.release();
-                }, 300);
+                },150);
             })
         })
 
@@ -1537,7 +1057,7 @@ export function HaulingPlanInfoController(page,param){
                             Alert.alert('error',res.message, false);
                         }else{
                             Alert.toast(res.status,res.message);
-                            if(res.status == 'success'){
+                            if(res.status == 'success' && res.payload){
                                 Alert.loading("Please wait while page is refreshing . . .",{
                                     didOpen:function(){
                                         setTimeout(function() {
@@ -1595,11 +1115,20 @@ export function HaulingPlanInfoController(page,param){
                     (new RequestHandler).post(url,formData).then((res) => {
                         Alert.toast(res.status,res.message);
                         if(res.status == 'success'){
-                            _this.closest('tr').remove();
+                            if(res.payload <= 0){
+                                // loadForAllocation($('.nav-tab.active').attr('data-hub'),$('input[name="search"]').val());
+                                AllocationCard.release();
+                                setTimeout(function() {
+                                    $('.nav-tab.active').click();
+                                }, 100);
+                            }else{
+                                _this.closest('tr').remove();
+                                setTimeout(function() {
+                                    AllocationCard.release();
+                                }, 300);
+                            }
                         }
-                        setTimeout(function() {
-                            AllocationCard.release();
-                        }, 300);
+
                     })
                     .catch((error) => {
                         console.log(error)
@@ -1818,12 +1347,17 @@ export function HaulingPlanInfoController(page,param){
             let modal_id = $(this).attr('modal-id');
             let checkedValues = modal.find('tbody .form-check-input:checked')
             .map(function() {
-                return $(this).val();
+                let checkboxValue = $(this).val();
+                let isMultipickup = $(this).attr('data-multipick'); // Check if data-multipickup exists
+
+                return {
+                    tripblock_id: checkboxValue,
+                    isMultipickup: isMultipickup=='true'??false
+                };
             }).get();
 
             let format = $('select[name="export_format"]').val();
-
-            // select[name="export_batch"]
+            let batch = $('select[name="export_batch"]').val();
             if(checkedValues.length > 0){
                 $(modal_id).modal('hide');
                 Alert.input(`question`,`Export this trip blocks?`, {
@@ -1834,6 +1368,7 @@ export function HaulingPlanInfoController(page,param){
                         formData.append('tripblock_ids',window.btoa(JSON.stringify(checkedValues)));
                         formData.append('format',format);
                         formData.append('filename',filename);
+                        formData.append('batch',batch);
 
                         (new RequestHandler).post('/tms/cco-b/planner/haulage_info/export_reports',formData).then((res) => {
                             if(res.status == 'success'){
@@ -1872,40 +1407,6 @@ export function HaulingPlanInfoController(page,param){
                     modal_state(modal_id);
                 }
             })
-
-        })
-
-        _page.on('click','.add-mp-block',function(e){
-            e.preventDefault()
-            e.stopImmediatePropagation()
-
-            let _this = $(this);
-            let card = _this.closest('.card');
-            let data_id = _this.attr('data-id');
-
-            let table = card.find('.card-body table');  // Finds the first table inside the card-body
-            let tableId = table.attr('id');
-
-            _this.closest('.card-header').removeClass('card-sortable');
-
-            let menuContainer = _this.closest('.me-0');
-            menuContainer.remove();
-
-            addMultiPickupBlock(card,data_id,tableId);
-
-        })
-
-        _page.on('click','.add-multipick',function(e){
-            e.preventDefault()
-            e.stopImmediatePropagation()
-
-            let _this = $(this);
-            let data_id = _this.attr('data-id');
-
-            let parentCard = _this.closest('.card');  // Get the closest parent card
-            let card_body = parentCard.children('.card-body');  // Select its direct card-body
-
-            addMultipickUp(data_id,card_body);
 
         })
 
