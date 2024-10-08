@@ -1272,8 +1272,11 @@ class HaulageInfo extends Controller
             $data = TmsHaulageBlock::with([
                 'block_unit' => function($q) {
                     // Exclude units with "MP" in vld_instruction
-                    $q->where('vld_instruction', 'NOT LIKE', '%MP%')
-                      ->orderByRaw("CASE WHEN vld_instruction LIKE '%MP%' THEN 1 ELSE 0 END, id");
+                    $q->where(function($query) {
+                        $query->whereNull('vld_instruction')
+                              ->orWhere('vld_instruction', 'NOT LIKE', '%MP%');
+                    })
+                    ->orderByRaw("CASE WHEN vld_instruction LIKE '%MP%' THEN 1 ELSE 0 END, id");
                 }
             ])
             ->whereIn('id', $tripblocks_non_multipickup)
@@ -1281,7 +1284,7 @@ class HaulageInfo extends Controller
             ->orderBy('block_number', 'ASC')
             ->get();
 
-            if($tripblocks_multipickup){
+            if(!empty($tripblocks_multipickup)){
                 $multipickup = TmsHaulageBlock::with([
                     'block_unit' => function($q) {
                         $q->where('vld_instruction', 'LIKE', '%MP%')  // Only load block_unit with "MP"
