@@ -81,7 +81,8 @@
                 </div>
             </div>
             <div class="modal-body px-5 my-7">
-                <form id="form_masterlist" modal-id="#modal_upload_masterlist" class="form fv-plugins-bootstrap5 fv-plugins-framework" action="/tms/cco-b/planner/haulage_info/masterlist">
+                <form id="form_masterlist" modal-id="#modal_upload_masterlist"
+                class="form fv-plugins-bootstrap5 fv-plugins-framework" action="/tms/cco-b/planner/haulage_info/masterlist">
                     <div class="custom-file-upload">
                         <div class="upload-area uploadArea">
                             <div class="fv-row">

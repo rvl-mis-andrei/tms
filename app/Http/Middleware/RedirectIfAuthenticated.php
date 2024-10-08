@@ -21,7 +21,10 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                return redirect(RouteServiceProvider::HOME);
+                $user = Auth::user();
+                $cluster = $user->emp_cluster->cluster->code;
+                $role = strtolower($user->user_roles->role->name);
+                return redirect("$cluster/$role/dashboard");
             }
         }
 

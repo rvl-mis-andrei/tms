@@ -73,7 +73,7 @@ class PlannerPageController extends Controller
                     });
                 })
                 ->first();
-                if (!$row) { return view("cluster_b.not_found"); }
+                if (!$row) { return view("cluster_b.$role.not_found"); }
                 $folders = !$row->file_layer->isEmpty()? $row->folder.'.'.$row->file_layer[0]->folder :$row->folder;
                 $file    = $row->file_layer[0]->href??$row->href;
                 return response([ 'page' => view("cluster_b.$role.$folders.$file")->render() ],200);

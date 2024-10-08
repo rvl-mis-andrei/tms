@@ -17,13 +17,10 @@ class preventAuthenticatedUsers
     public function handle(Request $request, Closure $next): Response
     {
         if (Auth::check()) {
-
-            $cluster = $request->segment(2);
-            $user = Auth::user() ?? false;
+            $user = Auth::user();
+            $cluster = $user->emp_cluster->cluster->code;
             $role = strtolower($user->user_roles->role->name);
-
-            return redirect("tms/$cluster/$role/dashboard");
-
+            return redirect("$cluster/$role/dashboard");
         }
 
         return $next($request);

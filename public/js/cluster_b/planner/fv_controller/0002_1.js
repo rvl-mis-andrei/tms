@@ -63,7 +63,7 @@ export function fvHaulingPlanInfo(param){
                         modal_state(modal_id);
                         fvMasterPlan.resetForm();
                         form.reset();
-                        form.setAttribute('action','action','/tms/cco-b/planner/haulage_info/masterlist');
+                        form.setAttribute('action','/tms/cco-b/planner/haulage_info/masterlist');
                         $(modal_id).find('.submit').attr('data-id','');
                         $(modal_id).find('.modal_title').text('Upload TMP');
                     }
@@ -106,8 +106,14 @@ export function fvHaulingPlanInfo(param){
                                     }
                                 })
                                 .catch((error) => {
-                                    console.log(error)
-                                    Alert.alert('error',"Something went wrong. Try again later", false);
+                                    if (error.response && error.response.status === 405) {
+                                        // Handle 405 Method Not Allowed error
+                                        Alert.alert('error', "CSRF token expire. Refresh the page.", false);
+                                    } else {
+                                        // Handle other errors
+                                        console.log(error);
+                                        Alert.alert('error', "Something went wrong. Try again later", false);
+                                    }
                                 })
                                 .finally(() => {
                                     btn_submit.attr("data-kt-indicator","off");
@@ -220,8 +226,14 @@ export function fvHaulingPlanInfo(param){
                                     }
                                 })
                                 .catch((error) => {
-                                    console.log(error)
-                                    Alert.alert('error',"Something went wrong. Try again later", false)
+                                    if (error.response && error.response.status === 405) {
+                                        // Handle 405 Method Not Allowed error
+                                        Alert.alert('error', "CSRF token expire. Refresh the page.", false);
+                                    } else {
+                                        // Handle other errors
+                                        console.log(error);
+                                        Alert.alert('error', "Something went wrong. Try again later", false);
+                                    }
                                 })
                                 .finally(() => {
                                     btn_submit.attr("data-kt-indicator","off")
@@ -325,8 +337,14 @@ export function fvHaulingPlanInfo(param){
                                     }
                                 })
                                 .catch((error) => {
-                                    console.log(error)
-                                    Alert.alert('error',"Something went wrong. Try again later", false);
+                                    if (error.response && error.response.status === 405) {
+                                        // Handle 405 Method Not Allowed error
+                                        Alert.alert('error', "CSRF token expire. Refresh the page.", false);
+                                    } else {
+                                        // Handle other errors
+                                        console.log(error);
+                                        Alert.alert('error', "Something went wrong. Try again later", false);
+                                    }
                                 })
                                 .finally(() => {
                                     btn_submit.attr("data-kt-indicator","off");
