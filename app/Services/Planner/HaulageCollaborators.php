@@ -27,6 +27,7 @@ class HaulageCollaborators
         try{
             DB::beginTransaction();
             $id = (new ClusterPersonnelList)->get_personnel($cluster_id);
+
             if(!$id) {  return false; }
             $array = [];
             foreach($id as $personnel_id)
@@ -38,8 +39,7 @@ class HaulageCollaborators
                     'created_by'=>Auth::user()->emp_id,
                 ];
             }
-
-            TmsHaulageCollaborator::create($array);
+            TmsHaulageCollaborator::insert($array);
             DB::commit();
             return true;
         }catch(Exception $e){
