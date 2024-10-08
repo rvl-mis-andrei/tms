@@ -5,8 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DispatcherController\Login\Auth as DispatcherLoginController;
 
 //CCO-B ACCESS ROUTE remove tms
-Route::group(['prefix'=>'tms/cco-b'], function() {
-// Route::group(['prefix'=>'cco-b'], function() {
+// Route::group(['prefix'=>'tms/cco-b'], function() {
+Route::group(['prefix'=>'cco-b'], function() {
 
     Route::controller(AccessController::class)->group(function () {
 
