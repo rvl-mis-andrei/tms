@@ -1264,7 +1264,7 @@ class HaulageInfo extends Controller
                 }
             }
 
-            $query = TmsHaulage::find($haulage_id)->planning_date;
+            $query = TmsHaulage::find($haulage_id);
             $planning_date = $query->planning_date;
             $formatted_date = Carbon::parse($planning_date)->format('F j Y');
             $formatted_date = strtoupper(Carbon::parse($planning_date)->format('F')) . Carbon::parse($planning_date)->format(' j Y');
@@ -1450,7 +1450,7 @@ class HaulageInfo extends Controller
             }
 
             $haulage_id = Crypt::decrypt($rq->id);
-            $query = TmsHaulage::find($haulage_id)->planning_date;
+            $query = TmsHaulage::find($haulage_id);
             $planning_date = $query->planning_date;
             $formatted_date = Carbon::parse($planning_date)->format('F j Y');
             $formatted_date = strtoupper(Carbon::parse($planning_date)->format('F')) . Carbon::parse($planning_date)->format(' j Y');
