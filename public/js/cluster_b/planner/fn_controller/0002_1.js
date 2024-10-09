@@ -9,8 +9,8 @@ import {fvHaulingPlanInfo} from '../fv_controller/0002_1.js';
 
 
 export function HaulingPlanInfoController(page,param){
-    var block_number = 0;
-    var multipickup_block = 0;
+
+    var currentBlockNumber = 0;
     const hauling_list = $('.hauling_list');
     const empty_hauling_list = $('.empty_hauling_list');
     const _page = $('.haulage_info_page');
@@ -33,7 +33,7 @@ export function HaulingPlanInfoController(page,param){
             (new RequestHandler).post('/tms/cco-b/planner/haulage_info/tripblock',formData).then((res) => {
                 if(res.status == 'success'){
                     let payload = JSON.parse(window.atob(res.payload));
-                    let html = '',tbody='', isAllBlockFinal = false,tripBlockCount=0,trpBlockUnit=0;
+                    let html = '',tbody='', isAllBlockFinal = false, totalBlocks=0, totalBlockUnits=0;
                     hauling_list.empty();
                     $('.finalize-notif').empty().addClass('d-none');
                     if(payload.length >0){
@@ -71,19 +71,15 @@ export function HaulingPlanInfoController(page,param){
                                             <div class="d-flex flex-column">
                                                 <div class="d-flex align-items-center mb-1">
                                                     <a href="javascript:;" class="text-gray-900 text-hover-primary fs-5 fw-bold me-1">
-                                                        ${
-                                                            item.dealer_code ??
-                                                            "Trip Block #" +
-                                                            (key + 1)
-                                                        }
+                                                        ${item.dealer_code ??"Trip Block #" +(key + 1)}
                                                     </a>
                                                 </div>
                                                 <div class="d-flex flex-wrap fw-semibold fs-6 pe-2">
                                                     <a href="javascript:;" class=" d-flex align-items-center text-gray-500 text-hover-primary me-4 mb-2">
+                                                        <span class="bullet bg-secondary me-1"></span>
                                                         Units: <span class="tripblock_unit_count">${item.units_count}</span>
                                                     </a>
-                                                    ${
-                                                        item.is_multipickup
+                                                    ${item.is_multipickup
                                                             ? `
                                                             <a href="javscript:;" class="d-flex align-items-center text-gray-500 text-primary me-5 mb-2">
                                                                 <i class="ki-duotone ki-geolocation fs-4 me-1"><span class="path1"></span><span class="path2"></span></i>
@@ -111,9 +107,7 @@ export function HaulingPlanInfoController(page,param){
                                             </div>
                                         </span>
                                         <div class="card-toolbar">
-                                            ${
-                                                item.status != 2
-                                                    ? `
+                                            ${item.status != 2 ? `
                                             <div class="me-0">
                                                 <button class="btn btn-sm btn-icon btn-active-color-primary"
                                                     data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
@@ -138,30 +132,16 @@ export function HaulingPlanInfoController(page,param){
                                                     : ""
                                             }
                                             <div class="rotate btn btn-icon btn-sm btn-active-color-info"
-                                                data-kt-rotate="true" data-bs-toggle="collapse" data-bs-target="#trip_batch${
-                                                    item.batch
-                                                }_block_${
-                                item.block_number
-                            }">
+                                                data-kt-rotate="true" data-bs-toggle="collapse" data-bs-target="#trip_batch${item.batch}_block_${item.block_number}">
                                                 <i class="ki-duotone ki-down fs-1  rotate-n180"></i>
                                             </div>
                                         </div>
                                     </div>
-                                    <div id="trip_batch${
-                                        item.batch
-                                    }_block_${
-                                item.block_number
-                            }" class="collapse show">
+                                    <div id="trip_batch${item.batch}_block_${item.block_number}" class="collapse show">
                                         <div class="card-body">
                                             <div class="table-responsive">
-                                                <table class="table table-row-bordered align-middle table-sm gy-3" id="tbl_batch${
-                                                    item.batch
-                                                }_block_${
-                                item.block_number
-                            }"
-                                                data-type="planning" data-id="${
-                                                    item.encrypted_id
-                                                }">
+                                                <table class="table table-row-bordered align-middle table-sm gy-3" id="tbl_batch${item.batch}_block_${item.block_number}"
+                                                data-type="planning" data-id="${item.encrypted_id}">
                                                     <thead class="">
                                                         <tr class=" fw-bold fs-8 text-uppercase gs-0">
                                                             <th>Dealer</th>
@@ -176,9 +156,7 @@ export function HaulingPlanInfoController(page,param){
                                                             <th>Remarks</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody class="fs-8 fw-semibold text-gray-600" data-type="planning" data-id="${
-                                                        item.encrypted_id
-                                                    }">
+                                                    <tbody class="fs-8 fw-semibold text-gray-600" data-type="planning" data-id="${item.encrypted_id}">
                                                         ${tbody}
                                                     </tbody>
                                                 </table>
@@ -189,15 +167,15 @@ export function HaulingPlanInfoController(page,param){
                             </div>
                             `;
                             hauling_list.append(html);
-                            tripBlockCount++;
-                            trpBlockUnit++;
-                            block_number = tripBlockCount;
                             if(item.status !=2){
                                 initSortableTribBlock(`tbl_batch${item.batch}_block_${item.block_number}`)
                                 isAllBlockFinal=false;
                             }else{
                                 isAllBlockFinal=true;
                             }
+                            totalBlocks++;
+                            totalBlockUnits = totalBlockUnits+item.block_units.length;
+                            currentBlockNumber = totalBlocks;
                         })
 
                         if(isAllBlockFinal){
@@ -245,8 +223,9 @@ export function HaulingPlanInfoController(page,param){
                         $('.more-actions').removeClass('d-none');
                     }
                     $('.haulage_info_page').removeClass('d-none')
-                    $('.unit-count').text(trpBlockUnit)
-                    $('.trip-count').text(tripBlockCount)
+                    console.log(totalBlockUnits)
+                    $('.unit-count').text(totalBlockUnits)
+                    $('.trip-count').text(totalBlocks)
                     KTComponents.init()
                     data_bs_components()
                     resolve(true);
@@ -273,7 +252,7 @@ export function HaulingPlanInfoController(page,param){
                     let payload = JSON.parse(window.atob(res.payload));
                     let data = payload.data;
                     let status = payload.status;
-                    let html = '',accordion=0, isFinal=false;
+                    let html = '',accordion=0, totalUnitCount=0;
                     if(Object.keys(data).length){
                         $(`.${hub}_content`).empty();
                         $(`.for_allocation`).empty();
@@ -282,6 +261,7 @@ export function HaulingPlanInfoController(page,param){
                             accordion++;
                             data[key].unit.forEach(function(item) {
                                 if(item.encrypted_id){
+                                    totalUnitCount++;
                                     tbody+=`<tr data-id="${item.encrypted_id}" class="${/priority/i.test(item.remarks) ? 'text-danger' : 'text-muted'}">
                                         <td>${item.cs_no}</td>
                                         <td>${item.model}</td>
@@ -342,7 +322,7 @@ export function HaulingPlanInfoController(page,param){
                         })
                         $(`.${hub}_content`).removeClass('d-none');
                         $(`.empty_${hub}`).addClass('d-none');
-                        $(`.${hub}-count`).text('('+Object.keys(data).length+')').removeClass('d-none');
+                        $(`.${hub}-count`).text('('+totalUnitCount+')').removeClass('d-none');
                     }else{
                         $(`.${hub}_content`).addClass('d-none').empty();
                         $(`.empty_${hub}`).removeClass('d-none');
@@ -368,10 +348,10 @@ export function HaulingPlanInfoController(page,param){
     function addTripBlock(){
         let formData = new FormData();
         let batch = $('select[name="batch"]').val();
-        block_number++;
+        currentBlockNumber++;
         formData.append('id',param)
         formData.append('batch',batch)
-        formData.append('block_number',block_number)
+        formData.append('block_number',currentBlockNumber)
 
         return new Promise((resolve, reject) => {
 
@@ -491,9 +471,9 @@ export function HaulingPlanInfoController(page,param){
         return new Promise((resolve, reject) => {
             (new RequestHandler).post('/tms/cco-b/planner/haulage_info/remove_tripblock',formData).then((res) => {
                 if(res.status == 'success'){
-                    block_number--;
+                    currentBlockNumber--;
                     $(_this).closest('.card').remove();
-                    if(block_number ==0){
+                    if(currentBlockNumber ==0){
                         loadTripBlock(batch)
                     }
                     resolve(true)
