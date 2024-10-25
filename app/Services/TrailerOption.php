@@ -12,7 +12,7 @@ class TrailerOption
 {
     public function list(Request $rq)
     {
-        $query = Trailer::whereNotIn('status', [2, 3, 4]);
+        $query = Trailer::query();
         return match($rq->type){
             'options' => $this->options($rq,$query),
             'search_modal' => $this->search_modal($rq,$query),
@@ -27,13 +27,13 @@ class TrailerOption
         if ($data->count()) {
             $html = '<option></option>';
             foreach ($data as $row) {
-                $selected = $search == $row->id ? 'selected' : '';
+                $selected = $search === $row->id ? 'selected' : '';
                 $id = Crypt::encrypt($row->id);
                 $html .= '<option value="'.$id.'"'.$selected.'>'.$row->name.'</option>';
             }
             return $html;
         } else {
-            return '<option disabled>No Available Location</option>';
+            return '<option disabled>No Available Trailer</option>';
         }
     }
 

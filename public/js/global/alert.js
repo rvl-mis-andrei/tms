@@ -86,6 +86,86 @@ export class Alert {
         });
     }
 
+    static select(icon, title, option, config) {
+        let selectHTML = '';
+
+        config.forEach(selectConfig => {
+            let { name, options } = selectConfig;
+            let selectElement = `<select name="${name}" class="form-select swal-select2" data-control="select2"
+                                    data-allow-clear="true" data-placeholder="Select an option">
+                                  <option></option>`;
+
+            // Loop through the options for each select
+            if (Array.isArray(options) && options.length > 0) {
+                options.forEach(option => {
+                    selectElement += `<option value="${option.value}">${option.text}</option>`;
+                });
+            }
+
+            selectElement += `</select>`;
+            selectHTML += selectElement;
+        });
+
+        Swal.fire({
+            icon: icon,
+            title: title,
+            html: selectHTML,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Submit',
+            cancelButtonText: 'Cancel',
+            customClass: {
+                confirmButton: "btn btn-primary",
+                cancelButton: "btn btn-danger",
+            },
+            didOpen: () => {
+                // Initialize select2 on all select elements
+                $('.swal-select2').select2({
+                    width: '100%',
+                    dropdownParent: $('.swal2-container')  // Ensure dropdown is within SweetAlert
+                });
+
+                // Ensure the select2 container has a high z-index
+                $('.swal-select2').on('select2:open', function () {
+                    let select2Container = $(this).data('select2').$dropdown;
+                    select2Container.css('z-index', 99999999);  // Increase z-index
+                });
+            },
+            preConfirm: () => {
+                let selectedValues = {};
+                let isValid = true;
+
+                // Validate each select and gather their values
+                config.forEach(selectConfig => {
+                    let { name } = selectConfig;
+                    let selectValue = document.querySelector(`[name="${name}"]`).value;
+
+                    // Validation: if a select has no value, display an error
+                    if (!selectValue) {
+                        Swal.showValidationMessage(`Please select a value for ${name}`);
+                        isValid = false;
+                    } else {
+                        selectedValues[name] = selectValue;
+                    }
+                });
+
+                // Return selected values if validation passed
+                if (isValid) {
+                    return selectedValues;
+                }
+                return false;
+            }
+        }).then(result => {
+            if (result.isConfirmed && typeof option.onConfirm === "function") {
+                option.onConfirm(result.value); // Pass selected values to callback
+            } else if (result.isDismissed && typeof option.onCancel === "function") {
+                option.onCancel();
+            }
+        });
+    }
+
+
+
     static loading(message, option) {
         Swal.fire({
             html: message,

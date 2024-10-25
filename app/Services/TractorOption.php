@@ -10,7 +10,7 @@ class TractorOption
 {
     public function list(Request $rq)
     {
-        $query = Tractor::whereNotIn('status', [2, 3, 4]);
+        $query = Tractor::query();
         return match($rq->type){
             'options' => $this->options($rq,$query),
             'search_modal' => $this->search_modal($rq,$query),
@@ -25,7 +25,7 @@ class TractorOption
         if ($data->count()) {
             $html = '<option></option>';
             foreach ($data as $row) {
-                $selected = $search == $row->id ? 'selected' : '';
+                $selected = $search === $row->id ? 'selected' : '';
                 $id = Crypt::encrypt($row->id);
                 $html .= '<option value="'.$id.'"'.$selected.'>'.$row->name.' ['.$row->plate_no.']'.'</option>';
             }

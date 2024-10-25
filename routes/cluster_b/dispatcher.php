@@ -14,8 +14,8 @@ use App\Http\Controllers\ClusterBController\DispatcherPageController;
 use App\Services\Dispatcher\ClientList;
 use Illuminate\Support\Facades\Route;
 
-Route::group(['prefix'=>'cco-b/dispatcher'], function() {
-    // Route::group(['prefix'=>'tms/cco-b/dispatcher'], function() {
+// Route::group(['prefix'=>'cco-b/dispatcher'], function() {
+    Route::group(['prefix'=>'tms/cco-b/dispatcher'], function() {
 
     Route::middleware('auth')->group(function () {
 
@@ -47,9 +47,21 @@ Route::group(['prefix'=>'cco-b/dispatcher'], function() {
         });
 
         Route::controller(HaulageAttendance::class)->prefix('haulage_attendance')->group(function() {
-            Route::post('/create_attendance', 'create_attendance');
-            Route::post('/update_attendance', 'update_attendance');
-            Route::post('/update_tractor_trailer_att', 'update_tractor_trailer_att');
+            Route::post('/dt', 'dt');
+            Route::post('/start_attendance', 'start_attendance');
+            Route::post('/finish_attendance', 'finish_attendance');
+
+            Route::post('/tractor_trailer_info', 'tractor_trailer_info');
+            Route::post('/update_driver_attendance', 'update_driver_attendance');
+            Route::post('/update_tractor_trailer', 'update_tractor_trailer');
+            Route::post('/update_tractor_trailer_remarks', 'update_tractor_trailer_remarks');
+            Route::post('/update_tractor_trailer_status ', 'update_tractor_trailer_status');
+
+            Route::post('/check_tractor_status', 'check_tractor_status');
+            Route::post('/check_trailer_status', 'check_trailer_status');
+
+            Route::post('/delete_tractor_trailer', 'delete_tractor_trailer');
+
         });
 
         Route::controller(TractorTrailerDriver::class)->prefix('tractor_trailer_driver')->group(function() {

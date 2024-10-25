@@ -9,6 +9,7 @@ class TmsHaulageAttendance extends Model
 {
     use HasFactory;
     protected $fillable =[
+        'cluster_id',
         'tractor_trailer_id',
         'haulage_id',
         'is_present_pdriver',
@@ -24,6 +25,7 @@ class TmsHaulageAttendance extends Model
         'deleted_at',
         'created_by',
         'updated_by',
+        'is_final',
     ];
 
     public function trailer(){
@@ -58,5 +60,9 @@ class TmsHaulageAttendance extends Model
     public function deleted_by_emp()
     {
         return $this->belongsTo(Employee::class,'deleted_by')->withDefault();
+    }
+
+    public function block_delivery(){
+        return $this->belongsTo(TmsHaulageBlockDelivery::class,'attendance_id')->withDefault();
     }
 }

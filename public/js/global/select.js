@@ -3,26 +3,26 @@
 import {RequestHandler} from './request.js';
 
 
-export async function trigger_select(select)
-{
+export async function trigger_select(select, text) {
     return new Promise((resolve) => {
-        $.each(select, function(element, text) {
-            let found = false, val=null;
-            $(element).find('option').each(function() {
+        $(select).each(function() {
+            let val = null;
+            $(this).find('option').each(function() {
                 if ($(this).text() === text) {
                     val = $(this).val();
-                    found = true;
-                    return false;
+                    return false; // Break out of the loop
                 }
             });
-            $(element).val(val).trigger('change');
+            $(this).val(val).trigger('change'); // Set the value and trigger change
         });
+        resolve(); // Resolve the promise after processing
     });
 }
 
 export async function location(param) {
     return new Promise((resolve, reject) => {
         let element = $(`select[name="location"]`);
+        let modal = element.closest('.modal');
         element.attr('disabled', true);
 
         let formData = new FormData();
@@ -32,6 +32,11 @@ export async function location(param) {
         (new RequestHandler).post("/services/select/location", formData)
             .then((res) => {
                 element.empty().append(res);
+                element.attr('data-select2-initialized',true);
+                element.select2({
+                    dropdownParent: modal.length ? '#'+modal.attr('id') : null,
+                    width: '100%',
+                });
                 resolve(true);
             })
             .catch((error) => {
@@ -47,16 +52,21 @@ export async function location(param) {
 export async function tractor(param='') {
     return new Promise((resolve, reject) => {
         let element = $(`select[name="tractor"]`);
+        let modal = element.closest('.modal');
         element.attr('disabled', true);
 
         let formData = new FormData();
-        // console.log(param)
         formData.append('id', param);
         formData.append('type', 'options');
 
         (new RequestHandler).post("/services/select/tractor", formData)
             .then((res) => {
                 element.empty().append(res);
+                element.attr('data-select2-initialized',true);
+                element.select2({
+                    dropdownParent: modal.length ? '#'+modal.attr('id') : null,
+                    width: '100%',
+                });
                 resolve(true);
             })
             .catch((error) => {
@@ -70,10 +80,11 @@ export async function tractor(param='') {
     });
 }
 
-
 export async function trailer(param='') {
     return new Promise((resolve, reject) => {
         let element = $(`select[name="trailer"]`);
+        let modal = element.closest('.modal');
+
         element.attr('disabled', true);
 
         let formData = new FormData();
@@ -83,6 +94,68 @@ export async function trailer(param='') {
         (new RequestHandler).post("/services/select/trailer", formData)
             .then((res) => {
                 element.empty().append(res);
+                element.attr('data-select2-initialized',true);
+                element.select2({
+                    dropdownParent: modal.length ? '#'+modal.attr('id') : null,
+                    width: '100%',
+                });
+                resolve(true);
+            })
+            .catch((error) => {
+                console.error(error);
+                resolve(false);
+            })
+            .finally(() => {
+                element.attr('disabled', false);
+            });
+    });
+}
+
+export async function trailer_type(param='') {
+    return new Promise((resolve, reject) => {
+        let element = $(`select[name="trailer_type"]`);
+        let modal = element.closest('.modal');
+
+        element.attr('disabled', true);
+
+        let formData = new FormData();
+        formData.append('id', param);
+        formData.append('type', 'options');
+
+        (new RequestHandler).post("/services/select/trailer_type", formData)
+            .then((res) => {
+                element.empty().append(res);
+                element.attr('data-select2-initialized',true);
+                element.select2({
+                    dropdownParent: modal.length ? '#'+modal.attr('id') : null,
+                    width: '100%',
+                    tags:true,
+                    allowClear: true,
+                    createTag: function(params) {
+                        var term = $.trim(params.term);
+
+                        if (term === '') {
+                            return null; // Return null if the term is empty
+                        }
+
+                        return {
+                            id: term, // Create new option
+                            text: term, // Display text for the option
+                            newOption: true // Mark as a new option
+                        };
+                    },
+                    templateResult: function(data) {
+                        // Highlight the new tag that the user typed
+                        var $result = $('<span></span>');
+                        $result.text(data.text);
+
+                        if (data.newOption) {
+                            $result.append(' <em>(new)</em>');
+                        }
+
+                        return $result;
+                    }
+                });
                 resolve(true);
             })
             .catch((error) => {
@@ -98,6 +171,7 @@ export async function trailer(param='') {
 export async function cluster_driver(param='') {
     return new Promise((resolve, reject) => {
         let element = $(`select.cluster_drivers`);
+        let modal = element.closest('.modal');
         element.attr('disabled', true);
 
         let formData = new FormData();
@@ -107,6 +181,41 @@ export async function cluster_driver(param='') {
         (new RequestHandler).post("/services/select/cluster_drivers", formData)
             .then((res) => {
                 element.empty().append(res);
+                element.attr('data-select2-initialized',true);
+                element.select2({
+                    dropdownParent: modal.length ? '#'+modal.attr('id') : null,
+                });
+                resolve(true);
+            })
+            .catch((error) => {
+                console.error(error);
+                resolve(false);
+            })
+            .finally(() => {
+                element.attr('disabled', false);
+            });
+    });
+}
+
+export async function trailer_driver(param='') {
+    return new Promise((resolve, reject) => {
+        let element = $(`select[name="trailer_driver"]`);
+        let modal = element.closest('.modal');
+
+        element.attr('disabled', true);
+
+        let formData = new FormData();
+        formData.append('id', param);
+        formData.append('type', 'options');
+
+        (new RequestHandler).post("/services/select/trailer_driver", formData)
+            .then((res) => {
+                element.empty().append(res);
+                element.attr('data-select2-initialized',true);
+                element.select2({
+                    dropdownParent: modal.length ? '#'+modal.attr('id') : null,
+                    width: '100%',
+                });
                 resolve(true);
             })
             .catch((error) => {

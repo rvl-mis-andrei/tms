@@ -9,6 +9,8 @@ import { ClientListController } from './fn_controller/0004_0.js';
 import { ClientInfoController } from './fn_controller/0004_1.js';
 import { TractorTrailerController } from './fn_controller/0005_0.js';
 import { TractorTrailerInfoController } from './fn_controller/0005_1.js';
+import { DriverListController } from './fn_controller/0006_0.js';
+import { CarListController } from './fn_controller/0007_0.js';
 
 
 
@@ -70,7 +72,7 @@ export async function page_handler(page,param=null){
         break;
 
         case 'tractor_trailer_list':
-            TractorTrailerController(page,param)
+            TractorTrailerController(page,param).init()
         break;
 
         case 'tractor_trailer_info':
@@ -78,6 +80,11 @@ export async function page_handler(page,param=null){
         break;
 
         case 'driver_list':
+            DriverListController(page,param).init();
+        break;
+
+        case 'car_list':
+            CarListController(page,param).init();
         break;
 
         case 'cycle_time':

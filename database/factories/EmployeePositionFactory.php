@@ -19,6 +19,7 @@ class EmployeePositionFactory extends Factory
     public function definition(): array
     {
         return [
+            'emp_id'=>$this->faker->numberBetween(1, 100),
             'position_id' => \App\Models\Position::factory(), // Create a Position if not exists
             'department_id' => \App\Models\Department::factory(), // Create a Department if not exists
             'company_id' => $this->faker->numberBetween(1, 100), // Replace with valid company IDs or use a factory if you have a Company model
@@ -26,7 +27,7 @@ class EmployeePositionFactory extends Factory
             'created_by' => $this->faker->optional()->randomNumber(), // Optionally link to a user ID
             'updated_by' => $this->faker->optional()->randomNumber(), // Optionally link to a user ID
             'created_at' => now(),
-            'updated_at' => now(),
+            'created_by' => 1,
         ];
     }
 }

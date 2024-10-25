@@ -4,6 +4,7 @@ import {Alert} from "../../../global/alert.js"
 import {RequestHandler,} from "../../../global/request.js"
 import {data_bs_components,modal_state,page_state,custom_upload,createBlockUI} from "../../../global.js";
 import {TractorTrailerDT} from '../dt_controller/clientside/0002_1.js';
+import { fvTractorTrailer } from "../fv_controller/0002_1.js";
 
 export var HaulingPlanInfoController = function (page,param) {
 
@@ -204,24 +205,18 @@ export var HaulingPlanInfoController = function (page,param) {
     // }
 
     var loadTab = async function(tab,isLoaded=false){
+        const _tab = {
+            "#tractor_driver_details_tab": loadTractorTrailerTab(isLoaded),
+            "#dispatching_tab": loadDispatchingTab(isLoaded),
+        };
+
         return new Promise((resolve, reject) => {
-            switch (tab.replace('#', '')) {
-                case 'tractor_driver_details_tab':
-                    loadTractorTrailerTab(isLoaded).then((res) => {
-                    })
-                    resolve(true);
-                break;
-
-                case 'dispatching_tab':
-                    loadDispatchingTab(isLoaded);
-                    resolve(true);
-                break;
-
-                default:
-                    resolve(false);
-                break;
+            if (_tab[tab]) {
+                resolve(true);
+            } else {
+                reject(new Error("Tab not found"));
             }
-        })
+        });
     }
 
     var loadTractorTrailerTab = function(){
@@ -229,15 +224,16 @@ export var HaulingPlanInfoController = function (page,param) {
             try {
 
                 TractorTrailerDT(param).init()
+                fvTractorTrailer(false,'#tractor_trailer_driver')
 
-                _page.find('.start-attendance').on('click', function(e) {
+                _page.on('click','.start-attendance', function(e) {
                     e.preventDefault();
                     e.stopImmediatePropagation();
 
                     let _this = $(this);
                     let url = _this.attr('rq-url');
 
-                    Alert.confirm('question',"<b>Start Attendance?</b> <br><br> <em class='text-muted'>Note: Finalize the attendance for this haul before moving to the next.</em>",
+                    Alert.confirm('question',"Start Attendance ?",
                         {
                             onConfirm: function() {
                                 let formData = new FormData();
@@ -246,6 +242,11 @@ export var HaulingPlanInfoController = function (page,param) {
                                 (new RequestHandler).post(`/tms/cco-b/dispatcher/haulage_attendance/${url}`,formData).then((res) => {
                                     if(res.status == 'success'){
                                         Alert.toast(res.status,res.message);
+                                        _this.attr('rq-url', 'finish_attendance');
+                                        _this.text('Finish Attendance');
+                                        _this.removeClass('start-attendance btn-light-primary')
+                                            .addClass('finish-attendance btn-light-success');
+                                            $("#tractor_trailer_driver_wrapper").attr('data-url','tms/cco-b/dispatcher/haulage_attendance/dt')
                                     }else if (res.status == 400){
                                         Alert.alert('error',res.message, false);
                                     }
@@ -255,6 +256,42 @@ export var HaulingPlanInfoController = function (page,param) {
                                     Alert.alert('error',"Something went wrong. Try again later", false);
                                 })
                                 .finally(() => {
+                                    TractorTrailerDT(param).init()
+                                });
+                            }
+                        }
+                    );
+                });
+
+                _page.on('click','.finish-attendance', function(e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+
+                    let _this = $(this);
+                    let url = _this.attr('rq-url');
+
+                    Alert.confirm('question',"Finish Attendance ?",
+                        {
+                            onConfirm: function() {
+                                let formData = new FormData();
+                                formData.append('id',param);
+                                formData.append('is_final',1);
+
+                                (new RequestHandler).post(`/tms/cco-b/dispatcher/haulage_attendance/${url}`,formData).then((res) => {
+                                    if(res.status == 'success'){
+                                        Alert.toast(res.status,res.message);
+                                        TractorTrailerDT(param).init()
+                                        _this.remove();
+                                    }else if (res.status == 400){
+                                        Alert.alert('error',res.message, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.log(error)
+                                    Alert.alert('error',"Something went wrong. Try again later", false);
+                                })
+                                .finally(() => {
+                                    $("#tractor_trailer_driver_table").DataTable().ajax.reload(null, false);
                                 });
                             }
                         }
@@ -262,7 +299,6 @@ export var HaulingPlanInfoController = function (page,param) {
                 });
 
                 resolve(true);
-
 
             } catch (error) {
                 reject(error);
@@ -276,62 +312,39 @@ export var HaulingPlanInfoController = function (page,param) {
         })
     }
 
-
     return {
         init: function () {
-
             page_block.block();
-
             loadTab(lastActiveTab,false).then((res) => {
                 if (res) {
                     tabLoaded.push(lastActiveTab);
                     $(`a[href="${lastActiveTab}"]`).addClass('active');
                     $(`${lastActiveTab}`).addClass('active show');
+                    setTimeout(() => {
+                        page_block.release();
+                        KTComponents.init();
+                    },500);
                 }
             })
-            .catch((error) => {
-                console.error("Error loading trip block:", error);
-                Alert.alert('error', "Failed to load trip block. Please try again.", false);
-            })
-            .finally(() => {
-                setTimeout(() => {
-                    page_block.release();
-                    KTComponents.init();
-                },500);
-            });
-
             _page.find('.tab').on('click',function(e){
                 e.preventDefault();
                 e.stopImmediatePropagation();
-
                 let _this = $(this);
                 let tab = _this.attr('href');
-
                 if(tabLoaded.includes(tab)){
                     return;
                 }
-
                 page_block.block();
                 tabLoaded.push(tab);
-
                 loadTab(tab,false).then((res) => {
                     if (res) {
+                        setTimeout(() => {
+                            page_block.release();
+                        },500);
+                        localStorage.setItem("dispatch_page",tab);
                     }
                 })
-                .catch((error) => {
-                    console.error("Error loading trip block:", error);
-                    Alert.alert('error', "Failed to load trip block. Please try again.", false);
-                })
-                .finally(() => {
-                    setTimeout(() => {
-                        page_block.release();
-                    },500);
-                    localStorage.setItem("dispatch_page",tab);
-                });
-
             });
-
         }
     }
-
 }

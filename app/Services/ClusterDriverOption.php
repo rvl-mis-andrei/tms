@@ -10,7 +10,7 @@ class ClusterDriverOption
 {
     public function list(Request $rq)
     {
-        $query = TmsClusterDriver::whereNotIn('status', [2, 3, 4]);
+        $query = TmsClusterDriver::query();
         return match($rq->type){
             'options' => $this->options($rq,$query),
             'search_modal' => $this->search_modal($rq,$query),
@@ -21,11 +21,11 @@ class ClusterDriverOption
     public function options($rq,$query)
     {
         $search = isset($rq->id) ? Crypt::decrypt($rq->id) : false;
-        $data = $query->with('employee')->get();
+        $data = $query->get();
         if ($data->count()) {
             $html = '<option></option>';
             foreach ($data as $row) {
-                $selected = $search == $row->id ? 'selected' : '';
+                $selected = $search === $row->id ? 'selected' : '';
                 $id = Crypt::encrypt($row->id);
                 $html .= '<option value="'.$id.'"'.$selected.'>'.$row->employee->fullname().'</option>';
             }

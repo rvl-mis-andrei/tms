@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\ClusterBController\Dispatcher;
 
 use App\Http\Controllers\Controller;
+use App\Models\TmsHaulage;
 use App\Models\TmsHaulageBlock;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 
 class HaulageInfo extends Controller

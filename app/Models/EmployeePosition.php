@@ -10,7 +10,7 @@ class EmployeePosition extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'position_id', 'department_id', 'company_id', 'company_location_id', 'created_by', 'updated_by',
+        'position_id', 'department_id', 'company_id', 'company_location_id', 'created_by', 'updated_by','emp_id'
     ];
 
     public function position()

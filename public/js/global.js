@@ -110,7 +110,7 @@ export function data_bs_components()
     if (formSelect.length > 0) {
         formSelect.select2();
     }
-    let select2Modal = $('.modal-select[data-control="select2"]');
+    let select2Modal = $('.modal-select[data-control="select2"]:not([data-select2-initialized])');
     if (select2Modal.length > 0) {
         select2Modal.select2({
             dropdownParent: $('.modal')

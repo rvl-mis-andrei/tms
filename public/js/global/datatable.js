@@ -64,6 +64,7 @@ export class DataTableHelper {
             },
         });
         this.table.on('draw', function () {
+            data_bs_components()
             KTMenu.createInstances();
         });
         if (columnDefs) {

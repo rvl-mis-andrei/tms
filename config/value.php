@@ -12,17 +12,23 @@ return [
         null=>'Inactive'
     ],
     'tractor_status'=>[
-        1 => ['Available','success'],
-        2 => ['Issued','primary'],
-        3 => ['Disposed','danger'],
-        4 => ['Under Maintenance','info'],
+        1 => ['On Trip','info'],
+        2 => ['No Driver','info'],
+        3 => ['For PMS','info'],
+        4 => ['Available','info'],
+        5 => ['Absent Driver','info'],
+        6 => ['Trailer Repair','info'],
+        7 => ['Tractor Repair','info'],
         null=>['','secondary']
     ],
     'trailer_status'=>[
-        1 => ['Available','success'],
-        2 => ['Issued','primary'],
-        3 => ['Disposed','danger'],
-        4 => ['Under Maintenance','info'],
+        1 => ['On Trip','info'],
+        2 => ['No Driver','info'],
+        3 => ['For PMS','info'],
+        4 => ['Available','info'],
+        5 => ['Absent Driver','info'],
+        6 => ['Trailer Repair','info'],
+        7 => ['Tractor Repair','info'],
         null=>['','secondary']
     ],
     'tractor_trailer_status'=>[
@@ -38,5 +44,12 @@ return [
     'haulage_status'=>[
         1 => ['Completed','success'],
         2 => ['On-Going','info'],
+    ],
+
+    'delivery_status'=>[
+        0 => ['On Delivery','primary'],
+        1 => ['Delivered','success'],
+        2 => ['Not Delivered','danger'],
+        3 => ['Cancelled Delivered','warning'],
     ],
 ];

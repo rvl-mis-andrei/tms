@@ -25,7 +25,7 @@ class Employee extends Model
     ];
 
     public function emp_details(){
-        return $this->hasOne(EmployeePosition::class);
+        return $this->hasOne(EmployeePosition::class,'emp_id');
     }
 
     public function fullname()

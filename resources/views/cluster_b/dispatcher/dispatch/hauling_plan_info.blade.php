@@ -10,6 +10,20 @@
             <a class="nav-link text-active-primary tab pb-4" data-bs-toggle="tab" href="#dispatching_tab" aria-selected="false" tabindex="-1" role="tab">Dispatching</a>
         </li>
     </ul>
+    @if($pendingAttendance)
+        <div class="alert alert-dismissible bg-light-info d-flex flex-column flex-sm-row p-5 mb-5">
+            <i class="ki-duotone ki-notification-bing fs-2hx text-info me-4 mb-5 mb-sm-0"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+            <div class="d-flex flex-column pe-0 pe-sm-10">
+                <h4 class="fw-semibold">Important Notice</h4>
+                <span>There is a pending attendance on other Hauling Plan. Finish the Attendance first.</span>
+            </div>
+
+            <button type="button" class="position-absolute position-sm-relative m-2 m-sm-0 top-0 end-0 btn btn-icon ms-sm-auto" data-bs-dismiss="alert">
+                <i class="ki-duotone ki-cross fs-1 text-info"><span class="path1"></span><span class="path2"></span></i>
+            </button>
+        </div>
+    @endif
+    <div class="finalize-notif"></div>
     <div class="tab-content">
         <div class="tab-pane fade" id="tractor_driver_details_tab" role="tab-panel">
             <div class="card pt-0 mb-6 mb-xl-9">
@@ -25,65 +39,49 @@
                     <div class="d-flex flex-stack flex-wrap gap-4">
                         <div class="d-flex align-items-center fw-bold">
                             <div class="text-muted fs-7 me-2">Status:</div>
-                            <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-1 w-auto" data-control="select2"
-                            data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select a batch" data-minimum-results-for-search="Infinity"
-                            rq-url="/services/haulage/add_batch" name="batch">
+                            <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-1 w-auto filter_table" data-control="select2"
+                            data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select a batch" data-minimum-results-for-search="Infinity" name="filter_status">
                             <option value="all">Show All</option>
-                            <option value="1">On Trip</option>
-                            <option value="2">No Driver</option>
-                            <option value="3">For PMS</option>
-                            <option value="4">Available</option>
-                            <option value="4">Absent Driver</option>
-                            <option value="4">Trailer Repair</option>
-                            <option value="4">Tractor Repair</option>
+                            <option value="1">Available</option>
+                            <option value="2">On Trip</option>
+                            <option value="3">Absent Driver</option>
+                            <option value="4">No Driver</option>
+                            <option value="5">For PMS</option>
+                            <option value="6">On-Going PMS</option>
+                            <option value="7">Trailer Repair</option>
+                            <option value="8">Tractor Repair</option>
+                            <option value="9">Rehab/Recon</option>
+                            <option value="10">Others</option>
                             </select>
                         </div>
                         <div class="d-flex align-items-center fw-bold">
                             <div class="text-muted fs-7 me-2">Attendance:</div>
-                            <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-1 w-auto" data-control="select2"
-                            data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select a batch" data-minimum-results-for-search="Infinity"
-                            rq-url="/services/haulage/add_batch" name="batch">
+                            <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-1 w-auto filter_table" data-control="select2"
+                            data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select a batch" data-minimum-results-for-search="Infinity"  name="filter_attendance">
                             <option value="all">Show All</option>
-                            <option value="All Batch"> Present</option>
-                            <option value="Add Batch"> Absent</option>
+                            <option value="present"> Present</option>
+                            <option value="absent"> Absent</option>
                             </select>
                         </div>
                         <div class="card-toolbar">
-                            @if($data->haulage_attendance->isEmpty())
-                                <button class="btn btn-sm btn-light-primary start-attendance" rq-url="create_attendance">
-                                    Start Attendance
+                            @if($data->is_final_attendance == 0 && !$pendingAttendance)
+                                @if($data->haulage_attendance->isEmpty())
+                                    <button class="btn btn-sm btn-light-primary start-attendance" rq-url="start_attendance">
+                                        Start Attendance
+                                    </button>
+                                @else
+                                <button class="btn btn-sm btn-light-success finish-attendance" rq-url="finish_attendance">
+                                    Finish Attendance
                                 </button>
-                            @else
-                            <button class="btn btn-sm btn-light-success finalize-attendance" rq-url="finalize_attendance">
-                                Finalize Attendance
-                            </button>
-                            {{-- <button class="btn btn-sm btn-light-primary export-menu" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-                                More Actions
-                                <i class="ki-duotone ki-down ms-1"></i>
-                            </button>
-                            <div class="menu menu-sub  more-actions-menu menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-4 pb-3"
-                                data-kt-menu="true">
-                                <div class="menu-item px-3">
-                                    <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
-                                        More Actions
-                                    </div>
-                                </div>
-                                <div class="separator mt-2 opacity-75"></div>
-                                <div class="menu-item px-3 pt-3">
-                                    <a href="#" class="menu-link px-3 finalize-plan text-success" data-status="1" rq-url="/tms/cco-b/planner/haulage_info/finalize_plan">
-                                        Finalize Attendance
-                                    </a>
-                                </div>
-                            </div> --}}
+                                @endif
                             @endif
-
                         </div>
                     </div>
                 </div>
 
                 <div class="card-body">
                     <div class="dataTables_wrapper dt-bootstrap4 no-footer">
-                        <div class="table-responsive" id="tractor_trailer_driver_wrapper">
+                        <div class="table-responsive" id="tractor_trailer_driver_wrapper" data-url=@if($data->haulage_attendance->isEmpty())"tms/cco-b/dispatcher/tractor_trailer_driver/dt" @else "tms/cco-b/dispatcher/haulage_attendance/dt" @endif>
                             <table class="table align-middle table-row-bordered fs-6 gy-5 dataTable no-footer"
                                 id="tractor_trailer_driver_table">
                             </table>
@@ -288,6 +286,8 @@
             </div>
         </div>
     </div>
+
+    @include('layout.dispatcher.shared.resources.modal.modal_add_tractor_trailer')
 
 </div>
 

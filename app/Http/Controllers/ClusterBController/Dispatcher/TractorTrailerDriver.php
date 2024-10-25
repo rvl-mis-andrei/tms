@@ -19,17 +19,32 @@ class TractorTrailerDriver extends Controller
         $cluster_id = Auth::user()->emp_cluster->cluster_id;
         $haulage_id = Crypt::decrypt($rq->id);
 
+        $filter_status = $rq->filter_status!='all' ? $rq->filter_status : false;
+        $filter_attendance = $rq->filter_attendance!='all' ? $rq->filter_attendance : false;
+
         $data = TractorTrailerDriverCat::with([
             'trailer',
             'tractor',
             'sdriver_emp.employee:id,fname,lname',
             'pdriver_emp.employee:id,fname,lname',
             'haulage_att' => function ($q) use ($haulage_id) {
-                $q->where('haulage_id', $haulage_id);
+                $q->where([['haulage_id', $haulage_id],['is_deleted',null]]);
             }
         ])
-        ->where('cluster_id', $cluster_id)
+        ->where([['cluster_id', $cluster_id],['is_deleted',null]])
         ->whereNull('is_deleted')
+        ->when($filter_attendance, function ($q) use ($filter_attendance) {
+            $q->whereHas('haulage_att', function($q) use ($filter_attendance) {
+                $q->where(function ($query) use ($filter_attendance) {
+                    $filter_attendance = $filter_attendance =='present'?1:0;
+                    $query->where('is_present_pdriver', $filter_attendance)
+                          ->orWhere('is_present_sdriver', $filter_attendance);
+                });
+            });
+        })
+        ->when($filter_status, function ($q) use ($filter_status) {
+            $q->where('status', $filter_status);
+        })
         ->orderBy('id', 'ASC')
         ->get();
 
@@ -41,7 +56,7 @@ class TractorTrailerDriver extends Controller
             $item->tractor_plate_no = optional($item->haulage_att)->tractor->plate_no ?? optional($item->tractor)->plate_no ?? '';
             $item->trailer_name = optional($item->haulage_att)->trailer->name ?? optional($item->trailer)->name ?? '';
             $item->trailer_type = optional($item->haulage_att)->trailer->trailer_type->name ?? optional($item->trailer->trailer_type)->name ?? '';
-            $item->tractor_trailer_status = optional($item->haulage_att)->tractor_trailer_status ?? $item->status ?? '';
+            $item->tractor_trailer_status = $item->haulage_att? $item->haulage_att->tractor_trailer_status : $item->status;
 
             // Safely access pdriver and sdriver names
             $item->pdriver_name = optional($item->pdriver_emp->employee)->fullname() ?? '';
@@ -57,12 +72,14 @@ class TractorTrailerDriver extends Controller
                 $item->encrypted_id = Crypt::encrypt($item->haulage_att->id);
                 $item->url = 'update_attendance';
                 $item->is_started = true;
+                $item->is_final = $item->haulage_att->is_final?? false;
             } else {
-                $item->pdriver_att = null; // or some default value
-                $item->sdriver_att = null; // or some default value
+                $item->pdriver_att = 1; // or some default value
+                $item->sdriver_att = 1; // or some default value
                 $item->remarks = $item->remarks ?? '--';
                 $item->url = '';
                 $item->is_started = false;
+                $item->is_final = false;
             }
 
             return $item;
@@ -70,6 +87,7 @@ class TractorTrailerDriver extends Controller
 
         $table = new DTServerSide($rq, $data);
         $table->renderTable();
+
 
         return response()->json([
             'draw' => $table->getDraw(),

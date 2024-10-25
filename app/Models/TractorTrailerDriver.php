@@ -50,7 +50,7 @@ class TractorTrailerDriver extends Model
 
     public function created_by_emp()
     {
-        return $this->belongsTo(Employee::class,'updated_by')->withDefault();
+        return $this->belongsTo(Employee::class,'created_by')->withDefault();
     }
 
     public function deleted_by_emp()

@@ -23,6 +23,7 @@ class TmsHaulage extends Model
         'batch_count',
         'exported_tripblocks',
         'exported_haulage',
+        'is_final_attendance',
     ];
 
     public function created_by_emp()

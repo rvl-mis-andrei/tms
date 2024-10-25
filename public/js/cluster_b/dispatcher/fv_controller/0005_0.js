@@ -2,182 +2,278 @@
 import {Alert} from "../../../global/alert.js"
 import {RequestHandler} from "../../../global/request.js"
 import {modal_state,fv_validator} from "../../../global.js"
+import { TractorDT } from "../dt_controller/serverside/0005_0.js";
 
-export function fvNewTractorTrailer(){
+export function fvTrailer(param=false,_table=false){
 
-    var init_fvNewTractorTrailer = (function () {
+    var init_fvTrailer = (function () {
 
-        var _handlefvNewTractorTrailer = function(){
+        var _handleFvTrailer = function(){
+            let fvTrailer;
+            let form = document.querySelector("#form_add_trailer");
+            let modal_id = form.getAttribute('modal-id');
+            let modalContent = document.querySelector(`${modal_id} .modal-content`);
 
-            let form = document.querySelector("#form");
-            let page = $('.tractor_trailer_listing');
+            let blockUI = new KTBlockUI(modalContent, {
+                message: '<div class="blockui-message"><span class="spinner-border text-primary"></span> Loading...</div>',
+            });
 
-
-            let fvNewTractorTrailer = FormValidation.formValidation(form, {
-                fields: {
-                    tractor: {
-                        validators: {
-                            callback: {
-                                message: 'Select at least a trailer or tractors',
-                                callback: function(){
-                                    let tractor = fvNewTractorTrailer.getElements('tractor');
-                                    let trailer = fvNewTractorTrailer.getElements('trailer');
-                                    if (tractor[0].value !== '' || trailer[0].value !== '') {
-                                        fvNewTractorTrailer.updateFieldStatus('tractor', 'Valid', 'callback');
-                                        return true;
-                                    }
-                                    return false;
-                                }
-                            },
-                        }
-                    },
-                    trailer: {
-                        validators: {
-                            callback: {
-                                message: 'Select at least a trailer or tractor',
-                                callback: function(){
-                                    let tractor = fvNewTractorTrailer.getElements('tractor');
-                                    let trailer = fvNewTractorTrailer.getElements('trailer');
-                                    if (tractor[0].value !== '' || trailer[0].value !== '') {
-                                        fvNewTractorTrailer.updateFieldStatus('trailer', 'Valid', 'callback');
-                                        return true;
-                                    }
-                                    return false;
-                                }
-                            },
-                        }
-                    },
-                    pdriver: {
-                        validators: {
-                            // notEmpty: { message: 'This field is required' },
-                            different: {
-                                compare: function () {
-                                    return form.querySelector('[name="sdriver"]').value;
+            if (!form.hasAttribute('data-fv-initialized')) {
+                fvTrailer = FormValidation.formValidation(form, {
+                    fields: {
+                        trailer_type: fv_validator(),
+                        plate_no: {
+                            validators: {
+                                notEmpty:{
+                                    message:'This field is required'
                                 },
-                                message: 'The Driver 1 and Driver 2 cannot be the same',
-                            },
-                            callback: {
-                                message: 'Select at least 1 driver',
-                                callback: function(){
-                                    const pdriver = fvNewTractorTrailer.getElements('pdriver');
-                                    const sdriver = fvNewTractorTrailer.getElements('sdriver');
-                                    if (pdriver[0].value !== '' || sdriver[0].value !== '') {
-                                        fvNewTractorTrailer.updateFieldStatus('pdriver', 'Valid', 'callback');
-                                        return true;
+                                remote: {
+                                    url: '/services/trailer/validate_plate_number',
+                                    method: 'POST',
+                                    message: 'Plate No. already exist',
+                                    headers: {
+                                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                    },
+                                    data: function() {
+                                        let data_id = $(form).find('input[name="plate_no"]').attr('data-id');
+                                        console.log(data_id);
+                                        return {
+                                            id: data_id
+                                        };
                                     }
-                                    return false;
                                 }
-                            },
+                            }
                         },
                     },
-                    sdriver: {
-                        validators: {
-                            // notEmpty: { message: 'This field is required' },
-                            different: {
-                                compare: function () {
-                                    return form.querySelector('[name="pdriver"]').value;
-                                },
-                                message: 'The Driver 2 and Driver 1 cannot be the same',
-                            },
-                            callback: {
-                                message: 'Select at least 1 driver',
-                                callback: function(){
-                                    const pdriver = fvNewTractorTrailer.getElements('pdriver');
-                                    const sdriver = fvNewTractorTrailer.getElements('sdriver');
-                                    if (pdriver[0].value !== '' || sdriver[0].value !== '') {
-                                        fvNewTractorTrailer.updateFieldStatus('sdriver', 'Valid', 'callback');
-                                        return true;
-                                    }
-                                    return false;
-                                }
-                            },
-                        },
-                    },
-                    is_active:fv_validator(),
-                },
-                plugins: {
+                    plugins: {
                     trigger: new FormValidation.plugins.Trigger(),
                     bootstrap: new FormValidation.plugins.Bootstrap5({
                         rowSelector: ".fv-row",
                         eleInvalidClass: "",
                         eleValidClass: "",
                     }),
-                },
-            })
+                    },
+                })
+                form.setAttribute('data-fv-initialized', 'true');
+            }
 
-            page.on('click','.cancel',function(e){
+            $(modal_id).on('click','.cancel',function(e){
                 e.preventDefault()
                 e.stopImmediatePropagation()
-                let modal_id = form.getAttribute('modal-id');
                 Alert.confirm('question',"Close this form ?",{
                     onConfirm: () => {
                         modal_state(modal_id);
-                        fvNewTractorTrailer.resetForm();
+                        fvTrailer.resetForm();
                         form.reset();
-                        $('.modal-select').val(null).trigger('change');
-                        $('.submit').attr('data-id','');
-                        $('.modal_title').text('New Tractor Trailer');
+                        form.setAttribute('action','/services/trailer/update');
+                        $(modal_id).find('.modal_title').text('New Trailer');
+                        $(modal_id).find('.submit').attr('data-id','');
+                        $(modal_id).find('select[name="trailer_type"]').val('').trigger('change');
+                        $(modal_id).find('select[name="status"]').val('1').trigger('change').parent().addClass('d-none');
+                        $(modal_id).find('input[name="plate_no"]').attr('data-id','');
                     }
                 })
             })
 
-            page.on('click','.submit',function(e){
+            $(modal_id).on('click','.submit',function(e){
                 e.preventDefault()
                 e.stopImmediatePropagation()
 
-                let btn_submit = $(this);
-
-                btn_submit.attr("data-kt-indicator","on");
-                btn_submit.attr("disabled",true);
-
-                let form_url = form.getAttribute('action');
-                let id = btn_submit.attr('data-id');
-
-                fvNewTractorTrailer && fvNewTractorTrailer.validate().then(function (v) {
+                let _this = $(this);
+                let url = form.getAttribute('action');
+                fvTrailer && fvTrailer.validate().then(function (v) {
                     if(v == "Valid"){
                         Alert.confirm("question","Submit this form?", {
                             onConfirm: function() {
+                                blockUI.block();
+                                _this.attr("data-kt-indicator","on");
+                                _this.attr("disabled",true);
                                 let formData = new FormData(form);
-                                if(id.length > 0) { formData.append('id',id) }
-                                (new RequestHandler).post(form_url,formData).then((res) => {
+                                formData.append('id',_this.attr('data-id') ?? '');
+                                (new RequestHandler).post(url,formData).then((res) => {
                                     Alert.toast(res.status,res.message);
-                                    if(res.status == 'success' && id.length > 0){ form.reset(); }
-                                    fvNewTractorTrailer.resetForm();
+                                    if(res.status == 'success'){
+                                        fvTrailer.resetForm();
+                                        if($(_table).length){
+                                            _table ?$(_table).DataTable().ajax.reload() :'';
+                                        }else{
+                                            TrailerDT().init();
+                                        }
+                                    }
                                 })
                                 .catch((error) => {
                                     console.log(error)
                                     Alert.alert('error',"Something went wrong. Try again later", false);
                                 })
                                 .finally(() => {
-                                    btn_submit.attr("data-kt-indicator","off");
-                                    btn_submit.attr("disabled",false);
-                                    $("#tractor_trailer_table").DataTable().ajax.reload(null, false);
+                                    _this.attr("data-kt-indicator","off");
+                                    _this.attr("disabled",false);
+                                    blockUI.release();
                                 });
                             },
-                            onCancel: () => {
-                                btn_submit.attr("data-kt-indicator","off");
-                                btn_submit.attr("disabled",false);
-                            }
                         });
-                    }else{
-                        btn_submit.attr("data-kt-indicator","off");
-                        btn_submit.attr("disabled",false);
                     }
                 })
             })
-
         }
 
-    return {
-        init: function () {
-            _handlefvNewTractorTrailer();
-        },
-      };
+        return {
+            init: function () {
+                _handleFvTrailer()
+            },
+        };
 
     })();
 
     KTUtil.onDOMContentLoaded(function () {
-        init_fvNewTractorTrailer.init();
+        init_fvTrailer.init();
+    });
+
+}
+
+
+export function fvTractor(param=false,_table=false){
+
+    var init_fvTractor = (function () {
+
+        var _handleFvTractor = function(){
+            let fvTractor;
+            let form = document.querySelector("#form_add_tractor");
+            let modal_id = form.getAttribute('modal-id');
+            let modalContent = document.querySelector(`${modal_id} .modal-content`);
+
+            let blockUI = new KTBlockUI(modalContent, {
+                message: '<div class="blockui-message"><span class="spinner-border text-primary"></span> Loading...</div>',
+            });
+
+            if (!form.hasAttribute('data-fv-initialized')) {
+                fvTractor = FormValidation.formValidation(form, {
+                    fields: {
+                        body_no: {
+                            validators: {
+                                notEmpty:{
+                                    message:'This field is required'
+                                },
+                                remote: {
+                                    url: '/services/tractor/validate_body_number',
+                                    method: 'POST',
+                                    message: 'Body No. already exist',
+                                    headers: {
+                                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                    },
+                                    data: function() {
+                                        let data_id = $(form).find('input[name="body_no"]').attr('data-id');
+                                        return {
+                                            id: data_id
+                                        };
+                                    }
+                                }
+                            }
+                        },
+                        plate_no: {
+                            validators: {
+                                notEmpty:{
+                                    message:'This field is required'
+                                },
+                                remote: {
+                                    url: '/services/tractor/validate_plate_number',
+                                    method: 'POST',
+                                    message: 'Plate No. already exist',
+                                    headers: {
+                                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                    },
+                                    data: function() {
+                                        let data_id = $(form).find('input[name="plate_no"]').attr('data-id');
+                                        return {
+                                            id: data_id
+                                        };
+                                    }
+                                }
+                            }
+                        },
+                    },
+                    plugins: {
+                    trigger: new FormValidation.plugins.Trigger(),
+                    bootstrap: new FormValidation.plugins.Bootstrap5({
+                        rowSelector: ".fv-row",
+                        eleInvalidClass: "",
+                        eleValidClass: "",
+                    }),
+                    },
+                })
+                form.setAttribute('data-fv-initialized', 'true');
+            }
+
+            $(modal_id).on('click','.cancel',function(e){
+                e.preventDefault()
+                e.stopImmediatePropagation()
+                Alert.confirm('question',"Close this form ?",{
+                    onConfirm: () => {
+                        modal_state(modal_id);
+                        fvTractor.resetForm();
+                        form.reset();
+                        form.setAttribute('action','/services/tractor/update');
+                        $(modal_id).find('.modal_title').text('New Tractor');
+                        $(modal_id).find('.submit').attr('data-id','');
+                        $(modal_id).find('input[name="plate_no"]').attr('data-id','');
+                        $(modal_id).find('input[name="body_no"]').attr('data-id','');
+                    }
+                })
+            })
+
+            $(modal_id).on('click','.submit',function(e){
+                e.preventDefault()
+                e.stopImmediatePropagation()
+
+                let _this = $(this);
+                let url = form.getAttribute('action');
+                fvTractor && fvTractor.validate().then(function (v) {
+                    if(v == "Valid"){
+                        Alert.confirm("question","Submit this form?", {
+                            onConfirm: function() {
+                                blockUI.block();
+                                _this.attr("data-kt-indicator","on");
+                                _this.attr("disabled",true);
+                                let formData = new FormData(form);
+                                formData.append('id',_this.attr('data-id') ?? '');
+                                (new RequestHandler).post(url,formData).then((res) => {
+                                    Alert.toast(res.status,res.message);
+                                    if(res.status == 'success'){
+                                        fvTractor.resetForm();
+                                        if($(_table).length){
+                                            _table ?$(_table).DataTable().ajax.reload() :'';
+                                        }else{
+                                            TractorDT().init();
+                                        }
+
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.log(error)
+                                    Alert.alert('error',"Something went wrong. Try again later", false);
+                                })
+                                .finally(() => {
+                                    _this.attr("data-kt-indicator","off");
+                                    _this.attr("disabled",false);
+                                    blockUI.release();
+                                });
+                            },
+                        });
+                    }
+                })
+            })
+        }
+
+        return {
+            init: function () {
+                _handleFvTractor()
+            },
+        };
+
+    })();
+
+    KTUtil.onDOMContentLoaded(function () {
+        init_fvTractor.init();
     });
 
 }
