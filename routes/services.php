@@ -132,8 +132,6 @@ Route::group(['prefix'=>'services'], function() {
     });
 
 
-
-
     Route::controller(HaulageList::class)->prefix('haulage')->group(function() {
         Route::post('/datatable', 'datatable');
         Route::post('/create', 'create');

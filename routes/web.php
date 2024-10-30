@@ -10,7 +10,8 @@ Route::get('/', function(){
 })->middleware('prevent.verified.user');
 
 //CCO ACCESS ROUTE remove tms
-Route::group(['prefix'=>'tms/'], function() {
+// Route::group(['prefix'=>'tms/'], function() {
+Route::group(function() {
 
     Route::get('/', function(){
         return view('login.cco_cluster');
