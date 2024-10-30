@@ -274,26 +274,16 @@ class HaulageInfo extends Controller
                         'units_from' => 'TMP',
                         'created_by'=>$user_id,
                     ];
-                }else{
-                    $this->haulage_block_unit = self::filter_duplicates($haulage_id);
-                    if($this->haulage_block_unit === false){
-                        return ['status'=>400, 'message' =>'All records are duplicates'];
-                        exit(0);
-                    }
-                    TmsHaulageBlockUnit::insert($this->haulage_block_unit,$haulage_id);
-                    if ($sheet->getCell("B".($row + 1))->getCalculatedValue() === null &&
-                        $sheet->getCell("D".($row + 1))->getCalculatedValue() === null &&
-                        $sheet->getCell("B".($row + 2))->getCalculatedValue() === null &&
-                        $sheet->getCell("D".($row + 2))->getCalculatedValue() === null &&
-                        $sheet->getCell("B".($row + 3))->getCalculatedValue() === null &&
-                        $sheet->getCell("D".($row + 3))->getCalculatedValue() === null
-                        ) {
-                        break;
-                    }
-                    $this->haulage_block = [];
                 }
             }
 
+
+            $this->haulage_block_unit = self::filter_duplicates($haulage_id);
+            if($this->haulage_block_unit === false){
+                return ['status'=>400, 'message' =>'All records are duplicates'];
+                exit(0);
+            }
+            TmsHaulageBlockUnit::insert($this->haulage_block_unit);
             DB::commit();
             return response()->json(['status' => 'success', 'message' => 'File uploaded successfully','payload'=>$result['upload_count']]);
         }catch(Exception $e){
@@ -404,7 +394,7 @@ class HaulageInfo extends Controller
                 return ['status'=>400, 'message' =>'All records are duplicates'];
                 exit(0);
             }
-            TmsHaulageBlockUnit::insert($this->haulage_block_unit,$haulage_id);
+            TmsHaulageBlockUnit::insert($this->haulage_block_unit);
             DB::commit();
             return response()->json(['status' => 'success', 'message' => 'File uploaded successfully','payload'=>$result['upload_count']]);
         }catch(Exception $e){

@@ -16,7 +16,6 @@ class TmsClusterClient extends Model
         'is_deleted',
         'deleted_at',
         'deleted_by',
-        'deleted_by',
         'created_by',
         'updated_by',
     ];
@@ -30,8 +29,14 @@ class TmsClusterClient extends Model
         return $this->hasMany(TmsClientDealership::class,'client_id');
     }
 
-    public function employee()
+    public function updated_by_emp()
     {
-        return $this->belongsTo(Employee::class,'created_by');
+        return $this->belongsTo(Employee::class,'updated_by')->withDefault();
+
+    }
+
+    public function created_by_emp()
+    {
+        return $this->belongsTo(Employee::class,'created_by')->withDefault();
     }
 }

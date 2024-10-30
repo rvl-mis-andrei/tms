@@ -149,7 +149,7 @@ export var DriverDT = function (param) {
                                 </div>
                             </div>
 
-                            <a href="javascript:;" class="btn btn-icon btn-icon btn-light-danger btn-sm me-1 hover-elevate-up delete d-none" data-id="${data}"
+                            <a href="javascript:;" class="btn btn-icon btn-icon btn-light-danger btn-sm me-1 hover-elevate-up delete" data-id="${data}"
                              data-bs-toggle="tooltip" title="Delete this record">
                                 <i class="ki-duotone ki-trash fs-2x">
                                     <span class="path1"></span>
@@ -240,7 +240,7 @@ export var DriverDT = function (param) {
                 Alert.confirm('question','Delete this record ?',{
                     onConfirm: function() {
                         formData.append('id',id);
-                        _request.post('/services/tractor/delete',formData)
+                        _request.post('/services/cluster_driver/delete',formData)
                         .then((res) => {
                             Alert.toast(res.status,res.message);
                             $(`#${_table}_table`).DataTable().ajax.reload(null, false);

@@ -4,6 +4,7 @@ use App\Services\WebRoute as SystemRoute;
 
 use App\Http\Controllers\ClusterBController\AccessController;
 use App\Http\Controllers\ClusterBController\Dispatcher\ClientListing;
+use App\Http\Controllers\ClusterBController\Dispatcher\CycleTime;
 use App\Http\Controllers\ClusterBController\Dispatcher\Dashboard;
 use App\Http\Controllers\ClusterBController\Dispatcher\DriverListing;
 use App\Http\Controllers\ClusterBController\Dispatcher\HaulageAttendance;
@@ -66,6 +67,10 @@ use Illuminate\Support\Facades\Route;
 
         Route::controller(TractorTrailerDriver::class)->prefix('tractor_trailer_driver')->group(function() {
             Route::post('/dt', 'dt');
+        });
+
+        Route::controller(CycleTime::class)->prefix('cycle_time')->group(function() {
+            Route::get('/table', 'table');
         });
 
     });

@@ -10,7 +10,7 @@ class TractorOption
 {
     public function list(Request $rq)
     {
-        $query = Tractor::query();
+        $query = Tractor::where([['is_deleted',null]]);
         return match($rq->type){
             'options' => $this->options($rq,$query),
             'search_modal' => $this->search_modal($rq,$query),

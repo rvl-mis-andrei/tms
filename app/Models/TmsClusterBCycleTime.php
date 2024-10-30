@@ -5,18 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TmsGarage extends Model
+class TmsClusterBCycleTime extends Model
 {
     use HasFactory;
-    protected $fillable=[
-        'cluster_id',
-        'name' ,
-        'remarks',
-        'is_active',
-        'created_by',
-        'updated_by'
-    ];
+    protected $table = 'tms_clusterb_cycle_times';
 
+    public function dealership()
+    {
+        return $this->belongsTo(TmsClientDealership::class,'client_dealership_id');
+    }
+
+    public function garage(){
+        return $this->belongsTo(TmsGarage::class,'garage_id');
+    }
 
     public function updated_by_emp()
     {
@@ -29,8 +30,4 @@ class TmsGarage extends Model
         return $this->belongsTo(Employee::class,'created_by')->withDefault();
     }
 
-    public function deleted_by_emp()
-    {
-        return $this->belongsTo(Employee::class,'deleted_by');
-    }
 }

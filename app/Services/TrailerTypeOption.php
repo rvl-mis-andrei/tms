@@ -13,7 +13,7 @@ class TrailerTypeOption
 {
     public function list(Request $rq)
     {
-        $query = TrailerType::query();
+        $query = TrailerType::where([['is_deleted',null],['is_active',1]]);
         return match($rq->type){
             'options' => $this->options($rq,$query),
         };

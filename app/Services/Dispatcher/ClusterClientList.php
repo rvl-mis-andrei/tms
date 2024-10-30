@@ -18,18 +18,30 @@ class ClusterClientList
     {
         $is_active = $rq->status;
         $cluster_id = Auth::user()->emp_cluster->cluster_id;
+
         $data = TmsClusterClient::when($is_active!="all", function ($q) use ($is_active) {
             return $q->where('is_active',$is_active);
         })->where(function ($query) {
             $query->where('is_deleted','!=',1)->orWhereNull('is_deleted');
         })->where('cluster_id',$cluster_id)->get();
+
         $data->transform(function ($item,$key){
+
+            $last_updated_by = null;
+            if($item->updated_by != null){
+                $last_updated_by = $item->updated_by_emp->fullname();
+            }elseif($item->created_by !=null){
+                $last_updated_by = $item->created_by_emp->fullname();
+            }
+
             $item->count = $key+1;
             $item->is_active = config('value.is_active.'.$item->is_active);
-            $item->name = $item->name;
-            $item->description = $item->description ?? 'No description';
+            $item->description = $item->description ?? '--';
+            $item->last_updated_by = $last_updated_by;
+
             $item->encrypt_id = Crypt::encrypt($item->id);
             return $item;
+
         });
         $table = new DTServerSide($rq, $data);
         $table->renderTable();
@@ -43,10 +55,10 @@ class ClusterClientList
 
     public function validate(Request $rq)
     {
-        $id = isset($rq->id) ? Crypt::decrypt($rq->id) : false;
+        $excluded_id = isset($rq->id) ? Crypt::decrypt($rq->id) : false;
         $query = TmsClusterClient::where('name',$rq->name)
-        ->when($id, function ($q) use ($id) {
-            return $q->where('id','!=',$id);
+        ->when($excluded_id, function ($q) use ($excluded_id) {
+            return $q->where('id','!=',$excluded_id);
         })->first();
         return json_encode(array( 'valid' => $query === null ?? false ));
     }

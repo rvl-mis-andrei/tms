@@ -18,7 +18,10 @@ class TmsClusterCarModel extends Model
         'created_at',
         'updated_at',
         'created_by',
-        'updated_by'
+        'updated_by',
+        'is_deleted',
+        'deleted_at',
+        'deleted_by',
     ];
 
     public function updated_by_emp()

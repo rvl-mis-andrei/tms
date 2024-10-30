@@ -4,6 +4,7 @@ namespace App\Services\Dispatcher;
 
 use App\Models\TmsClusterCarModel;
 use App\Models\TmsClusterClient;
+use App\Models\TmsGarage;
 use App\Services\DTServerSide;
 use Carbon\Carbon;
 use Exception;
@@ -13,17 +14,21 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
-class ClusterCarModel
+class ClusterGarage
 {
     public function datatable(Request $rq)
     {
         $cluster_id = Auth::user()->emp_cluster->cluster_id;
         $filter_status = $rq->filter_status!='all' ? $rq->filter_status : false;
 
-        $data = TmsClusterCarModel::where([['cluster_id', $cluster_id],['is_deleted',null]])
+        $data = TmsGarage::where(function ($query) use ($cluster_id) {
+            $query->where('cluster_id', $cluster_id)
+                  ->orWhere('cluster_id', 0);
+        })
         ->when($filter_status, function ($q) use ($filter_status) {
             $q->where('is_active', $filter_status);
         })
+        ->where('is_deleted',null)
         ->orderBy('id', 'ASC')
         ->get();
 
@@ -37,9 +42,8 @@ class ClusterCarModel
             }
 
             $item->count = $key + 1;
-            $item->car_name = $item->car_model;
-            $item->shortname = $item->short_name ?? '--';
-            $item->car_status = $item->is_active;
+            $item->garage_name = $item->name;
+            $item->garage_status = $item->is_active;
             $item->last_updated_by = $last_updated_by;
 
             $item->encrypted_id = Crypt::encrypt($item->id);
@@ -63,12 +67,12 @@ class ClusterCarModel
     {
         try{
             $id = Crypt::decrypt($rq->id);
-            $query = TmsClusterCarModel::find($id);
+            $query = TmsGarage::find($id);
 
             $payload = [
-                'car_model' =>$query->car_model,
-                'short_name' =>$query->short_name,
+                'garage_name' =>$query->name,
                 'status' =>$query->is_active,
+                'remarks' =>$query->remarks,
             ];
 
             return response()->json(['status' => 'success','message'=>'success', 'payload'=>base64_encode(json_encode($payload))]);
@@ -84,14 +88,14 @@ class ClusterCarModel
             $user_id = Auth::user()->emp_id;
             $cluster_id = Auth::user()->emp_cluster->cluster_id;
             $id = isset($rq->id) && $rq->id != "undefined" ? Crypt::decrypt($rq->id):null;
-            $attribute = ['id'=>$id ];
+            $attribute = ['id'=>$id];
             $values = [
-                'car_model' =>strtoupper($rq->car_model),
                 'cluster_id'=>$cluster_id,
-                'short_name' =>strtoupper($rq->short_name),
+                'name' =>strtoupper($rq->garage_name),
+                'remarks' =>$rq->remarks,
                 'is_active' =>$rq->status,
             ];
-            $query = TmsClusterCarModel::updateOrCreate($attribute,$values);
+            $query = TmsGarage::updateOrCreate($attribute,$values);
             if ($query->wasRecentlyCreated) {
                 $query->update([
                     'created_by'=>$user_id,
@@ -114,12 +118,12 @@ class ClusterCarModel
         }
     }
 
-    public function validate_car_model(Request $rq)
+    public function validate_garage(Request $rq)
     {
         try{
             $excluded_id = isset($rq->id) && $rq->id != "undefined"? Crypt::decrypt($rq->id): false;
 
-            $exists = TmsClusterCarModel::where('car_model', strtoupper($rq->car_model))
+            $exists = TmsGarage::where('name', strtoupper($rq->garage_name))
             ->when($excluded_id, function ($q) use ($excluded_id) {
                 $q->where('id', '!=', $excluded_id);
             })
@@ -140,7 +144,7 @@ class ClusterCarModel
             $user_id = Auth::user()->emp_id;
             $id =  Crypt::decrypt($rq->id);
 
-            $query = TmsClusterCarModel::find($id);
+            $query = TmsGarage::find($id);
             $query->is_active = 0;
             $query->is_deleted = 1;
             $query->deleted_by = $user_id;
@@ -148,7 +152,7 @@ class ClusterCarModel
             $query->save();
 
             DB::commit();
-            return response()->json(['status' => 'info','message'=>'Car is removed']);
+            return response()->json(['status' => 'info','message'=>'Record is removed']);
         }catch(Exception $e){
             DB::rollback();
             return response()->json([

@@ -137,8 +137,8 @@ class ClusterBCycleTimeSeeder extends Seeder
                     'time_loading' => $this->convertTime($item[4]),
                     'departure_to_pickup' => $this->convertTime($item[5]),
                     'dealer_to_garage' => $this->convertTime($item[6]),
-                    'svc_total_cycle_time' => isset($item[7]) ? $this->convertTime($item[7]) : NULL,
-                    'bvc_total_cycle_time' => isset($item[8]) ? $this->convertTime($item[8]) : NULL,
+                    'svc_total_cycle_time' => isset($item[7]) ? $item[7] : NULL,
+                    'bvc_total_cycle_time' => isset($item[8]) ? $item[8] : NULL,
                     'created_by' => 1,
                     'created_at' => now(),
                 ]);

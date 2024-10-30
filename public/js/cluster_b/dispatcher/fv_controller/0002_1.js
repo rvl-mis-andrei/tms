@@ -125,8 +125,6 @@ export function fvTractorTrailer(param=false,_table=false){
                     fvTractorTrailer.enableValidator('tractor', 'remote');
                 }
                 form.setAttribute('data-fv-initialized', 'true');
-
-
             }
 
             $(modal_id).on('click','.cancel',function(e){

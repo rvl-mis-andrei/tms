@@ -13,9 +13,17 @@ class TrailerDriverOption
 {
     public function list(Request $rq)
     {
-        $query = Employee::whereHas('emp_details',function($q){
+        $query = Employee::with('cluster_driver')
+        ->whereHas('emp_details',function($q){
             $q->where([['position_id',61],['status',1]]);
+        })
+        ->where(function($q) {
+            $q->whereDoesntHave('cluster_driver') // No cluster_driver records
+              ->orWhereHas('cluster_driver', function($subQuery) {
+                  $subQuery->where('status', 0); // cluster_driver status is 0
+              });
         });
+
         return match($rq->type){
             'options' => $this->options($rq,$query),
         };

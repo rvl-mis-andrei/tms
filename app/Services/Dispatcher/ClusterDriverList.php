@@ -73,7 +73,7 @@ class ClusterDriverList
             $query = TmsClusterDriver::with(['employee'])->find($id);
 
             $payload = [
-                'name' =>$query->employee->fullname(),
+                'name' =>optional($query->employee)->fullname() ?? null,
                 'status' =>$query->status,
                 'remarks' =>$query->remarks,
             ];
@@ -103,11 +103,10 @@ class ClusterDriverList
             $query = TmsClusterDriver::updateOrCreate($attribute,$values);
             if ($query->wasRecentlyCreated) {
                 $query->update([
-                    'created_by'=>$user_id,
                     'emp_id' =>$emp_id,
+                    'created_by'=>$user_id,
                 ]);
                 $message = "Driver is added successfully";
-
             }else{
                 $query->update([
                     'updated_by' => $user_id,
@@ -151,13 +150,14 @@ class ClusterDriverList
             $id =  Crypt::decrypt($rq->id);
 
             $query = TmsClusterDriver::find($id);
+            $query->status = 0;
             $query->is_deleted = 1;
             $query->deleted_by = $user_id;
             $query->deleted_at = Carbon::now();
             $query->save();
 
             DB::commit();
-            return response()->json(['status' => 'info','message'=>'Trailer is deleted']);
+            return response()->json(['status' => 'info','message'=>'Driver is removed']);
         }catch(Exception $e){
             DB::rollback();
             return response()->json([

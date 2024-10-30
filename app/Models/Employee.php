@@ -24,12 +24,18 @@ class Employee extends Model
         'deleted_at',
     ];
 
-    public function emp_details(){
+    public function emp_details()
+    {
         return $this->hasOne(EmployeePosition::class,'emp_id');
     }
 
     public function fullname()
     {
         return $this->fname.' '.$this->lname;
+    }
+
+    public function cluster_driver()
+    {
+        return $this->hasOne(TmsClusterDriver::class,'emp_id')->latestOfMany();
     }
 }

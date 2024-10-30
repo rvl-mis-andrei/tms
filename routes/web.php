@@ -1,6 +1,7 @@
 <?php
 
-use App\Http\Controllers\ClusterBController\AccessController;
+use App\Http\Controllers\AdminController\AccessController as AdminLogin;
+use App\Http\Controllers\ClusterBController\AccessController as ClusterBLogin;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DispatcherController\Login\Auth as DispatcherLoginController;
 
@@ -16,7 +17,7 @@ Route::group(['prefix'=>'tms/'], function() {
     })->name('login.cco_cluster')->middleware('prevent.verified.user');
 
     Route::group(['prefix'=>'cco-b'], function() {
-        Route::controller(AccessController::class)->group(function () {
+        Route::controller(ClusterBLogin::class)->group(function () {
 
             Route::middleware('prevent.verified.user')->group(function () {
 
@@ -29,6 +30,22 @@ Route::group(['prefix'=>'tms/'], function() {
 
         });
     });
+
+    Route::group(['prefix'=>'admin'], function() {
+        Route::controller(AdminLogin::class)->group(function () {
+
+            Route::middleware('prevent.verified.user')->group(function () {
+
+                Route::get('/login', 'form')->name('admin.login.form');
+                Route::post('/login', 'login')->name('admin.login');
+
+            });
+
+            Route::post('/logout', 'logout')->name('cco-b.logout');
+
+        });
+    });
+
 });
 
 

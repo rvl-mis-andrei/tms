@@ -13,7 +13,11 @@ class WebRoute
         try {
             return Cache::rememberForever('dispatcher_routes', function () {
                 $access = TmsRoleAccess::where('role_id',1)->pluck('file_id');
-                return SystemFile::with('file_layer')->where('status',1)->get();
+                return SystemFile::with([
+                    'file_layer'=>function($q){
+                        $q->where('status',1);
+                    }
+                ])->whereIn('id',$access)->where('status',1)->get();
             });
         } catch (\Exception $e) {
             Log::error('Error retrieving dispatcher routes: ' . $e->getMessage());
@@ -26,13 +30,35 @@ class WebRoute
         try {
             return Cache::rememberForever('planner_routes', function () {
                 $access = TmsRoleAccess::where('role_id',2)->pluck('file_id');
-                return SystemFile::with('file_layer')->whereIn('id',$access)->where('status',1)->get();
+                return SystemFile::with([
+                    'file_layer'=>function($q){
+                        $q->where('status',1);
+                    }
+                ])->whereIn('id',$access)->where('status',1)->get();
             });
         } catch (\Exception $e) {
             Log::error('Error retrieving planner routes: ' . $e->getMessage());
             return array();
         }
     }
+
+    public function getAdminRoutes()
+    {
+        try {
+            return Cache::rememberForever('admin_routes', function () {
+                $access = TmsRoleAccess::where('role_id',3)->pluck('file_id');
+                return SystemFile::with([
+                    'file_layer'=>function($q){
+                        $q->where('status',1);
+                    }
+                ])->whereIn('id',$access)->where('status',1)->get();
+            });
+        } catch (\Exception $e) {
+            Log::error('Error retrieving admin routes: ' . $e->getMessage());
+            return array();
+        }
+    }
+
 
     // public function getHRSSRoutes()
     // {

@@ -5,7 +5,7 @@ import {fvHaulingPlan} from '../../planner/fv_controller/0002_0.js';
 
 
 export var HaulingPlanController = function (page,param) {
-
+    
     return {
         init: function () {
 

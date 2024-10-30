@@ -10,9 +10,9 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-body px-5 my-7">
+            <div class="modal-body">
                 <form id="form" modal-id="#modal_add_client" class="form fv-plugins-bootstrap5 fv-plugins-framework" action="/services/client/create">
-                    <div class="d-flex flex-column scroll-y px-5 px-lg-10" id="kt_modal_add_user_scroll" data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_modal_add_user_header" data-kt-scroll-wrappers="#kt_modal_add_user_scroll" data-kt-scroll-offset="300px" style="max-height: 670px;">
+                    <div class="d-flex flex-column px-5 px-lg-10" style="max-height: 670px;">
                         <div class="fv-row mb-7 fv-plugins-icon-container">
                             <label class="required fw-semibold fs-6 mb-2">Client Name</label>
                             <input type="text" name="name" class="form-control form-control-solid mb-3 mb-lg-0" placeholder="Client Name">
@@ -23,7 +23,7 @@
 
                             <textarea class="form-control form-control-solid" rows="3" name="description" placeholder="Description"></textarea>
                         </div>
-                        <div class="fv-row mb-10 fv-plugins-icon-container">
+                        <div class="fv-row mb-10 d-none fv-plugins-icon-container">
                             <label class="required fs-6 fw-semibold form-label mb-2">Status:</label>
                             <select name="is_active" data-control="select2" data-placeholder="Select a status" data-hide-search="false" data-minimum-results-for-search="Infinity" class="form-select form-select-solid fw-bold select2-hidden-accessible"
                             data-select2-id="select2-data-15-mta8" tabindex="-1" aria-hidden="true" data-kt-initialized="1">

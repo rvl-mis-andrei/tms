@@ -12,7 +12,7 @@ class TrailerOption
 {
     public function list(Request $rq)
     {
-        $query = Trailer::query();
+        $query = Trailer::where([['is_deleted',null]]);
         return match($rq->type){
             'options' => $this->options($rq,$query),
             'search_modal' => $this->search_modal($rq,$query),

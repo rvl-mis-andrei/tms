@@ -10,9 +10,12 @@ use App\Services\ClusterDriverOption;
 use App\Services\DealerOption;
 use App\Services\Dispatcher\ClusterCarModel;
 use App\Services\Dispatcher\ClusterDriverList;
+use App\Services\Dispatcher\ClusterGarage;
+use App\Services\Dispatcher\Location;
 use App\Services\Dispatcher\TractorList;
 use App\Services\Dispatcher\TractorTrailerList;
 use App\Services\Dispatcher\TrailerList;
+use App\Services\Dispatcher\TrailerType;
 use App\Services\Planner\HaulageList;
 use App\Services\TractorOption;
 use App\Services\TrailerDriverOption;
@@ -77,6 +80,8 @@ Route::group(['prefix'=>'services'], function() {
         Route::post('/datatable', 'datatable');
         Route::post('/update', 'update');
         Route::post('/info', 'info');
+        Route::post('/delete', 'delete');
+
         Route::post('/validate_driver','validate_driver');
 
         Route::post('/info','info');
@@ -86,9 +91,46 @@ Route::group(['prefix'=>'services'], function() {
         Route::post('/datatable', 'datatable');
         Route::post('/update', 'update');
         Route::post('/info','info');
+        Route::post('/delete', 'delete');
 
         Route::post('/validate_car_model','validate_car_model');
     });
+
+
+    Route::prefix('settings')->group(function() {
+
+        Route::controller(Location::class)->prefix('location')->group(function() {
+            Route::post('/datatable', 'datatable');
+            Route::post('/update', 'update');
+            Route::post('/info','info');
+            Route::post('/delete', 'delete');
+
+            Route::post('/validate_location','validate_location');
+
+        });
+
+        Route::controller(ClusterGarage::class)->prefix('garage')->group(function() {
+            Route::post('/datatable', 'datatable');
+            Route::post('/update', 'update');
+            Route::post('/info','info');
+            Route::post('/delete', 'delete');
+
+            Route::post('/validate_garage','validate_garage');
+
+        });
+
+        Route::controller(TrailerType::class)->prefix('trailer_type')->group(function() {
+            Route::post('/datatable', 'datatable');
+            Route::post('/update', 'update');
+            Route::post('/info','info');
+            Route::post('/delete', 'delete');
+
+            Route::post('/validate_trailer_type','validate_trailer_type');
+
+        });
+
+    });
+
 
 
 

@@ -2,6 +2,7 @@
 import {Alert} from "../../../global/alert.js"
 import {RequestHandler} from "../../../global/request.js"
 import {modal_state} from "../../../global.js"
+import { ClientListDT } from "../dt_controller/serverside/0004_0.js";
 
 export function fvNewClient(){
 
@@ -50,9 +51,10 @@ export function fvNewClient(){
                         modal_state(modal_id);
                         fvNewClient.resetForm();
                         form.reset();
-                        $('#form').attr('action','/services/client/create');
-                        $('.submit').attr('data-id','');
-                        $('.modal_title').text('New Client');
+                        $(modal_id).find('#form').attr('action','/services/client/create');
+                        $(modal_id).find('.modal_title').text('New Client');
+                        $(modal_id).find('.submit').attr('data-id','');
+                        $(modal_id).find('select[name="is_active"]').val(1).trigger('change').parent().addClass('d-none');
                     }
                 })
             })
@@ -61,19 +63,20 @@ export function fvNewClient(){
                 e.preventDefault()
                 e.stopImmediatePropagation()
 
-                let btn_submit = $(this);
+                let _this = $(this);
                 let form_url = form.getAttribute('action');
-
-                btn_submit.attr("data-kt-indicator","on");
-                btn_submit.attr("disabled",true);
+                let formData = new FormData(form);
 
                 fvNewClient && fvNewClient.validate().then(function (v) {
                     if(v == "Valid"){
                         Alert.confirm("question","Submit this form?", {
                             onConfirm: function() {
-                                let formData = new FormData(form);
-                                if(btn_submit.attr('data-id').length > 0) {
-                                    formData.append('id',btn_submit.attr('data-id'))
+
+                                _this.attr("data-kt-indicator","on");
+                                _this.attr("disabled",true);
+
+                                if(_this.attr('data-id').length > 0) {
+                                    formData.append('id',_this.attr('data-id'))
                                 }
                                 (new RequestHandler).post(form_url,formData).then((res) => {
                                     Alert.toast(res.status,res.message);
@@ -87,18 +90,16 @@ export function fvNewClient(){
                                     Alert.alert('error',"Something went wrong. Try again later", false);
                                 })
                                 .finally(() => {
-                                    btn_submit.attr("data-kt-indicator","off");
-                                    $("#client_list_table").DataTable().ajax.reload(null, false);
+                                    if($("#client_list_table").length){
+                                        $("#client_list_table").DataTable().ajax.reload(null, false);
+                                    }else{
+                                        ClientListDT().init()
+                                    }
+                                    _this.attr("data-kt-indicator","off");
+                                    _this.attr("disabled",false);
                                 });
                             },
-                            onCancel: () => {
-                                btn_submit.attr("data-kt-indicator","off");
-                                btn_submit.attr("disabled",false);
-                            }
                         });
-                    }else{
-                        btn_submit.attr("data-kt-indicator","off");
-                        btn_submit.attr("disabled",false);
                     }
                 })
             })

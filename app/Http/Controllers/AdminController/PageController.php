@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\ClusterBController;
+namespace App\Http\Controllers\AdminController;
 
 use App\Http\Controllers\Controller;
 use App\Models\SystemFile;
 use App\Models\TmsRoleAccess;
-use App\Services\Dispatcher\DispatcherPage;
+use App\Services\Planner\AdminPage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class DispatcherPageController extends Controller
+class PageController extends Controller
 {
     public function system_file(Request $rq)
     {
@@ -32,13 +32,11 @@ class DispatcherPageController extends Controller
             $file_layer = [];
             foreach($data->system_file->file_layer as $row)
             {
-                if($row->status){
-                    $file_layer[]=[
-                        'name'=>$row->name,
-                        'href'=>$row->href,
-                        'icon'=>$row->icon,
-                    ];
-                }
+                $file_layer[]=[
+                    'name'=>$row->name,
+                    'href'=>$row->href,
+                    'icon'=>$row->icon,
+                ];
             }
 
             $result[]=[
@@ -54,23 +52,11 @@ class DispatcherPageController extends Controller
 
     public function setup_page(Request $rq)
     {
-        $page = new DispatcherPage;
+        $page = new AdminPage;
         $rq->session()->put("clusterb_page",$rq->page);
         $view = $rq->session()->get("clusterb_page", "dashboard");
         $role    = strtolower(Auth::user()->user_roles->role->name);
         switch($view){
-
-            case 'client_info':
-                return response([ 'page' => $page->client_info($rq)], 200);
-            break;
-
-            case 'tractor_trailer_info':
-                return response([ 'page' => $page->tractor_trailer_info($rq)], 200);
-            break;
-
-            case 'hauling_plan_info':
-                return response([ 'page' => $page->haulage_info($rq)], 200);
-            break;
 
             default :
                 $row = SystemFile::with(["file_layer" => function($q) use($view) {
@@ -83,10 +69,10 @@ class DispatcherPageController extends Controller
                     });
                 })
                 ->first();
-                if (!$row) { return view("cluster_b.not_found"); }
+                if (!$row) { return view("admin.$role.not_found"); }
                 $folders = !$row->file_layer->isEmpty()? $row->folder.'.'.$row->file_layer[0]->folder :$row->folder;
                 $file    = $row->file_layer[0]->href??$row->href;
-                return response([ 'page' => view("cluster_b.$role.$folders.$file")->render() ],200);
+                return response([ 'page' => view("admin.$role.$folders.$file")->render() ],200);
             break;
         };
     }
