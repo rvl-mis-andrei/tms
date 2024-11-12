@@ -22,9 +22,13 @@ class RedirectIfAuthenticated
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
                 $user = Auth::user();
-                $cluster = $user->emp_cluster->cluster->code;
-                $role = strtolower($user->user_roles->role->name);
-                return redirect("$cluster/$role/dashboard");
+                if($user->user_roles->role_id == 3){
+                    return redirect("tms/admin/dashboard");
+                }else{
+                    $cluster = $user->emp_cluster->cluster->code;
+                    $role = strtolower($user->user_roles->role->name);
+                    return redirect("$cluster/$role/dashboard");
+                }
             }
         }
 

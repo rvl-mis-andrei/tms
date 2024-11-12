@@ -129,13 +129,25 @@ class ClusterDriverList
         try{
             $excluded_id = isset($rq->id) && $rq->id != "undefined"? Crypt::decrypt($rq->id): false;
             $emp_id = Crypt::decrypt($rq->trailer_driver);
-            $exists = TmsClusterDriver::where([['emp_id', $emp_id],['status',1]])
+            $exists = TmsClusterDriver::where([['emp_id', $emp_id],['is_deleted',null]])
             ->when($excluded_id, function ($q) use ($excluded_id) {
                 $q->where('id', '!=', $excluded_id);
             })
-            ->exists();
+            ->first();
 
-            return response()->json(['valid' => !$exists]);
+            $message = "Valid";
+            if($exists){
+                if($exists->status == 1){
+                    $message = "Driver already exist and the status is active.";
+                }else if ($exists->status ==2){
+                    $message = "Driver already exist and the status is inactive.";
+                }
+            }
+
+            return response()->json([
+                'valid' => !$exists,
+                'message' => $message
+            ]);
         }catch(Exception $e)
         {
             return response()->json(['status'=>400,'message' =>$e->getMessage()]);

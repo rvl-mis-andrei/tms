@@ -101,6 +101,7 @@ export function fvHaulingPlan(){
                                     if(res.status == 'success' && form_url!='/services/haulage/create'){
                                         form.reset();
                                     }
+                                    $(modal_id).find('.submit').attr('data-id','');
                                     modal_state(modal_id)
                                     fvHaulingPlan.resetForm();
                                 })

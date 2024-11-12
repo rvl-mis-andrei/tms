@@ -212,6 +212,7 @@ export var DriverDT = function (param) {
                     form.find('select[name="status"]').parent().removeClass('d-none');
 
                     let trailerType = form.find('select[name="trailer_driver"]');
+                    console.log(payload);
                     trigger_select(trailerType,payload.name);
                     trailerType.attr('disabled',true);
 

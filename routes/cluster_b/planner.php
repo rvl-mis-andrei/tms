@@ -8,13 +8,12 @@ use App\Http\Controllers\ClusterBController\PlannerPageController;
 use Illuminate\Support\Facades\Route;
 
 //remove tms
-// Route::group(['prefix'=>'tms/cco-b/planner'], function() {
-Route::group(['prefix'=>'cco-b/planner'], function() {
+Route::group(['prefix'=>'tms/cco-b/planner'], function() {
+// Route::group(['prefix'=>'cco-b/planner'], function() {
 
     Route::middleware('auth')->group(function () {
 
         Route::controller(PlannerPageController::class)->group(function () {
-
             Route::get('/', 'setup_page');
             Route::post('/setup-page', 'setup_page');
 

@@ -10,7 +10,7 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-body px-5 my-7">
+            <div class="modal-body">
                 <form id="form" modal-id="#modal_add_hauling_plan" class="form fv-plugins-bootstrap5 fv-plugins-framework" action="/services/haulage/create">
                     <div class="d-flex flex-column px-5 px-lg-10" id="kt_modal_add_user_scroll" data-kt-scroll="true" data-kt-scroll-activate="true"
                      data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_modal_add_user_header" data-kt-scroll-wrappers="#kt_modal_add_user_scroll" data-kt-scroll-offset="300px" style="max-height: 670px;">

@@ -20,7 +20,7 @@ class TrailerDriverOption
         ->where(function($q) {
             $q->whereDoesntHave('cluster_driver') // No cluster_driver records
               ->orWhereHas('cluster_driver', function($subQuery) {
-                  $subQuery->where('status', 0); // cluster_driver status is 0
+                  $subQuery->where([['status', 2],['is_deleted',null]]); // cluster_driver status is 0
               });
         });
 

@@ -7,15 +7,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController\PageController;
 
 
-// Route::group(['prefix'=>'admin'], function() {
 Route::group(['prefix'=>'tms/admin'], function() {
     Route::middleware('auth')->group(function () {
         Route::controller(PageController::class)->group(function () {
-
             Route::get('/', 'setup_page');
             Route::post('/setup-page', 'setup_page');
 
-            $routes = (new SystemRoute())->getPlannerRoutes();
+            $routes = (new SystemRoute())->getAdminRoutes();
+
             if ($routes) {
                 foreach ($routes as $row) {
                     if (!$row->file_layer->isEmpty()) {

@@ -18,7 +18,7 @@
                                 <div class="fv-row mb-5 fv-plugins-icon-container">
                                     <label class="required fs-6 fw-semibold form-label mb-2">Tractor:</label>
                                     <select name="tractor" data-allow-clear="true" data-control="select2" data-placeholder="Select a tractor"
-                                    class="form-select form-select-solid fw-bold select2-hidden-accessible modal-select">
+                                    class="form-select modal-select form-select-solid fw-bold select2-hidden-accessible">
                                         <option></option>
                                     </select>
                                     <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
@@ -28,7 +28,7 @@
                                 <div class="fv-row mb-5 fv-plugins-icon-container">
                                     <label class="required fs-6 fw-semibold form-label mb-2">Trailer:</label>
                                     <select name="trailer" data-allow-clear="true" data-control="select2" data-placeholder="Select a trailer"
-                                    class="form-select form-select-solid fw-bold select2-hidden-accessible modal-select">
+                                    class="form-select modal-select form-select-solid fw-bold select2-hidden-accessible">
                                         <option></option>
                                     </select>
                                     <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
@@ -39,7 +39,7 @@
                             <div class="fv-row mb-5 fv-plugins-icon-container">
                                 <label class="required fs-6 fw-semibold form-label mb-2">Driver 1:</label>
                                 <select name="pdriver" data-allow-clear="true" data-control="select2" data-placeholder="Select a driver"
-                                class="form-select form-select-solid fw-bold select2-hidden-accessible cluster_drivers modal-select">
+                                class="form-select modal-select form-select-solid fw-bold select2-hidden-accessible cluster_drivers">
                                     <option></option>
                                 </select>
                                 <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
@@ -49,7 +49,7 @@
                             <div class="fv-row mb-5 fv-plugins-icon-container">
                                 <label class="required fs-6 fw-semibold form-label mb-2">Driver 2:</label>
                                 <select name="sdriver" data-allow-clear="true" data-control="select2" data-placeholder="Select a driver"
-                                class="form-select form-select-solid fw-bold select2-hidden-accessible cluster_drivers modal-select">
+                                class="form-select modal-select form-select-solid fw-bold select2-hidden-accessible cluster_drivers">
                                     <option></option>
                                 </select>
                                 <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>

@@ -447,6 +447,7 @@ export var TractorTrailerDT = function (param) {
                 e.stopImmediatePropagation();
 
                 let _this = $(this);
+                let modal_id = ('#modal_add_tractor_trailer');
                 _this.attr('disabled',true);
 
                 let formData = new FormData;
@@ -463,6 +464,10 @@ export var TractorTrailerDT = function (param) {
                         $('select[name="sdriver"]').empty().append(payload.sdriver_option);
                         $('textarea[name="remarks"]').parent().addClass('d-none');
                         $('select[name="is_active"]').parent().addClass('d-none');
+
+                        $('select[name="tractor"] ,select[name="trailer"] ,select[name="pdriver"] ,select[name="sdriver"]').select2({
+                            dropdownParent: modal_id
+                        });
                     }
                 })
                 .catch((error) => {

@@ -29,7 +29,7 @@ class AccessController extends Controller
             $this->_response('Account is Deactivated',401,'error',csrf_token());
         }
 
-        if($user->emp_cluster->cluster_id != 2)
+        if($user->emp_cluster)
         {
             Auth::logout();
             $this->_response('This Login is for Admin only',401,'error',csrf_token());
@@ -43,7 +43,7 @@ class AccessController extends Controller
         if(Auth::check())
         {
             Auth::logout();
-            return redirect()->route('cco-b.form');
+            return redirect()->route('admin.form');
         }
     }
 }

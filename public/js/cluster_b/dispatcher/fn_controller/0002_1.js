@@ -223,8 +223,8 @@ export var HaulingPlanInfoController = function (page,param) {
         return new Promise((resolve, reject) => {
             try {
 
-                TractorTrailerDT(param).init()
-                fvTractorTrailer(false,'#tractor_trailer_driver')
+                TractorTrailerDT(param).init();
+                fvTractorTrailer(false,'#tractor_trailer_driver');
 
                 _page.on('click','.start-attendance', function(e) {
                     e.preventDefault();
@@ -315,6 +315,7 @@ export var HaulingPlanInfoController = function (page,param) {
     return {
         init: function () {
             page_block.block();
+
             loadTab(lastActiveTab,false).then((res) => {
                 if (res) {
                     tabLoaded.push(lastActiveTab);
@@ -326,6 +327,7 @@ export var HaulingPlanInfoController = function (page,param) {
                     },500);
                 }
             })
+
             _page.find('.tab').on('click',function(e){
                 e.preventDefault();
                 e.stopImmediatePropagation();

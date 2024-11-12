@@ -15,13 +15,12 @@ use App\Http\Controllers\ClusterBController\DispatcherPageController;
 use App\Services\Dispatcher\ClientList;
 use Illuminate\Support\Facades\Route;
 
-Route::group(['prefix'=>'cco-b/dispatcher'], function() {
-    // Route::group(['prefix'=>'tms/cco-b/dispatcher'], function() {
+// Route::group(['prefix'=>'cco-b/dispatcher'], function() {
+    Route::group(['prefix'=>'tms/cco-b/dispatcher'], function() {
 
     Route::middleware('auth')->group(function () {
 
         Route::controller(DispatcherPageController::class)->group(function () {
-
             Route::get('/', 'setup_page');
             Route::post('/setup-page', 'setup_page');
 
